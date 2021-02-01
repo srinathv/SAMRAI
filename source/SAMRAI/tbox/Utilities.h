@@ -64,7 +64,7 @@ typedef int mode_t;
 #define TBOX_ERROR(X)                                           \
    do {                                                         \
       std::ostringstream tboxos;                                \
-      tboxos << X << std::ends;                                 \
+      tboxos << X;                                              \
       SAMRAI::tbox::Utilities::abort(tboxos.str(), __FILE__, __LINE__); \
    } while (0)
 
@@ -74,7 +74,7 @@ typedef int mode_t;
 #define TBOX_WARNING(X)                        \
    do {                                        \
       std::ostringstream tboxos;               \
-      tboxos << X << std::ends;                \
+      tboxos << X;                             \
       SAMRAI::tbox::Logger::getInstance()->logWarning( \
          tboxos.str(), __FILE__, __LINE__);    \
    } while (0)
@@ -85,7 +85,7 @@ typedef int mode_t;
 #define TBOX_DEBUG(X)                        \
    do {                                      \
       std::ostringstream tboxos;             \
-      tboxos << X << std::ends;              \
+      tboxos << X;                           \
       SAMRAI::tbox::Logger::getInstance()->logDebug( \
          tboxos.str(), __FILE__, __LINE__);  \
    } while (0)
@@ -102,7 +102,7 @@ typedef int mode_t;
    do {                                                            \
       if (!(EXP)) {                                                \
          std::ostringstream tboxos;                                \
-         tboxos << "Failed assertion: " << # EXP << std::ends;     \
+         tboxos << "Failed assertion: " << # EXP;                  \
          SAMRAI::tbox::Utilities::abort(tboxos.str(), __FILE__, __LINE__); \
       }                                                            \
    } while (0)
@@ -128,7 +128,7 @@ typedef int mode_t;
    do {                                                            \
       if (!(EXP)) {                                                \
          std::ostringstream tboxos;                                \
-         tboxos << "Failed assertion: " << # EXP << std::endl << # MSG << std::ends; \
+         tboxos << "Failed assertion: " << # EXP << std::endl << # MSG; \
          SAMRAI::tbox::Utilities::abort(tboxos.str(), __FILE__, __LINE__); \
       }                                                            \
    } while (0)
@@ -170,7 +170,7 @@ typedef int mode_t;
    do {                                                            \
       if (!(EXP)) {                                                \
          std::ostringstream tboxos;                                \
-         tboxos << "Failed assertion: " << # EXP << std::ends;     \
+         tboxos << "Failed assertion: " << # EXP;                  \
          SAMRAI::tbox::Utilities::abort(tboxos.str(), __FILE__, __LINE__); \
       }                                                            \
    } while (0)
@@ -329,7 +329,7 @@ typedef int mode_t;
    do {                                                                  \
       if (!(EXP)) {                                                      \
          std::ostringstream tboxos;                                      \
-         tboxos << "Failed dimension assertion: " << # EXP << std::ends; \
+         tboxos << "Failed dimension assertion: " << # EXP;              \
          SAMRAI::tbox::Utilities::abort(tboxos.str(), __FILE__, __LINE__);       \
       }                                                                  \
    } while (0)
