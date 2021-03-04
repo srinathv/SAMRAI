@@ -148,8 +148,10 @@ if (ENABLE_RAJA)
 endif ()
 
 if (ENABLE_CUDA)
-  set(cuda_sources Schedule.C)
+  set(cuda_sources TransactionFuseable.C Schedule.C)
   set_source_files_properties(${cuda_sources} PROPERTIES LANGUAGE CUDA)
+
+  set (tbox_depends ${tbox_depends} cuda)
 
   if (ENABLE_NVTX_REGIONS)
     find_package(CUDA REQUIRED)

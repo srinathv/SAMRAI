@@ -14,16 +14,23 @@
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/tbox/Transaction.h"
+#include "SAMRAI/tbox/KernelFuser.h"
 
 #include <iostream>
 
 namespace SAMRAI {
 namespace tbox {
 
-  class TransactionFuseable :
-    public Transaction
-  {
-  };
+class TransactionFuseable :
+  public Transaction
+{
+public:
+  void setKernelFuser(KernelFuser* fuser);
+  KernelFuser* getKernelFuser();
+
+private:
+  KernelFuser* d_fuser{nullptr};
+};
 
 }
 }

@@ -105,20 +105,32 @@ Schedule::addTransaction(
 
    if ((d_mpi.getRank() == src_id) && (d_mpi.getRank() == dst_id)) {
       if (fuseable_transaction) {
-         d_local_set_fuseable.push_front(transaction);
+         if (!d_local_fuser) {
+            d_local_fuser = new KernelFuser{};
+         }
+         fuseable_transaction->setKernelFuser(d_local_fuser);
+         d_local_set_fuseable.push_front(fuseable_transaction);
       } else {
          d_local_set.push_front(transaction);
       }
    } else {
       if (d_mpi.getRank() == dst_id) {
          if (fuseable_transaction) {
-            d_recv_sets_fuseable[src_id].push_front(transaction);
+            if (!d_recv_fuser) {
+               d_recv_fuser = new KernelFuser{};
+            }
+            fuseable_transaction->setKernelFuser(d_recv_fuser);
+            d_recv_sets_fuseable[src_id].push_front(fuseable_transaction);
          } else {
             d_recv_sets[src_id].push_front(transaction);
          }
       } else if (d_mpi.getRank() == src_id) {
          if (fuseable_transaction) {
-            d_send_sets_fuseable[dst_id].push_front(transaction);
+            if (!d_send_fuser) {
+               d_send_fuser = new KernelFuser{};
+            }
+            fuseable_transaction->setKernelFuser(d_send_fuser);
+            d_send_sets_fuseable[dst_id].push_front(fuseable_transaction);
          } else {
             d_send_sets[dst_id].push_front(transaction);
          }
@@ -145,19 +157,31 @@ Schedule::appendTransaction(
 
    if ((d_mpi.getRank() == src_id) && (d_mpi.getRank() == dst_id)) {
       if (fuseable_transaction) {
-         d_local_set_fuseable.push_back(transaction);
+         if (!d_local_fuser) {
+            d_local_fuser = new KernelFuser{};
+         }
+         fuseable_transaction->setKernelFuser(d_local_fuser);
+         d_local_set_fuseable.push_back(fuseable_transaction);
       } else {
          d_local_set.push_back(transaction);
       }
    } else {
       if (d_mpi.getRank() == dst_id) {
          if (fuseable_transaction) {
-            d_recv_sets_fuseable[src_id].push_back(transaction);
+            if (!d_recv_fuser) {
+               d_recv_fuser = new KernelFuser{};
+            }
+            fuseable_transaction->setKernelFuser(d_recv_fuser);
+            d_recv_sets_fuseable[src_id].push_back(fuseable_transaction);
          } else {
             d_recv_sets[src_id].push_back(transaction);
          }
       } else if (d_mpi.getRank() == src_id) {
          if (fuseable_transaction) {
+            if (!d_send_fuser) {
+               d_send_fuser = new KernelFuser{};
+            }
+            fuseable_transaction->setKernelFuser(d_send_fuser);
             d_send_sets_fuseable[dst_id].push_back(transaction);
          } else {
             d_send_sets[dst_id].push_back(transaction);
@@ -438,10 +462,13 @@ Schedule::postSends()
          );
 
       d_object_timers->t_pack_stream->start();
-      for (const auto& transaction : d_send_sets[peer_rank]) {
+
+      for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
-      for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
+      d_send_fuser->launch();
+
+      for (const auto& transaction : d_send_sets[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
 #if defined(HAVE_RAJA)      
@@ -498,10 +525,12 @@ Schedule::postSends()
          );
 
       d_object_timers->t_pack_stream->start();
-      for (const auto& transaction : d_send_sets[peer_rank]) {
+      for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
-      for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
+      d_send_fuser->launch();
+
+      for (const auto& transaction : d_send_sets[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
 #if defined(HAVE_RAJA)      
@@ -536,10 +565,11 @@ void
 Schedule::performLocalCopies()
 {
    d_object_timers->t_local_copies->start();
-   // TODO: fuse these kernels
    for (const auto& local : d_local_set_fuseable) {
       local->copyLocalData();
    }
+   d_local_fuser->launch();
+
    for (const auto& local : d_local_set) {
       local->copyLocalData();
    }
@@ -585,13 +615,14 @@ Schedule::processCompletedCommunications()
             );
 
          d_object_timers->t_unpack_stream->start();
-         for (const auto& transaction : d_recv_sets[sender]) {
+         for (const auto& transaction : d_recv_sets_fuseable[sender]) {
             transaction->unpackStream(incoming_stream);
          }
+         d_recv_fuser->launch();
 #if defined(HAVE_RAJA)
          parallel_synchronize();
 #endif
-         for (const auto& transaction : d_recv_sets_fuseable[sender]) {
+         for (const auto& transaction : d_recv_sets[sender]) {
             transaction->unpackStream(incoming_stream);
          }
 #if defined(HAVE_RAJA)
@@ -634,13 +665,14 @@ Schedule::processCompletedCommunications()
                );
 
             d_object_timers->t_unpack_stream->start();
-            for (const auto& transaction : d_recv_sets[sender]) {
+            for (const auto& transaction : d_recv_sets_fuseable[sender]) {
                transaction->unpackStream(incoming_stream);
             }
+            d_recv_fuser->launch();
 #if defined(HAVE_RAJA)
             parallel_synchronize();
 #endif
-            for (const auto& transaction : d_recv_sets_fuseable[sender]) {
+            for (const auto& transaction : d_recv_sets[sender]) {
                transaction->unpackStream(incoming_stream);
             }
 #if defined(HAVE_RAJA)
