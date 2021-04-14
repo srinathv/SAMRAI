@@ -28,7 +28,11 @@ public:
   }
 
 private:
+#ifdef HAVE_UMPIRE
   using Allocator = umpire::TypedAllocator<char>;
+#else
+  using Allocator = ResourceAllocator;
+#endif
 
   // using Policy = typename tbox::detail::policy_traits< tbox::policy::parallel >::WorkGroupPolicy;
   // using WorkPool  = RAJA::WorkPool <Policy, int, RAJA::xargs<>, Allocator>;
