@@ -25,6 +25,18 @@ namespace pdat
 {
 
 /*
+ * Note on the usage of RAJA in this implementation:
+ *
+ * To support the allocation of ArrayData on either the host or device when
+ * running on GPU architectures, each RAJA kernel is implemented twice in
+ * an if/else code block.  The looping structure host_parallel_for_all()
+ * is used when ArrayData is allocated on the host and guarantees that
+ * the loop will execute on the host.  When the GPU devices is available and
+ * ArrayData is allocated on the device, parallel_for_all() is used to
+ * launch the kernels on the device.
+ */
+
+/*
  *************************************************************************
  *
  * Function that performs specified operation involving source and
@@ -93,6 +105,11 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
    NULL_USE(src_shift);
    NULL_USE(dst_start_depth);
    NULL_USE(src_start_depth);
+
+   bool src_on_host = src.dataOnHost();
+   bool dst_on_host = dst.dataOnHost();
+   TBOX_ASSERT(src_on_host == dst_on_host);
+   bool on_host = (src_on_host && dst_on_host);
 #endif
 
    /*
@@ -109,9 +126,15 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
             auto source = get_const_view<1>(src, d);
             const int shift_i = src_shift[0];
             auto s2 = source.shift({{shift_i}});
-            hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i) {
-               op(dest(i), s2(i));
-            });
+            if (on_host) {
+               hier::host_parallel_for_all(opbox, [=] (int i) {
+                  op(dest(i), s2(i));
+               });
+            } else {
+               hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i) {
+                  op(dest(i), s2(i));
+               });
+            }
          } break;
 
          case 2: {
@@ -120,9 +143,15 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
             const int shift_i = src_shift[0];
             const int shift_j = src_shift[1];
             auto s2 = source.shift({{shift_i, shift_j}});
-            hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j) {
-               op(dest(i, j), s2(i, j));
-            });
+            if (on_host) {
+               hier::host_parallel_for_all(opbox, [=] (int i, int j) {
+                  op(dest(i, j), s2(i, j));
+               });
+            } else {
+               hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j) {
+                  op(dest(i, j), s2(i, j));
+               });
+            }
          } break;
 
          case 3: {
@@ -132,9 +161,15 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
             const int shift_j = src_shift[1];
             const int shift_k = src_shift[2];
             auto s2 = source.shift({{shift_i, shift_j, shift_k}});
-            hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j, int k) {
-               op(dest(i, j, k), s2(i, j, k));
-            });
+            if (on_host) {
+               hier::host_parallel_for_all(opbox, [=] (int i, int j, int k) {
+                  op(dest(i, j, k), s2(i, j, k));
+               });
+            } else {
+               hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j, int k) {
+                  op(dest(i, j, k), s2(i, j, k));
+               });
+            }
          } break;
 
          default:
@@ -273,6 +308,8 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataBufferOperationOnBox(
 
    size_t dat_begin = array_d_box.offset(opbox.lower());
    size_t buf_begin = 0;
+#else
+   bool on_host = arraydata.dataOnHost();
 #endif
 
    /*
@@ -293,25 +330,43 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataBufferOperationOnBox(
             typename pdat::ArrayData<TYPE>::template View<1> dest(dst_ptr + dst_offset, dst_box);
             typename pdat::ArrayData<TYPE>::template ConstView<1> source(src_ptr + src_offset, src_box);
 
-            hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i) {
-               op(dest(i), source(i));
-            });
+            if (on_host) {
+               hier::host_parallel_for_all(opbox, [=] (int i) {
+                  op(dest(i), source(i));
+               });
+            } else {
+               hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i) {
+                  op(dest(i), source(i));
+               });
+            }
          } break;
 
          case 2: {
             typename pdat::ArrayData<TYPE>::template View<2> dest(dst_ptr + dst_offset, dst_box);
             typename pdat::ArrayData<TYPE>::template ConstView<2> source(src_ptr + src_offset, src_box);
-            hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j) {
-               op(dest(i, j), source(i, j));
-            });
+            if (on_host) {
+               hier::host_parallel_for_all(opbox, [=] (int i, int j) {
+                  op(dest(i, j), source(i, j));
+               });
+            } else {
+               hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j) {
+                  op(dest(i, j), source(i, j));
+               });
+            }
          } break;
 
          case 3: {
             typename pdat::ArrayData<TYPE>::template View<3> dest(dst_ptr + dst_offset, dst_box);
             typename pdat::ArrayData<TYPE>::template ConstView<3> source(src_ptr + src_offset, src_box);
-            hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j, int k) {
-               op(dest(i, j, k), source(i, j, k));
-            });
+            if (on_host) {
+               hier::host_parallel_for_all(opbox, [=] (int i, int j, int k) {
+                  op(dest(i, j, k), source(i, j, k));
+               });
+            } else {
+               hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j, int k) {
+                  op(dest(i, j, k), source(i, j, k));
+               });
+            }
          } break;
 
          default:
@@ -449,6 +504,11 @@ inline void ArrayDataOperationUtilities<dcomplex,SumOperation<dcomplex> >::doArr
    NULL_USE(dst_start_depth);
    NULL_USE(src_start_depth);
    NULL_USE(op);
+
+   bool src_on_host = src.dataOnHost();
+   bool dst_on_host = dst.dataOnHost();
+   TBOX_ASSERT(src_on_host == dst_on_host);
+   bool on_host = (src_on_host && dst_on_host);
 #endif
 
    /*
@@ -465,14 +525,25 @@ inline void ArrayDataOperationUtilities<dcomplex,SumOperation<dcomplex> >::doArr
             auto source = get_const_view<1>(src, d);
             const int shift_i = src_shift[0];
             auto s2 = source.shift({{shift_i}});
-            hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i) {
-               double &dest_real = reinterpret_cast<double(&)[2]>(dest(i))[0];
-               double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i))[1];
-               const double &s2_real = reinterpret_cast<const double(&)[2]>(s2(i))[0];
-               const double &s2_imag = reinterpret_cast<const double(&)[2]>(s2(i))[1];
-               sumop_dbl(dest_real, s2_real);
-               sumop_dbl(dest_imag, s2_imag);
-            });
+            if (on_host) {
+               hier::host_parallel_for_all(opbox, [=] (int i) {
+                  double &dest_real = reinterpret_cast<double(&)[2]>(dest(i))[0];
+                  double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i))[1];
+                  const double &s2_real = reinterpret_cast<const double(&)[2]>(s2(i))[0];
+                  const double &s2_imag = reinterpret_cast<const double(&)[2]>(s2(i))[1];
+                  sumop_dbl(dest_real, s2_real);
+                  sumop_dbl(dest_imag, s2_imag);
+               });
+            } else {
+               hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i) {
+                  double &dest_real = reinterpret_cast<double(&)[2]>(dest(i))[0];
+                  double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i))[1];
+                  const double &s2_real = reinterpret_cast<const double(&)[2]>(s2(i))[0];
+                  const double &s2_imag = reinterpret_cast<const double(&)[2]>(s2(i))[1];
+                  sumop_dbl(dest_real, s2_real);
+                  sumop_dbl(dest_imag, s2_imag);
+               });
+            }
          } break;
 
          case 2: {
@@ -481,14 +552,25 @@ inline void ArrayDataOperationUtilities<dcomplex,SumOperation<dcomplex> >::doArr
             const int shift_i = src_shift[0];
             const int shift_j = src_shift[1];
             auto s2 = source.shift({{shift_i, shift_j}});
-            hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j) {
-               double &dest_real = reinterpret_cast<double(&)[2]>(dest(i,j))[0];
-               double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i,j))[1];
-               const double &s2_real = reinterpret_cast<const double(&)[2]>(s2(i,j))[0];
-               const double &s2_imag = reinterpret_cast<const double(&)[2]>(s2(i,j))[1];
-               sumop_dbl(dest_real, s2_real);
-               sumop_dbl(dest_imag, s2_imag);
-            });
+            if (on_host) {
+               hier::host_parallel_for_all(opbox, [=] (int i, int j) {
+                  double &dest_real = reinterpret_cast<double(&)[2]>(dest(i,j))[0];
+                  double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i,j))[1];
+                  const double &s2_real = reinterpret_cast<const double(&)[2]>(s2(i,j))[0];
+                  const double &s2_imag = reinterpret_cast<const double(&)[2]>(s2(i,j))[1];
+                  sumop_dbl(dest_real, s2_real);
+                  sumop_dbl(dest_imag, s2_imag);
+               });
+            } else {
+               hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j) {
+                  double &dest_real = reinterpret_cast<double(&)[2]>(dest(i,j))[0];
+                  double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i,j))[1];
+                  const double &s2_real = reinterpret_cast<const double(&)[2]>(s2(i,j))[0];
+                  const double &s2_imag = reinterpret_cast<const double(&)[2]>(s2(i,j))[1];
+                  sumop_dbl(dest_real, s2_real);
+                  sumop_dbl(dest_imag, s2_imag);
+               });
+            }
          } break;
 
          case 3: {
@@ -498,14 +580,25 @@ inline void ArrayDataOperationUtilities<dcomplex,SumOperation<dcomplex> >::doArr
             const int shift_j = src_shift[1];
             const int shift_k = src_shift[2];
             auto s2 = source.shift({{shift_i, shift_j, shift_k}});
-            hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j, int k) {
-               double &dest_real = reinterpret_cast<double(&)[2]>(dest(i,j,k))[0];
-               double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i,j,k))[1];
-               const double &s2_real = reinterpret_cast<const double(&)[2]>(s2(i,j,k))[0];
-               const double &s2_imag = reinterpret_cast<const double(&)[2]>(s2(i,j,k))[1];
-               sumop_dbl(dest_real, s2_real);
-               sumop_dbl(dest_imag, s2_imag);
-            });
+            if (on_host) {
+               hier::host_parallel_for_all(opbox, [=] (int i, int j, int k) {
+                  double &dest_real = reinterpret_cast<double(&)[2]>(dest(i,j,k))[0];
+                  double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i,j,k))[1];
+                  const double &s2_real = reinterpret_cast<const double(&)[2]>(s2(i,j,k))[0];
+                  const double &s2_imag = reinterpret_cast<const double(&)[2]>(s2(i,j,k))[1];
+                  sumop_dbl(dest_real, s2_real);
+                  sumop_dbl(dest_imag, s2_imag);
+               });
+            } else {
+               hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j, int k) {
+                  double &dest_real = reinterpret_cast<double(&)[2]>(dest(i,j,k))[0];
+                  double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i,j,k))[1];
+                  const double &s2_real = reinterpret_cast<const double(&)[2]>(s2(i,j,k))[0];
+                  const double &s2_imag = reinterpret_cast<const double(&)[2]>(s2(i,j,k))[1];
+                  sumop_dbl(dest_real, s2_real);
+                  sumop_dbl(dest_imag, s2_imag);
+               });
+            }
          } break;
 
          default:
@@ -649,6 +742,7 @@ inline void ArrayDataOperationUtilities<dcomplex, SumOperation<dcomplex> >::doAr
    size_t buf_begin = 0;
 #else
    NULL_USE(op);
+   bool on_host = arraydata.dataOnHost();
 #endif
 
    /*
@@ -669,41 +763,73 @@ inline void ArrayDataOperationUtilities<dcomplex, SumOperation<dcomplex> >::doAr
          case 1: {
             typename pdat::ArrayData<double>::template View<1> dest((double*)(dst_ptr + dst_offset), dst_box);
             typename pdat::ArrayData<double>::template View<1> source((double*)(src_ptr + src_offset), src_box);
-
-            hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i) {
-               double &dest_real = reinterpret_cast<double(&)[2]>(dest(i))[0];
-               double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i))[1];
-               double &source_real = reinterpret_cast<double(&)[2]>(source(i))[0];
-               double &source_imag = reinterpret_cast<double(&)[2]>(source(i))[1];
-               sumop_dbl(dest_real, source_real);
-               sumop_dbl(dest_imag, source_imag);
-            });
+            if (on_host) {
+               hier::host_parallel_for_all(opbox, [=] (int i) {
+                  double &dest_real = reinterpret_cast<double(&)[2]>(dest(i))[0];
+                  double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i))[1];
+                  double &source_real = reinterpret_cast<double(&)[2]>(source(i))[0];
+                  double &source_imag = reinterpret_cast<double(&)[2]>(source(i))[1];
+                     sumop_dbl(dest_real, source_real);
+                  sumop_dbl(dest_imag, source_imag);
+               });
+            } else {
+               hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i) {
+                  double &dest_real = reinterpret_cast<double(&)[2]>(dest(i))[0];
+                  double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i))[1];
+                  double &source_real = reinterpret_cast<double(&)[2]>(source(i))[0];
+                  double &source_imag = reinterpret_cast<double(&)[2]>(source(i))[1];
+                     sumop_dbl(dest_real, source_real);
+                  sumop_dbl(dest_imag, source_imag);
+               });
+            }
          } break;
 
          case 2: {
             typename pdat::ArrayData<double>::template View<2> dest((double*)(dst_ptr + dst_offset), dst_box);
             typename pdat::ArrayData<double>::template View<2> source((double*)src_ptr + src_offset, src_box);
-            hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j) {
-               double &dest_real = reinterpret_cast<double(&)[2]>(dest(i,j))[0];
-               double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i,j))[1];
-               double &source_real = reinterpret_cast<double(&)[2]>(source(i,j))[0];
-               double &source_imag = reinterpret_cast<double(&)[2]>(source(i,j))[1];
-               sumop_dbl(dest_real, source_real);
-               sumop_dbl(dest_imag, source_imag);
-            });
+            if (on_host) {
+               hier::host_parallel_for_all(opbox, [=] (int i, int j) {
+                  double &dest_real = reinterpret_cast<double(&)[2]>(dest(i,j))[0];
+                  double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i,j))[1];
+                  double &source_real = reinterpret_cast<double(&)[2]>(source(i,j))[0];
+                  double &source_imag = reinterpret_cast<double(&)[2]>(source(i,j))[1];
+                  sumop_dbl(dest_real, source_real);
+                  sumop_dbl(dest_imag, source_imag);
+               });
+            } else {
+               hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j) {
+                  double &dest_real = reinterpret_cast<double(&)[2]>(dest(i,j))[0];
+                  double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i,j))[1];
+                  double &source_real = reinterpret_cast<double(&)[2]>(source(i,j))[0];
+                  double &source_imag = reinterpret_cast<double(&)[2]>(source(i,j))[1];
+                  sumop_dbl(dest_real, source_real);
+                  sumop_dbl(dest_imag, source_imag);
+               });
+            }
          } break;
 
          case 3: {
             typename pdat::ArrayData<double>::template View<3> dest((double*)(dst_ptr + dst_offset), dst_box);
             typename pdat::ArrayData<double>::template View<3> source((double*)(src_ptr + src_offset), src_box);
-            hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j, int k) {
-               double &dest_real = reinterpret_cast<double(&)[2]>(dest(i,j,k))[0];
-               double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i,j,k))[1];
-               double &source_real = reinterpret_cast<double(&)[2]>(source(i,j,k))[0];
-               double &source_imag = reinterpret_cast<double(&)[2]>(source(i,j,k))[1];
-               sumop_dbl(dest_real, source_real);
-               sumop_dbl(dest_imag, source_imag);
-            });
+            if (on_host) { 
+               hier::host_parallel_for_all(opbox, [=] (int i, int j, int k) {
+                  double &dest_real = reinterpret_cast<double(&)[2]>(dest(i,j,k))[0];
+                  double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i,j,k))[1];
+                  double &source_real = reinterpret_cast<double(&)[2]>(source(i,j,k))[0];
+                  double &source_imag = reinterpret_cast<double(&)[2]>(source(i,j,k))[1];
+                  sumop_dbl(dest_real, source_real);
+                  sumop_dbl(dest_imag, source_imag);
+               });
+            } else {
+               hier::parallel_for_all(opbox, [=] SAMRAI_HOST_DEVICE(int i, int j, int k) {
+                  double &dest_real = reinterpret_cast<double(&)[2]>(dest(i,j,k))[0];
+                  double &dest_imag = reinterpret_cast<double(&)[2]>(dest(i,j,k))[1];
+                  double &source_real = reinterpret_cast<double(&)[2]>(source(i,j,k))[0];
+                  double &source_imag = reinterpret_cast<double(&)[2]>(source(i,j,k))[1];
+                  sumop_dbl(dest_real, source_real);
+                  sumop_dbl(dest_imag, source_imag);
+               });
+            }
          } break;
 
          default:

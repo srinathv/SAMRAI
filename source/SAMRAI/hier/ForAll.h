@@ -30,24 +30,36 @@ namespace hier
 {
 
 /*!
- * Two looping structures for use with RAJA policies are provided
+ * Three looping structures for use with RAJA policies are provided;
  *
  * parallel_for_all() uses a default parallel policy based on the
- * configuration used build SAMRAI.  If SAMRAI is confugured with cuda,
+ * configuration used build SAMRAI.  If SAMRAI is confugured with CUDA,
  * the loop kernel will be launched on the GPU.  If cuda is not used
- * but OpenMP is enabled, then the looped will CPU-threaded using OpenMP.
- * If neither cuda nor OpenMP are used, the loop will execute as an
- * unthreaded loop on the CPU.
+ * then the loope will run on the CPU.
  *
- * parallel_for_all() loops over a mesh defined by a hier::Box of
- * a Dimension from 1 to 3.  To use it, provide the Box and the list of
- * integer loop indices.  The number of indices must equal the Dimension of
- * the Box.  The SAMRAI_HOST_DEVICE macro is used to set the default policy
- * as described abov.
+ * host_parallel_for_all() is provided to define loops that always run
+ * on the host CPU even when configured with CUDA.  This allows RAJA loop
+ * kernels to be implemented to operate on data that the calling code has
+ * chosen to keep on the CPU.
+ * 
+ * Both parallel_for_all() and host_parallel_for_all() are overloaded to
+ * provide interfaces that loop over a mesh defined by a hier::Box of
+ * a Dimension from 1 to 3.  To use it, provide the Box and a lambda function
+ * that specifies the integer loop indices.  The number of indices must
+ * equal the Dimension of the Box.  The SAMRAI_HOST_DEVICE macro is used to
+ * set the default policy for parallel_for_all().  SAMRAI_HOST_DEVICE is
+ * not recommended to be used in host_parallel_for_all().
  * 
  * \verbatim
  *
- * hier::parallel_for_all(box, [=] SAMRAI_HOST_DEVICE(int i, int j, int k) {
+ * hier::parallel_for_all(box, [=] SAMRAI_HOST_DEVICE(int i, int j, int k)
+ * {
+ *    // loop interior
+ * });
+ *
+ * hier::host_parallel_for_all(box, [=] (int i, int j, int k)
+ * {
+ *    // loop interior
  * });
  *
  * \endverbatim
@@ -57,7 +69,9 @@ namespace hier
  *
  * \verbatim
  *
- * hier::for_all<policy>(box, [=] (int i, int j, int k) {
+ * hier::for_all<policy>(box, [=] (int i, int j, int k)
+ * {
+ *    // loop interior
  * });
  *
  * \endverbatim
@@ -205,6 +219,12 @@ inline void parallel_for_all(int begin, int end, LoopBody body)
    for_all<tbox::policy::parallel>(begin, end, body);
 }
 
+template <typename LoopBody>
+inline void host_parallel_for_all(int begin, int end, LoopBody body)
+{
+   for_all<tbox::policy::host_parallel>(begin, end, body);
+}
+
 template <typename Policy, typename LoopBody>
 inline void for_all(const hier::Box& box, const int dim, LoopBody body)
 {
@@ -215,6 +235,12 @@ template <typename LoopBody>
 inline void parallel_for_all(const hier::Box& box, const int dim, LoopBody body)
 {
    for_all<tbox::policy::parallel>(box.lower()(dim), box.upper()(dim) + 1, body);
+}
+
+template <typename LoopBody>
+inline void host_parallel_for_all(const hier::Box& box, const int dim, LoopBody body)
+{
+   for_all<tbox::policy::host_parallel>(box.lower()(dim), box.upper()(dim) + 1, body);
 }
 
 template <typename Policy, typename LoopBody>
@@ -229,6 +255,13 @@ inline void parallel_for_all(const hier::Box& box, LoopBody body)
 {
    for_all<tbox::policy::parallel>(box, body);
 }
+
+template <typename LoopBody>
+inline void host_parallel_for_all(const hier::Box& box, LoopBody body)
+{
+   for_all<tbox::policy::host_parallel>(box, body);
+}
+
 
 }  // namespace hier
 }  // namespace SAMRAI
