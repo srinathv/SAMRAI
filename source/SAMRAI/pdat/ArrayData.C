@@ -299,12 +299,10 @@ void ArrayData<TYPE>::copy(
       const size_t n = d_offset * d_depth;
 #if defined(HAVE_RAJA)
       if (d_on_host) {
-         printf("host copy\n");
          hier::host_parallel_for_all(0, n, [=] (int i) {
             copyop(dst_ptr[i], src_ptr[i]);
          });
       } else {
-         printf("device copy\n");
          hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {
             copyop(dst_ptr[i], src_ptr[i]);
          });
@@ -495,12 +493,10 @@ void ArrayData<TYPE>::copyDepth(
 
 #if defined(HAVE_RAJA)
       if (d_on_host) {
-         printf("host copy 2\n");
          hier::host_parallel_for_all(0, d_offset, [=] (int i) {
             copyop(dst_ptr_d[i], src_ptr_d[i]);
          });
       } else {
-         printf("device copy 2 \n");
          hier::parallel_for_all(0, d_offset, [=] SAMRAI_HOST_DEVICE(int i) {
             copyop(dst_ptr_d[i], src_ptr_d[i]);
          });
@@ -1014,12 +1010,10 @@ void ArrayData<TYPE>::fillAll(
       const size_t n = d_depth * d_offset;
 #if defined(HAVE_RAJA)
       if (d_on_host) {
-             printf("host fillall\n");
          hier::host_parallel_for_all(0, n, [=] (int i) {
             ptr[i] = t;
          });
       } else {
-         printf("device fillall\n");
          hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {
             ptr[i] = t;
          });
@@ -1058,12 +1052,10 @@ void ArrayData<TYPE>::fill(
    if (!d_box.empty()) {
 #if defined(HAVE_RAJA)
       if (d_on_host) {
-         printf("host fill\n");
          hier::host_parallel_for_all(0, n, [=] (int i) {
             ptr[i] = t;
          });
       } else {
-         printf("device fill\n");
          hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {
             ptr[i] = t;
          });
