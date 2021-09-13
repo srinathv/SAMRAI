@@ -22,6 +22,7 @@ namespace policy {
 struct base {};
 struct sequential : base {};
 struct parallel : base {};
+struct host_parallel : base {};
 }
 
 namespace detail {
@@ -148,6 +149,37 @@ struct policy_traits<policy::parallel> {
 };
 
 #endif // HAVE_CUDA
+
+template <>
+struct policy_traits<policy::host_parallel> {
+   using Policy = RAJA::loop_exec;
+
+   using Policy1d = RAJA::KernelPolicy<
+      RAJA::statement::For<0, RAJA::loop_exec,
+         RAJA::statement::Lambda<0>
+      >
+   >;
+
+   using Policy2d = RAJA::KernelPolicy<
+      RAJA::statement::For<1, RAJA::loop_exec,
+         RAJA::statement::For<0, RAJA::loop_exec,
+            RAJA::statement::Lambda<0>
+         >
+      >
+   >;
+
+   using Policy3d = RAJA::KernelPolicy<
+      RAJA::statement::For<2, RAJA::loop_exec,
+         RAJA::statement::For<1, RAJA::loop_exec,
+            RAJA::statement::For<0, RAJA::loop_exec,
+               RAJA::statement::Lambda<0>
+            >
+         >
+      >
+   >;
+
+   using ReductionPolicy = RAJA::seq_reduce;
+};
 
 } // namespace detail
 
