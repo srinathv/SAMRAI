@@ -49,6 +49,11 @@ gcc_7_1_0 (build on quartz):
     COMPILER: "gcc_7_1_0"
   extends: .build_on_quartz
 
+gcc_8_1_0 (build on quartz):
+  variables:
+    COMPILER: "gcc_8_1_0"
+  extends: .build_on_quartz
+
 ####
 # Here are all quartz tests jobs
 
@@ -57,3 +62,9 @@ gcc_7_1_0 (test on quartz):
     COMPILER: "gcc_7_1_0"
   extends: .test_on_quartz
   needs: ["gcc_7_1_0 (build on quartz)"]
+
+gcc_8_1_0 (test on quartz):
+  variables:
+    COMPILER: "gcc_8_1_0"
+  extends: .test_on_quartz
+  needs: ["gcc_8_1_0 (build on quartz)"]
