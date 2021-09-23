@@ -46,8 +46,10 @@ after_script:
 # complete.
 stages:
   - start
+  - q_allocate_resources
   - q_build
   - q_test
+  - q_release_resources 
   - l_build_and_test
   - b_build_and_test
 
@@ -80,14 +82,14 @@ start:
     - echo ${SAMRAI_ALLOC_NAME}
     - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
     - echo ${JOBID}
-    - srun -p pdebug -t 10 -N 1 source/scripts/gitlab/build_and_test.sh --build-only
+    - srun -t 10 -N 1 source/scripts/gitlab/build_and_test.sh --build-only
 
 .test_toss_3_x86_64_ib_script:
   script:
     - echo ${SAMRAI_ALLOC_NAME}
     - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
     - echo ${JOBID}
-    - salloc -p pdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh --test-only
+    - srun -t 30 -N 1 source/scripts/gitlab/build_and_test.sh --test-only
   artifacts:
     paths:
       - ctest_report_*.xml

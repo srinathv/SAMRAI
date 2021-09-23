@@ -23,8 +23,25 @@
       when: always
     - when: on_success
 
+allocate_resources (on quartz):
+  variables:
+    GIT_STRATEGY: none
+  extends: .on_quartz
+  stage: q_allocate_resources
+  script:
+    - salloc -N 1 -p pdebug -t 45 --no-shell --job-name=${ALLOC_NAME}
+
+release_resources (on quartz):
+  variables:
+    GIT_STRATEGY: none
+  extends: .on_quartz
+  stage: q_release_resources
+  script:
+    - export JOBID=$(squeue -h --name=${ALLOC_NAME} --format=%A)
+    - ([[ -n "${JOBID}" ]] && scancel ${JOBID})
+
 ####
-# Generic qwartz build job, extending build script
+# Generic quartz build job, extending build script
 .build_on_quartz:
   stage: q_build
   extends: [.build_toss_3_x86_64_ib_script, .on_quartz]
