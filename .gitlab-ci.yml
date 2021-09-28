@@ -46,8 +46,6 @@ after_script:
 # complete.
 stages:
   - start
-  - q_build
-  - q_test
   - r_build
   - r_test
   - l_build_and_test
@@ -64,7 +62,6 @@ start:
   stage: start
   tags:
     - shell
-    - quartz
     - ruby
   script:
     - echo "Creating a reference job for dag execution (needs keyword)"
@@ -107,7 +104,6 @@ start:
 
 # This is where jobs are included
 include:
-  - local: .gitlab/quartz.yml
   - local: .gitlab/ruby.yml
 
 
