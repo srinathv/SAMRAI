@@ -358,7 +358,9 @@
 /* Configure for compiling on BGL family of machines */
 #undef __BGL_FAMILY__
 
-
+#ifdef HAVE_RAJA
+#define HAVE_KERNEL_FUSER
+#endif
 
 namespace SAMRAI {
    static const unsigned short MAX_DIM_VAL = SAMRAI_MAXIMUM_DIMENSION;
