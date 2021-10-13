@@ -20,7 +20,7 @@
 
 
 #ifdef HAVE_UMPIRE
-#include "umpire/strategy/DynamicPool.hpp"
+#include "umpire/strategy/QuickPool.hpp"
 #include "umpire/ResourceManager.hpp"
 #endif
 
