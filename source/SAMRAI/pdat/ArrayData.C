@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2020 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
  * Description:   Templated array data structure supporting patch data types
  *
  ************************************************************************/
@@ -37,6 +37,18 @@
 #pragma report(disable, CPPC5334)
 #pragma report(disable, CPPC5328)
 #endif
+
+/*
+ * Note on the usage of RAJA in this implementation:
+ *
+ * To support the allocation of ArrayData on either the host or device when
+ * running on GPU architectures, each RAJA kernel is implemented twice in
+ * an if/else code block.  The looping structure host_parallel_for_all()
+ * is used when ArrayData is allocated on the host and guarantees that
+ * the loop will execute on the host.  When the GPU devices is available and
+ * ArrayData is allocated on the device, parallel_for_all() is used to
+ * launch the kernels on the device.
+ */
 
 namespace SAMRAI
 {
@@ -84,13 +96,22 @@ ArrayData<TYPE>::ArrayData(
 #if defined(HAVE_UMPIRE)
                           ,
                           d_allocator(umpire::ResourceManager::getInstance().getAllocator("samrai::data_allocator")),
-                          d_array(d_allocator.allocate(d_depth * d_offset * sizeof(TYPE)))
+                          d_array(d_allocator.allocate(d_depth * d_offset * sizeof(TYPE))),
 #else
                           ,
-                          d_array(d_depth * d_offset)
+                          d_array(d_depth * d_offset),
 #endif
+                          d_on_host(true)
 {
    TBOX_ASSERT(depth > 0);
+
+#if defined (HAVE_UMPIRE)
+   tbox::ResourceAllocator data_allocator =
+      umpire::ResourceManager::getInstance().getAllocator("samrai::data_allocator");
+   if (data_allocator.getPlatform() != umpire::Platform::host) {
+      d_on_host = false;
+   }
+#endif
 
 #ifdef DEBUG_INITIALIZE_UNDEFINED
    undefineData();
@@ -107,16 +128,22 @@ ArrayData<TYPE>::ArrayData(
    d_box(box),
 #if defined(HAVE_UMPIRE)
    d_allocator(allocator),
-   d_array(d_allocator.allocate(d_depth * d_offset * sizeof(TYPE)))
+   d_array(d_allocator.allocate(d_depth * d_offset * sizeof(TYPE))),
 #else
-   d_array(d_depth * d_offset)
+   d_array(d_depth * d_offset),
 #endif
+   d_on_host(true) 
 {
 #ifndef HAVE_UMPIRE
    NULL_USE(allocator);
 #endif
 
    TBOX_ASSERT(depth > 0);
+#if defined (HAVE_UMPIRE)
+   if (allocator.getPlatform() != umpire::Platform::host) {
+      d_on_host = false;
+   }
+#endif
 
 #ifdef DEBUG_INITIALIZE_UNDEFINED
    undefineData();
@@ -271,9 +298,15 @@ void ArrayData<TYPE>::copy(
       const TYPE* const src_ptr = &src.d_array[0];
       const size_t n = d_offset * d_depth;
 #if defined(HAVE_RAJA)
-      hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {
-         copyop(dst_ptr[i], src_ptr[i]);
-      });
+      if (d_on_host) {
+         hier::host_parallel_for_all(0, n, [=] (int i) {
+            copyop(dst_ptr[i], src_ptr[i]);
+         });
+      } else {
+         hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {
+            copyop(dst_ptr[i], src_ptr[i]);
+         });
+      } 
 #else
       for (size_t i = 0; i < n; ++i) {
          copyop(dst_ptr[i], src_ptr[i]);
@@ -459,9 +492,15 @@ void ArrayData<TYPE>::copyDepth(
 
 
 #if defined(HAVE_RAJA)
-      hier::parallel_for_all(0, d_offset, [=] SAMRAI_HOST_DEVICE(int i) {
-         copyop(dst_ptr_d[i], src_ptr_d[i]);
-      });
+      if (d_on_host) {
+         hier::host_parallel_for_all(0, d_offset, [=] (int i) {
+            copyop(dst_ptr_d[i], src_ptr_d[i]);
+         });
+      } else {
+         hier::parallel_for_all(0, d_offset, [=] SAMRAI_HOST_DEVICE(int i) {
+            copyop(dst_ptr_d[i], src_ptr_d[i]);
+         });
+      }
 #else
       for (size_t i = 0; i < d_offset; ++i) {
          copyop(dst_ptr_d[i], src_ptr_d[i]);
@@ -503,7 +542,6 @@ void ArrayData<TYPE>::copyDepth(
  *
  *************************************************************************
  */
-
 template <class TYPE>
 void ArrayData<TYPE>::sum(
     const ArrayData<TYPE>& src,
@@ -525,9 +563,15 @@ void ArrayData<TYPE>::sum(
       const size_t n = d_offset * d_depth;
 
 #if defined(HAVE_RAJA)
-      hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {
-         sumop(dst_ptr[i], src_ptr[i]);
-      });
+      if (d_on_host) {
+         hier::host_parallel_for_all(0, n, [=] (int i) {
+            sumop(dst_ptr[i], src_ptr[i]);
+         });
+      } else { 
+         hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {
+            sumop(dst_ptr[i], src_ptr[i]);
+         });
+      }
 #else
       for (size_t i = 0; i < n; ++i) {
          sumop(dst_ptr[i], src_ptr[i]);
@@ -582,15 +626,35 @@ inline void ArrayData<dcomplex>::sum(
 
 #if defined(HAVE_RAJA)
       SumOperation<double> sumop_dbl;
-      hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {   
-         double &dst_ptr_real = reinterpret_cast<double(&)[2]>(dst_ptr[i])[0];
-         double &dst_ptr_imag = reinterpret_cast<double(&)[2]>(dst_ptr[i])[1];
-         const double &src_ptr_real = reinterpret_cast<const double(&)[2]>(src_ptr[i])[0];
-         const double &src_ptr_imag = reinterpret_cast<const double(&)[2]>(src_ptr[i])[1];
+      if (d_on_host) {
+         hier::host_parallel_for_all(0, n, [=] (int i) {   
+            double &dst_ptr_real =
+               reinterpret_cast<double(&)[2]>(dst_ptr[i])[0];
+            double &dst_ptr_imag =
+               reinterpret_cast<double(&)[2]>(dst_ptr[i])[1];
+            const double &src_ptr_real =
+               reinterpret_cast<const double(&)[2]>(src_ptr[i])[0];
+            const double &src_ptr_imag =
+               reinterpret_cast<const double(&)[2]>(src_ptr[i])[1];
 
-         sumop_dbl(dst_ptr_real, src_ptr_real);
-         sumop_dbl(dst_ptr_imag, src_ptr_imag);
-      });
+            sumop_dbl(dst_ptr_real, src_ptr_real);
+            sumop_dbl(dst_ptr_imag, src_ptr_imag);
+         });
+      } else {
+         hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {   
+            double &dst_ptr_real = 
+               reinterpret_cast<double(&)[2]>(dst_ptr[i])[0];
+            double &dst_ptr_imag = 
+               reinterpret_cast<double(&)[2]>(dst_ptr[i])[1];
+            const double &src_ptr_real =
+               reinterpret_cast<const double(&)[2]>(src_ptr[i])[0];
+            const double &src_ptr_imag = 
+               reinterpret_cast<const double(&)[2]>(src_ptr[i])[1];
+
+            sumop_dbl(dst_ptr_real, src_ptr_real);
+            sumop_dbl(dst_ptr_imag, src_ptr_imag);
+         });
+      }
 #else
       for (size_t i = 0; i < n; ++i) {
          sumop(dst_ptr[i], src_ptr[i]);
@@ -937,7 +1001,6 @@ void ArrayData<TYPE>::unpackStreamAndSum(
  *
  *************************************************************************
  */
-
 template <class TYPE>
 void ArrayData<TYPE>::fillAll(
     const TYPE& t)
@@ -946,9 +1009,15 @@ void ArrayData<TYPE>::fillAll(
       TYPE* ptr = &d_array[0];
       const size_t n = d_depth * d_offset;
 #if defined(HAVE_RAJA)
-      hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {
-         ptr[i] = t;
-      });
+      if (d_on_host) {
+         hier::host_parallel_for_all(0, n, [=] (int i) {
+            ptr[i] = t;
+         });
+      } else {
+         hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {
+            ptr[i] = t;
+         });
+      }
 #if defined(DEBUG_INITIALIZE_UNDEFINED)      
       tbox::parallel_synchronize();
 #endif
@@ -982,9 +1051,15 @@ void ArrayData<TYPE>::fill(
    const size_t n = d_offset;
    if (!d_box.empty()) {
 #if defined(HAVE_RAJA)
-      hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {
-         ptr[i] = t;
-      });
+      if (d_on_host) {
+         hier::host_parallel_for_all(0, n, [=] (int i) {
+            ptr[i] = t;
+         });
+      } else {
+         hier::parallel_for_all(0, n, [=] SAMRAI_HOST_DEVICE(int i) {
+            ptr[i] = t;
+         });
+      }
 #else
       for (size_t i = 0; i < n; ++i) {
          ptr[i] = t;
@@ -993,6 +1068,7 @@ void ArrayData<TYPE>::fill(
    }
 
 }
+
 
 template <class TYPE>
 void ArrayData<TYPE>::fill(
@@ -1009,24 +1085,41 @@ void ArrayData<TYPE>::fill(
       switch (ispace.getDim().getValue()) {
          case 1: {
             auto data = getView<1>(d);
-            hier::parallel_for_all(ispace, [=] SAMRAI_HOST_DEVICE(int k) {
-               data(k) = t;
-            });
+            if (d_on_host) {
+               hier::host_parallel_for_all(ispace, [=] (int i) {
+                  data(i) = t;
+               });
+            } else {
+               hier::parallel_for_all(ispace, [=] SAMRAI_HOST_DEVICE(int i) {
+                  data(i) = t;
+               });
+            }
             break;
          }
          case 2: {
             auto data = getView<2>(d);
-
-            hier::parallel_for_all(ispace, [=] SAMRAI_HOST_DEVICE(int j, int k) {
-               data(j, k) = t;
-            });
+            if (d_on_host) {
+               hier::host_parallel_for_all(ispace, [=] (int i, int j) {
+                  data(i,j) = t;
+               });
+            } else {
+               hier::parallel_for_all(ispace, [=] SAMRAI_HOST_DEVICE(int i, int j) {
+                  data(i,j) = t;
+               });
+            }
             break;
          }
          case 3: {
             auto data = getView<3>(d);
-            hier::parallel_for_all(ispace, [=] SAMRAI_HOST_DEVICE(int i, int j, int k) {
-               data(i, j, k) = t;
-            });
+            if (d_on_host) {
+               hier::host_parallel_for_all(ispace, [=] (int i, int j, int k) {
+                  data(i,j,k) = t;
+               });
+            } else {
+               hier::parallel_for_all(ispace, [=] SAMRAI_HOST_DEVICE(int i, int j, int k) {
+                  data(i,j,k) = t;
+               });
+            }
             break;
          }
          default:

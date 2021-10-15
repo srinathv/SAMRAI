@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2020 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
  * Description:   Templated array data structure supporting patch data types
  *
  ************************************************************************/
@@ -646,6 +646,14 @@ public:
    isValid();
 
    /*!
+    * @brief Returns true if the data is on the CPU host.
+    */
+   bool dataOnHost() const
+   {
+      return d_on_host;
+   }
+
+   /*!
     * The array data iterator iterates over the elements of a box
     * associated with an ArrayData object.  This typedef is
     * convenient link to the ArrayDataIterator class.
@@ -719,6 +727,8 @@ private:
 #else
    std::vector<TYPE> d_array;
 #endif
+
+   bool d_on_host;
 };
 
 #if defined(HAVE_RAJA)
