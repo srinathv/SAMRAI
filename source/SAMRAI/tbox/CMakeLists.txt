@@ -19,6 +19,7 @@ set ( tbox_headers
   DatabaseFactory.h
   Dimension.h
   ExecutionPolicy.h
+  GPUUtilities.h
   Grammar.h
   HDFDatabase.h
   HDFDatabaseFactory.h
@@ -81,6 +82,7 @@ set (tbox_sources
   DatabaseBox.C
   DatabaseFactory.C
   Dimension.C
+  GPUUtilities.C
   Grammar.C
   HDFDatabase.C
   HDFDatabaseFactory.C
@@ -146,7 +148,7 @@ if (ENABLE_RAJA)
 endif ()
 
 if (ENABLE_CUDA)
-  set(cuda_sources Schedule.C)
+  set(cuda_sources GPUUtilities.C Schedule.C)
   set_source_files_properties(${cuda_sources} PROPERTIES LANGUAGE CUDA)
 
   if (ENABLE_NVTX_REGIONS)
