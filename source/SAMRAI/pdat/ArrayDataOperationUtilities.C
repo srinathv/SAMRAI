@@ -714,7 +714,7 @@ inline void ArrayDataOperationUtilities<dcomplex, SumOperation<dcomplex> >::doAr
 #if !defined(HAVE_RAJA)
    const hier::Box& array_d_box(arraydata.getBox());
 
-   int box_w[dim.getValue()];
+   int box_w[SAMRAI::MAX_DIM_VAL];
    int dat_w[SAMRAI::MAX_DIM_VAL];
    int dim_counter[SAMRAI::MAX_DIM_VAL];
    for (tbox::Dimension::dir_t i = 0; i < dim.getValue(); ++i) {
