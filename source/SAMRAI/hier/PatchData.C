@@ -44,7 +44,7 @@ void
 PatchData::packStream(
    tbox::MessageStream& stream,
    const BoxOverlap& overlap,
-   tbox::KernelFuser& fuser)
+   tbox::KernelFuser& fuser) const
 {
    packStream(stream, overlap);
 }

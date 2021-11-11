@@ -232,7 +232,7 @@ public:
    packStream(
       tbox::MessageStream& stream,
       const BoxOverlap& overlap,
-      tbox::KernelFuser& fuser);
+      tbox::KernelFuser& fuser) const;
 
    /**
     * Unpack data from the message stream into the specified index set.
