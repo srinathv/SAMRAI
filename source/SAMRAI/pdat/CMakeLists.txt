@@ -351,3 +351,10 @@ install(TARGETS SAMRAI_pdat
 
 install(FILES ${pdat_headers}
   DESTINATION include/SAMRAI/pdat)
+
+install(FILES
+  fortran/pdat_m4arrdim1d.i
+  fortran/pdat_m4arrdim2d.i
+  fortran/pdat_m4arrdim3d.i
+  fortran/pdat_m4arrdim4d.i
+  DESTINATION include/SAMRAI/pdat/fortran)
