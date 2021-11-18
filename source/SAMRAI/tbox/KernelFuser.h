@@ -17,8 +17,9 @@ namespace tbox {
 class KernelFuser
 {
 public:
+
   KernelFuser() :
-     d_workpool(AllocatorDatabase::getDatabase()->getStreamAllocator()),
+     d_workpool(AllocatorDatabase::getDatabase()->getKernelFuserAllocator()),
      d_workgroup(d_workpool.instantiate()),
      d_worksite(d_workgroup.run()),
      d_launched(false)
@@ -58,7 +59,6 @@ public:
   {
      return d_launched;
   }
- 
 
 private:
 #ifdef HAVE_UMPIRE
