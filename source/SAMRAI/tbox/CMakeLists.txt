@@ -27,6 +27,7 @@ set ( tbox_headers
   InputDatabase.h
   InputManager.h
   IOStream.h
+  KernelFuser.h
   Logger.h
   MathUtilities.h
   MathUtilities.C

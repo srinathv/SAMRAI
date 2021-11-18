@@ -359,7 +359,7 @@
 #undef __BGL_FAMILY__
 
 #ifdef HAVE_RAJA
-#define HAVE_KERNEL_FUSER
+#define SAMRAI_HAVE_KERNEL_FUSER
 #endif
 
 namespace SAMRAI {
