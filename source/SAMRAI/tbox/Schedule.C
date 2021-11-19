@@ -288,9 +288,6 @@ Schedule::finalizeCommunication()
 {
    d_object_timers->t_finalize_communication->start();
    performLocalCopies();
-#if defined(HAVE_RAJA)
-   parallel_synchronize();
-#endif
    processCompletedCommunications();
    deallocateCommunicationObjects();
    d_object_timers->t_finalize_communication->stop();
@@ -463,16 +460,23 @@ Schedule::postSends()
 
       d_object_timers->t_pack_stream->start();
 
+      bool have_fuseable = !(d_send_sets_fuseable[peer_rank].empty());
+
       for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
-      d_send_fuser->launch();
-
+      if (d_send_fuser && have_fuseable) {
+         d_send_fuser->launch();
+      }
+ 
       for (const auto& transaction : d_send_sets[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
-#if defined(HAVE_RAJA)      
-      parallel_synchronize();
+#if defined(HAVE_RAJA)
+      bool have_non_fuseable = !(d_send_sets[peer_rank].empty());
+      if (have_fuseable || have_non_fuseable) {
+         parallel_synchronize();
+      }
 #endif
 
       d_object_timers->t_pack_stream->stop();
@@ -524,17 +528,24 @@ Schedule::postSends()
 #endif
          );
 
+      bool have_fuseable = !(d_send_sets_fuseable[peer_rank].empty());
+
       d_object_timers->t_pack_stream->start();
       for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
-      d_send_fuser->launch();
+      if (d_send_fuser && have_fuseable) {
+         d_send_fuser->launch();
+      }
 
       for (const auto& transaction : d_send_sets[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
-#if defined(HAVE_RAJA)      
-      parallel_synchronize();
+#if defined(HAVE_RAJA)
+      bool have_non_fuseable = !(d_send_sets[peer_rank].empty());
+      if (have_fuseable || have_non_fuseable) {
+         parallel_synchronize();
+      }
 #endif
 
       d_object_timers->t_pack_stream->stop();
@@ -564,16 +575,28 @@ Schedule::postSends()
 void
 Schedule::performLocalCopies()
 {
+   bool have_fuseable = !d_local_set_fuseable.empty();
+
    d_object_timers->t_local_copies->start();
    for (const auto& local : d_local_set_fuseable) {
       local->copyLocalData();
    }
-   d_local_fuser->launch();
+   if (d_local_fuser && have_fuseable) {
+      d_local_fuser->launch();
+   }
 
    for (const auto& local : d_local_set) {
       local->copyLocalData();
    }
    d_object_timers->t_local_copies->stop();
+
+#if defined(HAVE_RAJA)
+   bool have_non_fuseable = !d_local_set.empty();
+   if (have_fuseable || have_non_fuseable) {
+      parallel_synchronize();
+   }
+#endif
+
 }
 
 /*
@@ -614,19 +637,29 @@ Schedule::processCompletedCommunications()
 #endif
             );
 
+
+         bool have_fuseable = !(d_recv_sets_fuseable[sender].empty());
+
          d_object_timers->t_unpack_stream->start();
          for (const auto& transaction : d_recv_sets_fuseable[sender]) {
             transaction->unpackStream(incoming_stream);
          }
-         d_recv_fuser->launch();
+         if (d_recv_fuser || have_fuseable) {
+            d_recv_fuser->launch();
+         }
 #if defined(HAVE_RAJA)
-         parallel_synchronize();
+         if (have_fuseable) {
+            parallel_synchronize();
+         }
 #endif
          for (const auto& transaction : d_recv_sets[sender]) {
             transaction->unpackStream(incoming_stream);
          }
 #if defined(HAVE_RAJA)
-         parallel_synchronize();
+         bool have_non_fuseable = !(d_recv_sets[sender].empty());
+         if (have_non_fuseable) {
+            parallel_synchronize();
+         }
 #endif
          d_object_timers->t_unpack_stream->stop();
          completed_comm->clearRecvData();
@@ -664,19 +697,28 @@ Schedule::processCompletedCommunications()
 #endif
                );
 
+            bool have_fuseable = !(d_recv_sets_fuseable[sender].empty());
+
             d_object_timers->t_unpack_stream->start();
             for (const auto& transaction : d_recv_sets_fuseable[sender]) {
                transaction->unpackStream(incoming_stream);
             }
-            d_recv_fuser->launch();
+            if (d_recv_fuser && have_fuseable) {
+               d_recv_fuser->launch();
+            }
 #if defined(HAVE_RAJA)
-            parallel_synchronize();
+            if (have_fuseable) {
+               parallel_synchronize();
+            }
 #endif
             for (const auto& transaction : d_recv_sets[sender]) {
                transaction->unpackStream(incoming_stream);
             }
 #if defined(HAVE_RAJA)
-            parallel_synchronize();
+            bool have_non_fuseable = !(d_recv_sets[sender].empty());
+            if (have_non_fuseable) {
+               parallel_synchronize();
+            }
 #endif
             d_object_timers->t_unpack_stream->stop();
             completed_comm->clearRecvData();
