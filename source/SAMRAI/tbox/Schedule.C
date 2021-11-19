@@ -476,6 +476,7 @@ Schedule::postSends()
       bool have_non_fuseable = !(d_send_sets[peer_rank].empty());
       if (have_fuseable || have_non_fuseable) {
          parallel_synchronize();
+         if (d_send_fuser) d_send_fuser->cleanup();
       }
 #endif
 
@@ -545,6 +546,7 @@ Schedule::postSends()
       bool have_non_fuseable = !(d_send_sets[peer_rank].empty());
       if (have_fuseable || have_non_fuseable) {
          parallel_synchronize();
+         if (d_send_fuser) d_send_fuser->cleanup();
       }
 #endif
 
@@ -594,6 +596,7 @@ Schedule::performLocalCopies()
    bool have_non_fuseable = !d_local_set.empty();
    if (have_fuseable || have_non_fuseable) {
       parallel_synchronize();
+      if (d_local_fuser) d_local_fuser->cleanup();
    }
 #endif
 
@@ -650,6 +653,7 @@ Schedule::processCompletedCommunications()
 #if defined(HAVE_RAJA)
          if (have_fuseable) {
             parallel_synchronize();
+            if (d_recv_fuser) d_recv_fuser->cleanup();
          }
 #endif
          for (const auto& transaction : d_recv_sets[sender]) {
@@ -709,6 +713,7 @@ Schedule::processCompletedCommunications()
 #if defined(HAVE_RAJA)
             if (have_fuseable) {
                parallel_synchronize();
+               if (d_recv_fuser) d_recv_fuser->cleanup();
             }
 #endif
             for (const auto& transaction : d_recv_sets[sender]) {
