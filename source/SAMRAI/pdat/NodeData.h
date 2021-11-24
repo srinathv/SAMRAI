@@ -291,7 +291,9 @@ public:
       tbox::KernelFuser& fuser)
    {
        NULL_USE(fuser);
+       d_data->startKernelFuser();
        copy(src, overlap);
+       d_data->stopKernelFuser();
    }
 
    /*!
@@ -378,8 +380,9 @@ public:
       const hier::BoxOverlap& overlap,
       tbox::KernelFuser& fuser) const
    {
-      NULL_USE(fuser);
+      d_data->startKernelFuser();
       packStream(stream, overlap);
+      d_data->stopKernelFuser();
    }
 
    /*!
@@ -400,8 +403,9 @@ public:
       const hier::BoxOverlap& overlap,
       tbox::KernelFuser& fuser)
    {
-      NULL_USE(fuser);
+      d_data->startKernelFuser();
       unpackStream(stream, overlap);
+      d_data->stopKernelFuser();
    }
 
 

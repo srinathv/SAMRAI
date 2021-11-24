@@ -3,6 +3,11 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
+#ifdef HAVE_UMPIRE
+#include "umpire/ResourceManager.hpp"
+#include "umpire/TypedAllocator.hpp"
+#endif
+
 #include "SAMRAI/tbox/ExecutionPolicy.h"
 #include "SAMRAI/tbox/AllocatorDatabase.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -11,13 +16,19 @@
 #include "RAJA/RAJA.hpp"
 #endif
 
+
+#ifdef HAVE_UMPIRE
+#include "umpire/Allocator.hpp"
+#include "umpire/TypedAllocator.hpp"
+#endif
+
 namespace SAMRAI {
 namespace tbox {
 
 class KernelFuser
 {
 public:
-
+/*
   KernelFuser() :
      d_workpool(AllocatorDatabase::getDatabase()->getKernelFuserAllocator()),
      d_workgroup(d_workpool.instantiate()),
@@ -25,6 +36,8 @@ public:
      d_launched(false)
   {
   }
+*/
+   static KernelFuser* getFuser();
 
   template<typename Kernel>
   void enqueue(int begin, int end, Kernel&& kernel) {
@@ -60,6 +73,21 @@ public:
      return d_launched;
   }
 
+  void initialize();
+
+protected:
+  KernelFuser() :
+     d_workpool(AllocatorDatabase::getDatabase()->getKernelFuserAllocator()),
+     d_workgroup(d_workpool.instantiate()),
+     d_worksite(d_workgroup.run()),
+     d_launched(false)
+  {
+  }
+
+
+   virtual ~KernelFuser();
+
+
 private:
 #ifdef HAVE_UMPIRE
   using Allocator = umpire::TypedAllocator<char>;
@@ -71,6 +99,15 @@ private:
   using WorkPool  = RAJA::WorkPool <Policy, int, RAJA::xargs<>, Allocator>;
   using WorkGroup = RAJA::WorkGroup<Policy, int, RAJA::xargs<>, Allocator>;
   using WorkSite  = RAJA::WorkSite <Policy, int, RAJA::xargs<>, Allocator>;
+
+   static void startupCallback();
+   static void shutdownCallback();
+
+   static KernelFuser* s_kernel_fuser_instance;
+
+   static StartupShutdownManager::Handler
+   s_startup_handler;
+
 
   WorkPool d_workpool;
   WorkGroup d_workgroup;

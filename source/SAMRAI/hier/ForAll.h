@@ -19,6 +19,7 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/tbox/ExecutionPolicy.h"
+#include "SAMRAI/tbox/KernelFuser.h"
 
 #include <type_traits>
 #include <tuple>
@@ -206,10 +207,39 @@ inline void for_all(int begin, int end, LoopBody body)
 }
 
 template <typename Policy, typename LoopBody,
+          typename std::enable_if<std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
+inline void for_all(tbox::KernelFuser* fuser, int begin, int end, LoopBody body)
+{
+   if (fuser == nullptr) {
+      RAJA::forall<typename tbox::detail::policy_traits<Policy>::Policy>(RAJA::RangeSegment(begin, end), body);
+   } else {
+      //fuser->template enqueue<LoopBody>(begin, end, body);
+
+      //same as above, until fuser enqueue is correct.
+      RAJA::forall<typename tbox::detail::policy_traits<Policy>::Policy>(RAJA::RangeSegment(begin, end), body);
+
+   }
+}
+
+template <typename Policy, typename LoopBody,
           typename std::enable_if<!std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
 inline void for_all(int begin, int end, LoopBody body)
 {
    RAJA::forall<Policy>(RAJA::RangeSegment(begin, end), body);
+}
+
+template <typename Policy, typename LoopBody,
+          typename std::enable_if<!std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
+inline void for_all(tbox::KernelFuser* fuser, int begin, int end, LoopBody body)
+{
+   if (fuser == nullptr) {
+      RAJA::forall<Policy>(RAJA::RangeSegment(begin, end), body);
+   } else {
+      //fuser->template enqueue<LoopBody>(begin, end, body);
+
+      //same as above, until fuser enqueue is correct.       
+      RAJA::forall<Policy>(RAJA::RangeSegment(begin, end), body);
+   }
 }
 
 // does NOT include end
@@ -217,6 +247,16 @@ template <typename LoopBody>
 inline void parallel_for_all(int begin, int end, LoopBody body)
 {
    for_all<tbox::policy::parallel>(begin, end, body);
+}
+
+template <typename LoopBody>
+inline void parallel_for_all(tbox::KernelFuser* fuser, int begin, int end, LoopBody body)
+{
+   if (fuser == nullptr) {
+      for_all<tbox::policy::parallel>(begin, end, body);
+   } else {
+      for_all<tbox::policy::parallel>(fuser, begin, end, body);
+   }
 }
 
 template <typename LoopBody>
@@ -231,10 +271,23 @@ inline void for_all(const hier::Box& box, const int dim, LoopBody body)
    for_all<Policy>(box.lower()(dim), box.upper()(dim) + 1, body);
 }
 
+
+template <typename Policy, typename LoopBody>
+inline void for_all(tbox::KernelFuser* fuser, const hier::Box& box, const int dim, LoopBody body)
+{
+   for_all<Policy>(fuser, box.lower()(dim), box.upper()(dim) + 1, body);
+}
+
 template <typename LoopBody>
 inline void parallel_for_all(const hier::Box& box, const int dim, LoopBody body)
 {
    for_all<tbox::policy::parallel>(box.lower()(dim), box.upper()(dim) + 1, body);
+}
+
+template <typename LoopBody>
+inline void parallel_for_all(tbox::KernelFuser* fuser, const hier::Box& box, const int dim, LoopBody body)
+{
+   for_all<tbox::policy::parallel>(fuser, box.lower()(dim), box.upper()(dim) + 1, body);
 }
 
 template <typename LoopBody>
@@ -250,10 +303,32 @@ inline void for_all(const hier::Box& box, LoopBody body)
    detail::for_all<arg_count>::template eval<Policy>(box.lower(), box.upper(), body);
 }
 
+template <typename Policy, typename LoopBody>
+inline void for_all(tbox::KernelFuser* fuser, const hier::Box& box, LoopBody body)
+{
+   if (fuser == nullptr) {
+      for_all<Policy,LoopBody>(box, body);
+   } else {
+      //We need enqueue for box expansion into multi-dimensional loops
+      //in addition to the current 1D begin, end.
+      
+      //This is the unchanged code until there is a good enqueue here or
+      //inside eval
+      constexpr int arg_count = detail::function_traits<LoopBody>::argument_count;
+      detail::for_all<arg_count>::template eval<Policy>(box.lower(), box.upper(), body);
+   }
+}
+
 template <typename LoopBody>
 inline void parallel_for_all(const hier::Box& box, LoopBody body)
 {
    for_all<tbox::policy::parallel>(box, body);
+}
+
+template <typename LoopBody>
+inline void parallel_for_all(tbox::KernelFuser* fuser, const hier::Box& box, LoopBody body)
+{
+   for_all<tbox::policy::parallel>(fuser, box, body);
 }
 
 template <typename LoopBody>

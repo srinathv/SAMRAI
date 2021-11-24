@@ -653,6 +653,16 @@ public:
       return d_on_host;
    }
 
+   void startKernelFuser()
+   {
+      d_use_fuser = true;
+   } 
+
+   void stopKernelFuser()
+   {
+      d_use_fuser = false;
+   } 
+
    /*!
     * The array data iterator iterates over the elements of a box
     * associated with an ArrayData object.  This typedef is
@@ -729,6 +739,7 @@ private:
 #endif
 
    bool d_on_host;
+   bool d_use_fuser;
 };
 
 #if defined(HAVE_RAJA)

@@ -90,6 +90,7 @@ set (tbox_sources
   HDFDatabaseFactory.C
   IEEE.C
   InputManager.C
+  KernelFuser.C
   Logger.C
   MathUtilitiesSpecial.C
   MemoryDatabase.C
