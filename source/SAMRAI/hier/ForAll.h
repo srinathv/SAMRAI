@@ -146,8 +146,37 @@ struct for_all<1> {
           RAJA::make_tuple(make_range(ifirst, ilast, 0)),
           body);
    }
+
+   template <typename Policy, typename LoopBody,
+             typename std::enable_if<std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
+   inline static void eval(tbox::KernelFuser* fuser, const hier::Index& ifirst, const hier::Index& ilast, LoopBody body)
+   {
+      if (fuser == nullptr) {
+         RAJA::kernel<typename tbox::detail::policy_traits<Policy>::Policy1d>(
+             RAJA::make_tuple(make_range(ifirst, ilast, 0)),
+             body);
+      } else {
+         fuser->enqueue(ifirst(0), ilast(0), body);
+      }
+   }
+
+   template <typename Policy, typename LoopBody,
+             typename std::enable_if<!std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
+   inline static void eval(tbox::KernelFuser* fuser, const hier::Index& ifirst, const hier::Index& ilast, LoopBody body)
+   {
+      if (fuser == nullptr) {
+         RAJA::kernel<Policy>(
+             RAJA::make_tuple(make_range(ifirst, ilast, 0)),
+             body);
+      } else {
+         fuser->enqueue(ifirst(0), ilast(0), body);
+      }
+   }
 };
 
+
+// 2D and 3D don't use the fuser for anything pending suppor for
+// multidimensional loops in KernelFuser.
 template <>
 struct for_all<2> {
    template <typename Policy, typename LoopBody,
@@ -163,6 +192,26 @@ struct for_all<2> {
    template <typename Policy, typename LoopBody,
              typename std::enable_if<!std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
    inline static void eval(const hier::Index& ifirst, const hier::Index& ilast, LoopBody body)
+   {
+      RAJA::kernel<Policy>(
+          RAJA::make_tuple(make_range(ifirst, ilast, 0),
+                           make_range(ifirst, ilast, 1)),
+          body);
+   }
+
+   template <typename Policy, typename LoopBody,
+             typename std::enable_if<std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
+   inline static void eval(tbox::KernelFuser* fuser, const hier::Index& ifirst, const hier::Index& ilast, LoopBody body)
+   {
+      RAJA::kernel<typename tbox::detail::policy_traits<Policy>::Policy2d>(
+          RAJA::make_tuple(make_range(ifirst, ilast, 0),
+                           make_range(ifirst, ilast, 1)),
+          body);
+   }
+
+   template <typename Policy, typename LoopBody,
+             typename std::enable_if<!std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
+   inline static void eval(tbox::KernelFuser* fuser, const hier::Index& ifirst, const hier::Index& ilast, LoopBody body)
    {
       RAJA::kernel<Policy>(
           RAJA::make_tuple(make_range(ifirst, ilast, 0),
@@ -194,6 +243,28 @@ struct for_all<3> {
                            make_range(ifirst, ilast, 2)),
           body);
    }
+
+   template <typename Policy, typename LoopBody,
+             typename std::enable_if<std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
+   inline static void eval(tbox::KernelFuser* fuser, const hier::Index& ifirst, const hier::Index& ilast, LoopBody body)
+   {
+      RAJA::kernel<typename tbox::detail::policy_traits<Policy>::Policy3d>(
+          RAJA::make_tuple(make_range(ifirst, ilast, 0),
+                           make_range(ifirst, ilast, 1),
+                           make_range(ifirst, ilast, 2)),
+          body);
+   }
+
+   template <typename Policy, typename LoopBody,
+             typename std::enable_if<!std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
+   inline static void eval(tbox::KernelFuser* fuser, const hier::Index& ifirst, const hier::Index& ilast, LoopBody body)
+   {
+      RAJA::kernel<Policy>(
+          RAJA::make_tuple(make_range(ifirst, ilast, 0),
+                           make_range(ifirst, ilast, 1),
+                           make_range(ifirst, ilast, 2)),
+          body);
+   }
 };
 
 }  // namespace detail
@@ -213,11 +284,7 @@ inline void for_all(tbox::KernelFuser* fuser, int begin, int end, LoopBody body)
    if (fuser == nullptr) {
       RAJA::forall<typename tbox::detail::policy_traits<Policy>::Policy>(RAJA::RangeSegment(begin, end), body);
    } else {
-      //fuser->template enqueue<LoopBody>(begin, end, body);
-
-      //same as above, until fuser enqueue is correct.
-      RAJA::forall<typename tbox::detail::policy_traits<Policy>::Policy>(RAJA::RangeSegment(begin, end), body);
-
+      fuser->enqueue(begin, end, body);
    }
 }
 
@@ -235,10 +302,7 @@ inline void for_all(tbox::KernelFuser* fuser, int begin, int end, LoopBody body)
    if (fuser == nullptr) {
       RAJA::forall<Policy>(RAJA::RangeSegment(begin, end), body);
    } else {
-      //fuser->template enqueue<LoopBody>(begin, end, body);
-
-      //same as above, until fuser enqueue is correct.       
-      RAJA::forall<Policy>(RAJA::RangeSegment(begin, end), body);
+      fuser->enqueue(begin, end, body);
    }
 }
 
@@ -309,13 +373,8 @@ inline void for_all(tbox::KernelFuser* fuser, const hier::Box& box, LoopBody bod
    if (fuser == nullptr) {
       for_all<Policy,LoopBody>(box, body);
    } else {
-      //We need enqueue for box expansion into multi-dimensional loops
-      //in addition to the current 1D begin, end.
-      
-      //This is the unchanged code until there is a good enqueue here or
-      //inside eval
       constexpr int arg_count = detail::function_traits<LoopBody>::argument_count;
-      detail::for_all<arg_count>::template eval<Policy>(box.lower(), box.upper(), body);
+      detail::for_all<arg_count>::template eval<Policy>(fuser, box.lower(), box.upper(), body);
    }
 }
 

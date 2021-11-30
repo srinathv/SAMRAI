@@ -656,12 +656,17 @@ public:
    void startKernelFuser()
    {
       d_use_fuser = true;
-   } 
+   }
 
    void stopKernelFuser()
    {
       d_use_fuser = false;
-   } 
+   }
+
+   bool useFuser() const
+   {
+      return d_use_fuser;
+   }
 
    /*!
     * The array data iterator iterates over the elements of a box

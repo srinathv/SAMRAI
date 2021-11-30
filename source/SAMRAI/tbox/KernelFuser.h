@@ -28,16 +28,8 @@ namespace tbox {
 class KernelFuser
 {
 public:
-/*
-  KernelFuser() :
-     d_workpool(AllocatorDatabase::getDatabase()->getKernelFuserAllocator()),
-     d_workgroup(d_workpool.instantiate()),
-     d_worksite(d_workgroup.run()),
-     d_launched(false)
-  {
-  }
-*/
-   static KernelFuser* getFuser();
+
+  static KernelFuser* getFuser();
 
   template<typename Kernel>
   void enqueue(int begin, int end, Kernel&& kernel) {
