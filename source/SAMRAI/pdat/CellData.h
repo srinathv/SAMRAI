@@ -280,12 +280,10 @@ public:
       const hier::BoxOverlap& overlap);
 
    virtual void
-   copy(
+   copyFuseable(
       const hier::PatchData& src,
-      const hier::BoxOverlap& overlap,
-      tbox::KernelFuser& fuser)
+      const hier::BoxOverlap& overlap)
    {
-       NULL_USE(fuser);
        copy(src, overlap);
    }
 
@@ -367,12 +365,10 @@ public:
       const hier::BoxOverlap& overlap) const;
 
    virtual void
-   packStream(
+   packStreamFuseable(
       tbox::MessageStream& stream,
-      const hier::BoxOverlap& overlap,
-      tbox::KernelFuser& fuser) const
+      const hier::BoxOverlap& overlap) const
    {
-      NULL_USE(fuser);
       packStream(stream, overlap);
    }
 
@@ -389,12 +385,10 @@ public:
       const hier::BoxOverlap& overlap);
 
    virtual void
-   unpackStream(
+   unpackStreamFuseable(
       tbox::MessageStream& stream,
-      const hier::BoxOverlap& overlap,
-      tbox::KernelFuser& fuser)
+      const hier::BoxOverlap& overlap)
    {
-      NULL_USE(fuser);
       unpackStream(stream, overlap);
    }
 

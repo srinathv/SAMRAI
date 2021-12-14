@@ -203,6 +203,7 @@ struct for_all<2> {
              typename std::enable_if<std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
    inline static void eval(tbox::KernelFuser* fuser, const hier::Index& ifirst, const hier::Index& ilast, LoopBody body)
    {
+      NULL_USE(fuser);
       RAJA::kernel<typename tbox::detail::policy_traits<Policy>::Policy2d>(
           RAJA::make_tuple(make_range(ifirst, ilast, 0),
                            make_range(ifirst, ilast, 1)),
@@ -213,6 +214,7 @@ struct for_all<2> {
              typename std::enable_if<!std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
    inline static void eval(tbox::KernelFuser* fuser, const hier::Index& ifirst, const hier::Index& ilast, LoopBody body)
    {
+      NULL_USE(fuser);
       RAJA::kernel<Policy>(
           RAJA::make_tuple(make_range(ifirst, ilast, 0),
                            make_range(ifirst, ilast, 1)),
@@ -248,6 +250,7 @@ struct for_all<3> {
              typename std::enable_if<std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
    inline static void eval(tbox::KernelFuser* fuser, const hier::Index& ifirst, const hier::Index& ilast, LoopBody body)
    {
+      NULL_USE(fuser);
       RAJA::kernel<typename tbox::detail::policy_traits<Policy>::Policy3d>(
           RAJA::make_tuple(make_range(ifirst, ilast, 0),
                            make_range(ifirst, ilast, 1),
@@ -259,6 +262,7 @@ struct for_all<3> {
              typename std::enable_if<!std::is_base_of<tbox::policy::base, Policy>::value, int>::type = 0>
    inline static void eval(tbox::KernelFuser* fuser, const hier::Index& ifirst, const hier::Index& ilast, LoopBody body)
    {
+      NULL_USE(fuser);
       RAJA::kernel<Policy>(
           RAJA::make_tuple(make_range(ifirst, ilast, 0),
                            make_range(ifirst, ilast, 1),

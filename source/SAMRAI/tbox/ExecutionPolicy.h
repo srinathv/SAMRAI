@@ -151,6 +151,12 @@ struct policy_traits<policy::parallel> {
    >;
 
    using ReductionPolicy = RAJA::seq_reduce;
+
+   using WorkGroupPolicy = RAJA::WorkGroupPolicy<
+      RAJA::loop_work,
+      RAJA::reverse_ordered,
+      RAJA::ragged_array_of_objects>;
+
 };
 
 #endif // HAVE_CUDA

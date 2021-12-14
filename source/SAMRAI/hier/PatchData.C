@@ -32,28 +32,25 @@ PatchData::~PatchData()
 }
 
 void
-PatchData::copy(
+PatchData::copyFuseable(
    const PatchData& src,
-   const BoxOverlap& overlap,
-   tbox::KernelFuser& fuser)
+   const BoxOverlap& overlap)
 {
    copy(src, overlap);
 }
 
 void
-PatchData::packStream(
+PatchData::packStreamFuseable(
    tbox::MessageStream& stream,
-   const BoxOverlap& overlap,
-   tbox::KernelFuser& fuser) const
+   const BoxOverlap& overlap) const
 {
    packStream(stream, overlap);
 }
 
 void
-PatchData::unpackStream(
+PatchData::unpackStreamFuseable(
    tbox::MessageStream& stream,
-   const BoxOverlap& overlap,
-   tbox::KernelFuser& fuser)
+   const BoxOverlap& overlap)
 {
    unpackStream(stream, overlap);
 }

@@ -106,7 +106,6 @@ Schedule::addTransaction(
    if ((d_mpi.getRank() == src_id) && (d_mpi.getRank() == dst_id)) {
       if (fuseable_transaction) {
          if (!d_local_fuser) {
-            //d_local_fuser = new KernelFuser{};
             d_local_fuser = KernelFuser::getFuser();
          }
          fuseable_transaction->setKernelFuser(d_local_fuser);
@@ -118,7 +117,6 @@ Schedule::addTransaction(
       if (d_mpi.getRank() == dst_id) {
          if (fuseable_transaction) {
             if (!d_recv_fuser) {
-               //d_recv_fuser = new KernelFuser{};
                d_recv_fuser = KernelFuser::getFuser();
             }
             fuseable_transaction->setKernelFuser(d_recv_fuser);
@@ -129,7 +127,6 @@ Schedule::addTransaction(
       } else if (d_mpi.getRank() == src_id) {
          if (fuseable_transaction) {
             if (!d_send_fuser) {
-               d_send_fuser = //new KernelFuser{};
                d_send_fuser = KernelFuser::getFuser();
             }
             fuseable_transaction->setKernelFuser(d_send_fuser);
@@ -161,7 +158,6 @@ Schedule::appendTransaction(
    if ((d_mpi.getRank() == src_id) && (d_mpi.getRank() == dst_id)) {
       if (fuseable_transaction) {
          if (!d_local_fuser) {
-            //d_local_fuser = new KernelFuser{};
             d_local_fuser = KernelFuser::getFuser();
          }
          fuseable_transaction->setKernelFuser(d_local_fuser);
@@ -173,7 +169,6 @@ Schedule::appendTransaction(
       if (d_mpi.getRank() == dst_id) {
          if (fuseable_transaction) {
             if (!d_recv_fuser) {
-               //d_recv_fuser = new KernelFuser{};
                d_recv_fuser = KernelFuser::getFuser();
             }
             fuseable_transaction->setKernelFuser(d_recv_fuser);
@@ -184,7 +179,6 @@ Schedule::appendTransaction(
       } else if (d_mpi.getRank() == src_id) {
          if (fuseable_transaction) {
             if (!d_send_fuser) {
-               //d_send_fuser = new KernelFuser{};
                d_send_fuser = KernelFuser::getFuser();
             }
             fuseable_transaction->setKernelFuser(d_send_fuser);

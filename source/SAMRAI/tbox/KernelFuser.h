@@ -31,6 +31,7 @@ public:
 
   static KernelFuser* getFuser();
 
+#ifdef HAVE_RAJA
   template<typename Kernel>
   void enqueue(int begin, int end, Kernel&& kernel) {
      if (d_launched) {
@@ -39,6 +40,7 @@ public:
 
      d_workpool.enqueue(RAJA::RangeSegment(begin, end), std::forward<Kernel>(kernel));
   }
+#endif
 
   void launch()
   {
@@ -46,17 +48,21 @@ public:
         TBOX_ERROR("KernelFuser Error: This KernelFuser already launched.");
      }
 
+#ifdef HAVE_RAJA
      d_workgroup = d_workpool.instantiate();
      d_worksite = d_workgroup.run();
+#endif
 
      d_launched = true;
   }
 
   void cleanup()
   {
+#ifdef HAVE_RAJA
      d_workpool.clear();
      d_workgroup.clear();
      d_worksite.clear();
+#endif
      d_launched = false;
   }
 
@@ -69,9 +75,11 @@ public:
 
 protected:
   KernelFuser() :
+#ifdef HAVE_RAJA
      d_workpool(AllocatorDatabase::getDatabase()->getKernelFuserAllocator()),
      d_workgroup(d_workpool.instantiate()),
      d_worksite(d_workgroup.run()),
+#endif
      d_launched(false)
   {
   }
@@ -87,10 +95,12 @@ private:
   using Allocator = ResourceAllocator;
 #endif
 
+#ifdef HAVE_RAJA
   using Policy = typename tbox::detail::policy_traits< tbox::policy::parallel >::WorkGroupPolicy;
   using WorkPool  = RAJA::WorkPool <Policy, int, RAJA::xargs<>, Allocator>;
   using WorkGroup = RAJA::WorkGroup<Policy, int, RAJA::xargs<>, Allocator>;
   using WorkSite  = RAJA::WorkSite <Policy, int, RAJA::xargs<>, Allocator>;
+#endif
 
    static void startupCallback();
    static void shutdownCallback();
@@ -100,10 +110,11 @@ private:
    static StartupShutdownManager::Handler
    s_startup_handler;
 
-
+#ifdef HAVE_RAJA
   WorkPool d_workpool;
   WorkGroup d_workgroup;
   WorkSite d_worksite;
+#endif
 
   bool d_launched;
 };

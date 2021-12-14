@@ -25,9 +25,9 @@ namespace SAMRAI {
  * Forward declaration of KernelFuser class - required here because it sucks in
  * RAJA and requires CUDA.
  */
-namespace tbox {
-class KernelFuser;
-}
+//namespace tbox {
+//class KernelFuser;
+//}
 
 namespace hier {
 
@@ -170,10 +170,9 @@ public:
       const BoxOverlap& overlap) = 0;
 
    virtual void
-   copy(
+   copyFuseable(
       const PatchData& src,
-      const BoxOverlap& overlap,
-      tbox::KernelFuser& fuser);
+      const BoxOverlap& overlap);
 
    /**
     * Copy data from the source into the destination using the designated
@@ -229,10 +228,9 @@ public:
     * defined for streams.
     */
    virtual void
-   packStream(
+   packStreamFuseable(
       tbox::MessageStream& stream,
-      const BoxOverlap& overlap,
-      tbox::KernelFuser& fuser) const;
+      const BoxOverlap& overlap) const;
 
    /**
     * Unpack data from the message stream into the specified index set.
@@ -252,10 +250,9 @@ public:
     * defined for streams.
     */
    virtual void
-   unpackStream(
+   unpackStreamFuseable(
       tbox::MessageStream& stream,
-      const BoxOverlap& overlap,
-      tbox::KernelFuser& fuser);
+      const BoxOverlap& overlap);
 
    /**
     * Checks that class version and restart file version are equal.  If so,

@@ -334,16 +334,6 @@ public:
       const hier::PatchData& src,
       const hier::BoxOverlap& overlap);
 
-   virtual void
-   copy(
-      const hier::PatchData& src,
-      const hier::BoxOverlap& overlap,
-      tbox::KernelFuser& fuser)
-   {
-      NULL_USE(fuser);
-      copy(src, overlap);
-   }
-
    /*!
     * @brief Copy data from source (i.e., this) to destination
     * patch data object on the given overlap.
