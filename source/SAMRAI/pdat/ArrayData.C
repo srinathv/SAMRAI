@@ -134,7 +134,8 @@ ArrayData<TYPE>::ArrayData(
 #else
    d_array(d_depth * d_offset),
 #endif
-   d_on_host(true) 
+   d_on_host(true),
+   d_use_fuser(false)
 {
 #ifndef HAVE_UMPIRE
    NULL_USE(allocator);
