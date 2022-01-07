@@ -51,9 +51,8 @@ public:
 #ifdef HAVE_RAJA
      d_workgroup = d_workpool.instantiate();
      d_worksite = d_workgroup.run();
-#endif
-
      d_launched = true;
+#endif
   }
 
   void cleanup()
@@ -62,8 +61,8 @@ public:
      d_workpool.clear();
      d_workgroup.clear();
      d_worksite.clear();
-#endif
      d_launched = false;
+#endif
   }
 
   bool launched() const
