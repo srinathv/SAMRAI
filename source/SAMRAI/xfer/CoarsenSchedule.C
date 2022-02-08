@@ -313,7 +313,9 @@ CoarsenSchedule::coarsenData() const
 
    d_schedule->communicate();
 #if defined(HAVE_RAJA)
-   tbox::parallel_synchronize();
+   if (d_schedule->completedTransactions()) {
+      tbox::parallel_synchronize();
+   }
 #endif
 
    /*

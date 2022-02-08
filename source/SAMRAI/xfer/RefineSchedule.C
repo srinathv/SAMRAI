@@ -2098,9 +2098,11 @@ RefineSchedule::fillData(
     * space.
     */
 
-   copyScratchToDestination();
+   bool copied = copyScratchToDestination();
 #if defined(HAVE_RAJA)
-   tbox::parallel_synchronize();
+   if (copied) {
+      tbox::parallel_synchronize();
+   }
 #endif
 
    /*
@@ -2149,6 +2151,8 @@ RefineSchedule::recursiveFill(
    double fill_time,
    bool do_physical_boundary_fill) const
 {
+   int rank = d_dst_level->getBoxLevel()->getMPI().getRank();
+
    /*
     * Copy data from the source interiors of the source level into the ghost
     * cells and interiors of the scratch space on the destination level
@@ -2156,7 +2160,9 @@ RefineSchedule::recursiveFill(
     */
    d_coarse_priority_level_schedule->communicate();
 #if defined(HAVE_RAJA)
-   tbox::parallel_synchronize();
+   if (d_coarse_priority_level_schedule->completedTransactions()) {
+      tbox::parallel_synchronize();
+   }
 #endif
 
    /*
@@ -2213,7 +2219,6 @@ RefineSchedule::recursiveFill(
        * Recursively call the fill routine to fill the required coarse fill
        * boxes on the coarser level.
        */
-
       d_coarse_interp_schedule->recursiveFill(fill_time,
          do_physical_boundary_fill);
 
@@ -2338,7 +2343,9 @@ RefineSchedule::recursiveFill(
     */
    d_fine_priority_level_schedule->communicate();
 #if defined(HAVE_RAJA)
-   tbox::parallel_synchronize();
+   if (d_fine_priority_level_schedule->completedTransactions()) {
+      tbox::parallel_synchronize();
+   }
 #endif
 
    /*
@@ -2604,10 +2611,11 @@ RefineSchedule::allocateWorkSpace(
  **************************************************************************
  */
 
-void
+bool
 RefineSchedule::copyScratchToDestination() const
 {
    TBOX_ASSERT(d_dst_level);
+   bool copied = false;
 
    for (hier::PatchLevel::iterator p(d_dst_level->begin());
         p != d_dst_level->end(); ++p) {
@@ -2621,11 +2629,12 @@ RefineSchedule::copyScratchToDestination() const
                   getPatchData(dst_id)->getTime(),
                   patch->getPatchData(src_id)->getTime()));
             patch->getPatchData(dst_id)->copy(*patch->getPatchData(src_id));
+            copied = true;
          }
       }
-
    }
 
+   return copied;
 }
 
 /*
@@ -2647,6 +2656,7 @@ RefineSchedule::refineScratchData(
    overlaps) const
 {
    t_refine_scratch_data->start();
+   int rank = d_dst_level->getBoxLevel()->getMPI().getRank();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    bool is_encon = (fine_level == d_encon_level);
@@ -2773,12 +2783,12 @@ RefineSchedule::refineScratchData(
             d_nbr_blk_fill_level->getPatch(unfilled_id));
 
          if (d_refine_patch_strategy) {
-		    d_refine_patch_strategy->preprocessRefineBoxes(*nbr_fill_patch,
+	    d_refine_patch_strategy->preprocessRefineBoxes(*nbr_fill_patch,
                *crse_patch,
                fill_boxes,
                local_ratio);
 #if defined(HAVE_RAJA)
-         tbox::parallel_synchronize();
+            tbox::parallel_synchronize();
 #endif
          }
 

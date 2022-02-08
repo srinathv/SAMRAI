@@ -289,6 +289,11 @@ public:
       return "Schedule";
    }
 
+   bool completedTransactions() const
+   {
+      return d_completed_transactions;
+   }
+
 private:
    void
    allocateCommunicationObjects();
@@ -349,6 +354,8 @@ private:
 
    KernelFuser* d_send_fuser{nullptr};
    KernelFuser* d_recv_fuser{nullptr};
+
+   bool d_completed_transactions = false;
 
    /*
     * @brief Transactions where the source and destination are the
