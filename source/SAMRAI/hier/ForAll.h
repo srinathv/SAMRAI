@@ -33,9 +33,9 @@ namespace hier
  * Three looping structures for use with RAJA policies are provided;
  *
  * parallel_for_all() uses a default parallel policy based on the
- * configuration used build SAMRAI.  If SAMRAI is confugured with CUDA,
+ * configuration used to build SAMRAI.  If SAMRAI is confugured with CUDA,
  * the loop kernel will be launched on the GPU.  If cuda is not used
- * then the loope will run on the CPU.
+ * then the loop will run on the CPU.
  *
  * host_parallel_for_all() is provided to define loops that always run
  * on the host CPU even when configured with CUDA.  This allows RAJA loop

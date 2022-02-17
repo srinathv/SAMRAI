@@ -45,7 +45,7 @@
  * running on GPU architectures, each RAJA kernel is implemented twice in
  * an if/else code block.  The looping structure host_parallel_for_all()
  * is used when ArrayData is allocated on the host and guarantees that
- * the loop will execute on the host.  When the GPU devices is available and
+ * the loop will execute on the host.  When the GPU device is available and
  * ArrayData is allocated on the device, parallel_for_all() is used to
  * launch the kernels on the device.
  */
