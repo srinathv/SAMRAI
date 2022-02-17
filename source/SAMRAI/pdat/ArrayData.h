@@ -646,6 +646,14 @@ public:
    isValid();
 
    /*!
+    * @brief Returns true if the data is on the CPU host.
+    */
+   bool dataOnHost() const
+   {
+      return d_on_host;
+   }
+
+   /*!
     * The array data iterator iterates over the elements of a box
     * associated with an ArrayData object.  This typedef is
     * convenient link to the ArrayDataIterator class.
@@ -719,6 +727,8 @@ private:
 #else
    std::vector<TYPE> d_array;
 #endif
+
+   bool d_on_host;
 };
 
 #if defined(HAVE_RAJA)
@@ -738,6 +748,6 @@ typename ArrayData<TYPE>::template ConstView<DIM> get_const_view(const ArrayData
 }
 }
 
-#include "SAMRAI/pdat/ArrayData.C"
+#include "SAMRAI/pdat/ArrayData.cpp"
 
 #endif

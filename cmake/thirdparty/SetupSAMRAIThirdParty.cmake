@@ -58,10 +58,6 @@ endif ()
 
 # CUDA is setup by BLT
 if (ENABLE_CUDA)
-  if (NOT ENABLE_RAJA)
-    message(FATAL_ERROR "CUDA support requires RAJA")
-  endif ()
-
   if (NOT ENABLE_UMPIRE)
     message(FATAL_ERROR "CUDA support requires UMPIRE")
   endif ()

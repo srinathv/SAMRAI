@@ -16,6 +16,7 @@
 #include "RAJA/RAJA.hpp"
 
 #include "SAMRAI/tbox/ExecutionPolicy.h"
+#include "SAMRAI/tbox/GPUUtilities.h"
 
 namespace SAMRAI {
 namespace tbox {
@@ -34,8 +35,9 @@ synchronize<policy::parallel>()
 #endif
 
 inline void
-parallel_synchronize() { synchronize<policy::parallel>(); }
-
+parallel_synchronize() {
+   GPUUtilities::parallel_synchronize();
+}
 
 // Reductions see https://raja.readthedocs.io/en/master/feature/reduction.html for these options
 enum class Reduction {
