@@ -108,13 +108,13 @@ public:
       unsigned int depth);
 
    /*!
-    * Construct an array data object using an Umpire allocator.
+    * Construct an array data object using a ResourceAllocator.
     *
     * @param box   Const reference to box object describing the spatial extents
     *              of the index space associated with the array data object.
     * @param depth Integer number of data values at each spatial location in
     *              the array.
-    * @param allocator An Umpire allocator
+    * @param allocator A ResourceAllocator
     *
     * @pre depth > 0
     */
