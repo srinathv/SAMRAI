@@ -4,7 +4,7 @@
   All rights reserved.
 *****************************************************************************
 
-                     Release Notes for SAMRAI v4.1.1
+                     Release Notes for SAMRAI v4.1.0
 
      (notes for previous releases may be found in /SAMRAI/docs/release)
 
@@ -15,10 +15,6 @@ team by sending email to samrai@llnl.gov.
 
 *****************************************************************************
 
-VERSION 4.1.1
-
-Version 4.1.1 is a minor release update.  Please also see the release notes
-for version 4.1.0 located at docs/release/version-4.1.0
 
 *****************************************************************************
 
@@ -39,6 +35,13 @@ https://github.com/LLNL/SAMRAI
                 Significant bug fixes
 ----------------------------------------------------------------------------
 
+1) A missing MPI AllReduce call has been added to the vector length
+computations in the math::Hierarchy*DataOpsReal classes.
+
+2) In algs::MethodOfLinesIntegrator, the logic of the Runge-Kutta loop
+was reorganized in order to place the communication of data between
+AMR levels in the correct sequence.
+
 *****************************************************************************
 
 
@@ -47,19 +50,16 @@ https://github.com/LLNL/SAMRAI
                 Summary of what's new
 -----------------------------------------------------------------------------
 
-1) The filename extension for all C++ source files has been changed from
-.C to .cpp.
+1) A new alias tbox::ResourceAllocator is provided to clean up the API for
+usage of Umpire allocators in pdat classes.
+ 
 
 -----------------------------------------------------------------------------
                 Summary of what's changed
 -----------------------------------------------------------------------------
 
-1) The logic surrounding the internal RAJA kernels in ArrayData has been
-modified so that they can run on either the host or device, depending on
-how the underlying data is allocated.
-
-2) Usage of Umpire's deprecated DynamicPool has been replaced by QuickPool.
-
+1) The default Umpire allocator for the buffers in tbox::MessageStream
+has been changed to a host allocator.
 
 *****************************************************************************
 
@@ -67,37 +67,33 @@ how the underlying data is allocated.
                 Details about what's new
 -----------------------------------------------------------------------------
 
-1) The filename extension for all C++ source files has been changed from
-'.C' to '.cpp'.  The extension for header files remains unchanged as '.h'
-so as not to require changes to `#include` lines inside user codes.
+1) A new alias tbox::ResourceAllocator is provided to clean up the API for
+usage of Umpire allocators in pdat classes.
 
+Many of the pdat classes (CellData, NodeData, etc.) that use Umpire allocators
+used '#define HAVE_UMPIRE' guards inside their method signatures around those
+allocators, which effectively meant that those classes had different APIs
+depending on whether SAMRAI was configured with or without Umpire.  This
+required user codes that needed to work with both kinds of SAMRAI
+configurations to add similar guards when calling thesed classes.
 
------------------------------------------------------------------------------
+tbox::ResourceAllocator is provided to deal with this--when configured with
+Umpire, it is aliased to umpire::Allocator, and otherwise it is an empty
+struct.  As an empty struct, it will do nothing, but it provides a valid type
+name that can be used and passed through the pdat classes' APIs regardless of
+thes status of the configuration.
+
+----------------------------------------------------------------------------
                 Details about what's changed
 ----------------------------------------------------------------------------
 
-1) The logic surrounding the internal RAJA kernels in ArrayData has been
-modified so that they can run on either the host or device, depending on
-how the underlying data is allocated.
+1) The default Umpire allocator for the buffers in tbox::MessageStream
+has been changed to a host allocator.
 
-SAMRAI's core patch data types (CellData, NodeData, etc.) use ArrayData for
-their underlying arrays.  When SAMRAI is built with CUDA and the RAJA
-and Umpire libraries for use on GPU architectures, their constructors
-can take a tbox::ResourceAllocator, which is an alias for an Umpire
-allocator, to choose the memory resource where the arrays are
-allocated.  In the previous release, the RAJA kernels within ArrayData that
-operated on these arrays were set up to always run on the GPU device, so
-the allocator must always have been for a memory resource that can run on
-the device.
-
-To give users the flexibility to choose to allocate objects of these
-classes on either the host or device, the logic has been modified such that
-to construct these patch data objects with a host allocator, in which case
-the kernels will execute on the CPU host.
-
-2) Usage of Umpire's deprecated DynamicPool has been replaced by QuickPool.
-This is the Umpire strategy class used for SAMRAI's Umpire allocators
-provided in tbox::AllocatorDatabase.
+For GPU-enabled builds that use Umpire, a host allocator is used by default
+instead of the previous pinned memory allocator.  A new overloaded constructor
+is also now provided to allow the calling code to pass its own choice of
+allocator to the MessageStream.
 
 =============================================================================
-=============================================================================
+============================================================================

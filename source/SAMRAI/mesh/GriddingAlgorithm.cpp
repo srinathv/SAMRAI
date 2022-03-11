@@ -3239,7 +3239,9 @@ GriddingAlgorithm::bufferTagsOnLevel(
             hier::Box buf_box(*ic - buffer_size,
                               *ic + buffer_size,
                               tag_box_block_id);
-            boolean_tag_data->fill(tag_value, buf_box);
+            //TODO:  check on this change
+            //boolean_tag_data->fill(tag_value, buf_box);
+            boolean_tag_data->getArrayData().fill(tag_value, buf_box);
          }
       }
 #if defined(HAVE_RAJA)
