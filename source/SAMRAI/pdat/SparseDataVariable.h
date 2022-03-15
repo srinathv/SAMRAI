@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   SparseDataVariable
  *
  ************************************************************************/
@@ -89,6 +89,6 @@ private:
 } // end namespace pdat.
 } // end namespace SAMRAI
 
-#include "SAMRAI/pdat/SparseDataVariable.C"
+#include "SAMRAI/pdat/SparseDataVariable.cpp"
 
 #endif

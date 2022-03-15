@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and LICENSE. 
 ##
-## Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
 ## Description:   Unit test of SAMRAI::hier::PatchHierarchy::make(Coarsened,
 ##                Refined)PatchHierarchy
 ##
@@ -13,7 +13,7 @@ This is a unit test of 2 methods in SAMRAI::hier::PatchHierarchy,
 makeCoarsenedPatchHierarchy and makeRefinedPatchHierarchy. The files included
 in this directory are as follows:
  
-   main.C                -  driver
+   main.cpp                -  driver
    HierarchyTester.[Ch]  -  unit tester
    test_inputs/*.input   -  2d and 3d input files
 

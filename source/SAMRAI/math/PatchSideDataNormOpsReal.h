@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Templated norm operations for real side-centered data.
  *
  ************************************************************************/
@@ -266,6 +266,6 @@ private:
 }
 }
 
-#include "SAMRAI/math/PatchSideDataNormOpsReal.C"
+#include "SAMRAI/math/PatchSideDataNormOpsReal.cpp"
 
 #endif

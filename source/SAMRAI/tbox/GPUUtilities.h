@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Utility functions for GPU
  *
  ************************************************************************/
@@ -47,7 +47,9 @@ static void
 parallel_synchronize()
 {
 #if defined(HAVE_CUDA) && defined(HAVE_RAJA)
-   if (s_using_gpu) RAJA::synchronize<RAJA::cuda_synchronize>();
+   if (s_using_gpu) {
+      RAJA::synchronize<RAJA::cuda_synchronize>();
+   }
 #endif       
 }
 

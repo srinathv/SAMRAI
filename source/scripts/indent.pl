@@ -4,7 +4,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and LICENSE. 
 ##
-## Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
 ## Description:   perl script to indent SAMRAI 
 ##
 #########################################################################
@@ -49,7 +49,7 @@ my $end_of_line = $/;
 
 @allfiles = ();
 $filePattern = q!(.*\.(([ChI]))$)!;
-$fileExcludePattern = q!(Grammar.[Ch]|Scanner.C)!;
+$fileExcludePattern = q!(Grammar.[Ch]|Scanner.cpp)!;
 $excludeDirPattern=q!/(.svn|CVS|automatic|include)$!;
 find( \&selectFile, "." );
 print "files=@allfiles" if ($debug > 2);

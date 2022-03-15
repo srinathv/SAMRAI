@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Variable class for defining outeredge centered variables
  *
  ************************************************************************/
@@ -92,6 +92,6 @@ private:
 }
 }
 
-#include "SAMRAI/pdat/OuteredgeVariable.C"
+#include "SAMRAI/pdat/OuteredgeVariable.cpp"
 
 #endif

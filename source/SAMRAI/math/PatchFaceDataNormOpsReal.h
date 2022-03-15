@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Templated norm operations for real face-centered data.
  *
  ************************************************************************/
@@ -249,6 +249,6 @@ private:
 }
 }
 
-#include "SAMRAI/math/PatchFaceDataNormOpsReal.C"
+#include "SAMRAI/math/PatchFaceDataNormOpsReal.cpp"
 
 #endif

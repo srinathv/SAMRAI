@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and LICENSE. 
 ##
-## Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
 ## Description:   Unit test of CellPoissonHypreSolver
 ##
 #########################################################################
@@ -19,7 +19,7 @@
 This test demonstrates the use of and unit tests the CellPoissonHypreSolver
 class.  The files included in this directory are as follows:
  
-   main.C               -  driver
+   main.cpp               -  driver
    HyprePoisson.[Ch]    -  Class to set up and solve the scalar Poisson
                            equation on a single level.  Also supplies required
                            implementations to interfaces for building grid and

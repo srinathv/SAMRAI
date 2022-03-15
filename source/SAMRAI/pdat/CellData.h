@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Templated cell centered patch data type
  *
  ************************************************************************/
@@ -126,7 +126,7 @@ public:
     * @param ghosts const IntVector reference indicating the width
     *              of the ghost cell region around the box over which
     *              the node data will be allocated.
-    * @param allocator An Umpire allocator to manage the allocation of the
+    * @param allocator A ResourceAllocator to manage the allocation of the
     *                  underlying data.
     *
     * @pre box.getDim() == ghosts.getDim()
@@ -592,6 +592,6 @@ typename CellData<TYPE>::template ConstView<DIM> get_const_view(const CellData<T
 }
 }
 
-#include "SAMRAI/pdat/CellData.C"
+#include "SAMRAI/pdat/CellData.cpp"
 
 #endif

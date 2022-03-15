@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Basic templated face-centered patch data operations.
  *
  ************************************************************************/
@@ -250,6 +250,6 @@ private:
 }
 }
 
-#include "SAMRAI/math/PatchFaceDataBasicOps.C"
+#include "SAMRAI/math/PatchFaceDataBasicOps.cpp"
 
 #endif

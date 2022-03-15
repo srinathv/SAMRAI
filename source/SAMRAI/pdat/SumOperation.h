@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Sum operation on single array data elements templated on data type
  *
  ************************************************************************/
@@ -37,6 +37,6 @@ struct SumOperation
 }
 }
 
-#include "SAMRAI/pdat/SumOperation.C"
+#include "SAMRAI/pdat/SumOperation.cpp"
 
 #endif
