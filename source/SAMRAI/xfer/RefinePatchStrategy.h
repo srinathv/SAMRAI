@@ -265,6 +265,7 @@ public:
       NULL_USE(coarse_to_unfilled);
       NULL_USE(overlaps);
       NULL_USE(refine_items);
+      setNeedRefineSynchronize(false);
    }
 
    /*!
@@ -290,6 +291,33 @@ public:
       NULL_USE(coarse_level);
       NULL_USE(coarse_to_fine);
       NULL_USE(coarse_to_unfilled);
+      setNeedRefineSynchronize(false);
+   }
+
+   /*!
+    * @brief Check if a synchronization is required.
+    */
+   bool
+   needSynchronize()
+   {
+      bool flag = d_need_synchronize;
+      d_need_synchronize = true;
+      return flag;
+   }
+
+protected:
+
+   /*!
+    * @brief Set flag to indicate synchronization is needed.
+    *
+    * Implementations of RefinePatchStrategy should call this to set
+    * the flag to false if they have not launched RAJA kernels that require
+    * a synchronization call afterward.
+    */
+   void
+   setNeedRefineSynchronize(bool flag)
+   {
+      d_need_synchronize = flag;
    }
 
 private:
@@ -326,6 +354,8 @@ private:
          RefinePatchStrategy::getCurrentObjects();
       current_objects.erase(this);
    }
+
+   bool d_need_synchronize = true;
 
 };
 

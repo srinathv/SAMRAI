@@ -2671,6 +2671,11 @@ RefineSchedule::refineScratchData(
          coarse_to_unfilled,
          overlaps,
          d_refine_items);
+#if defined(HAVE_RAJA)
+      if (d_refine_patch_strategy->needSynchronize()) {
+         tbox::parallel_synchronize();
+      }
+#endif
    }
 
    const hier::IntVector ratio(fine_level->getRatioToLevelZero()
@@ -2723,9 +2728,13 @@ RefineSchedule::refineScratchData(
                fill_boxes,
                local_ratio);
 #if defined(HAVE_RAJA)
-            tbox::parallel_synchronize();
+            if (d_refine_patch_strategy->needSynchronize()) {
+               tbox::parallel_synchronize();
+            }
 #endif
          }
+
+         bool need_sync = false;
 
          for (size_t iri = 0; iri < d_number_refine_items; ++iri) {
             const RefineClasses::Data * const ref_item = d_refine_items[iri];
@@ -2739,11 +2748,14 @@ RefineSchedule::refineScratchData(
                ref_item->d_oprefine->refine(*fine_patch, *crse_patch,
                   scratch_id, scratch_id,
                   *refine_overlap, local_ratio);
+               need_sync = true;
 
             }
          }
 #if defined(HAVE_RAJA)
-         tbox::parallel_synchronize();
+         if (need_sync) {
+            tbox::parallel_synchronize();
+         }
 #endif
 
          if (d_refine_patch_strategy) {
@@ -2752,7 +2764,9 @@ RefineSchedule::refineScratchData(
                fill_boxes,
                local_ratio);
 #if defined(HAVE_RAJA)
-            tbox::parallel_synchronize();
+            if (d_refine_patch_strategy->needSynchronize()) {
+               tbox::parallel_synchronize();
+            }
 #endif
          }
 
@@ -2788,7 +2802,9 @@ RefineSchedule::refineScratchData(
                fill_boxes,
                local_ratio);
 #if defined(HAVE_RAJA)
-            tbox::parallel_synchronize();
+            if (d_refine_patch_strategy->needSynchronize()) {
+               tbox::parallel_synchronize();
+            }
 #endif
          }
 
@@ -2818,7 +2834,9 @@ RefineSchedule::refineScratchData(
                fill_boxes,
                local_ratio);
 #if defined(HAVE_RAJA)
-            tbox::parallel_synchronize();
+            if (d_refine_patch_strategy->needSynchronize()) {
+               tbox::parallel_synchronize();
+            }
 #endif
          }
 
@@ -2854,7 +2872,9 @@ RefineSchedule::refineScratchData(
          coarse_to_fine,
          coarse_to_unfilled);
 #if defined(HAVE_RAJA)
-      tbox::parallel_synchronize();
+      if (d_refine_patch_strategy->needSynchronize()) {
+         tbox::parallel_synchronize();
+      }
 #endif
 
    }

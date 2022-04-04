@@ -1025,10 +1025,13 @@ CoarsenSchedule::coarsenSourceData(
          patch_strategy->preprocessCoarsen(*temp_patch,
             *fine_patch, box, block_ratio);
 #if defined(HAVE_RAJA)
-         tbox::parallel_synchronize();
+         if (patch_strategy->needSynchronize()) {
+            tbox::parallel_synchronize();
+         }
 #endif
       }
 
+      bool need_sync = false;
       for (size_t ici = 0; ici < d_number_coarsen_items; ++ici) {
          const CoarsenClasses::Data * const crs_item =
             d_coarsen_items[ici];
@@ -1037,11 +1040,12 @@ CoarsenSchedule::coarsenSourceData(
             crs_item->d_opcoarsen->coarsen(*temp_patch, *fine_patch,
                source_id, source_id,
                box, block_ratio);
+            need_sync = true;
          }
       }
-#if defined(HAVE_RAJA)
-      tbox::parallel_synchronize();
-#endif
+      if (need_sync) {
+         tbox::parallel_synchronize();
+      }
 
       if (patch_strategy) {
          patch_strategy->postprocessCoarsen(*temp_patch,
@@ -1049,7 +1053,9 @@ CoarsenSchedule::coarsenSourceData(
             box,
             block_ratio);
 #if defined(HAVE_RAJA)
-        tbox::parallel_synchronize();
+        if (patch_strategy->needSynchronize()) {
+           tbox::parallel_synchronize();
+        }
 #endif
       }
    }
