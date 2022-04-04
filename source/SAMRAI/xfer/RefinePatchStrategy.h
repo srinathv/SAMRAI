@@ -295,7 +295,10 @@ public:
    }
 
    /*!
-    * @brief Check if a synchronization is required.
+    * @brief Check flag for if host-device synchronization is needed.
+    *
+    * Returns current value of the flag while setting the flag back to
+    * the default value of true.
     */
    bool
    needSynchronize()
@@ -308,11 +311,13 @@ public:
 protected:
 
    /*!
-    * @brief Set flag to indicate synchronization is needed.
+    * @brief Set flag indicating if device synchronization is needed after
+    * a child class operation.
     *
-    * Implementations of RefinePatchStrategy should call this to set
-    * the flag to false if they have not launched RAJA kernels that require
-    * a synchronization call afterward.
+    * This allows implementations of methods such as preprocessRefine and
+    * postprocessRefine to set the flag to false if they have done nothing
+    * that requires host-device synchronization and do not need
+    * RefineSchedule to call the synchronize routine.
     */
    void
    setNeedRefineSynchronize(bool flag)
