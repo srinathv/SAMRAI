@@ -294,6 +294,12 @@ public:
       setNeedRefineSynchronize(false);
    }
 
+   virtual void
+   setPostRefineSyncFlag()
+   {
+      setNeedRefineSynchronize(true);
+   }
+
    /*!
     * @brief Check flag for if host-device synchronization is needed.
     *

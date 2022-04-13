@@ -1043,9 +1043,11 @@ CoarsenSchedule::coarsenSourceData(
             need_sync = true;
          }
       }
+#if defined(HAVE_RAJA)
       if (need_sync) {
          tbox::parallel_synchronize();
       }
+#endif
 
       if (patch_strategy) {
          patch_strategy->postprocessCoarsen(*temp_patch,

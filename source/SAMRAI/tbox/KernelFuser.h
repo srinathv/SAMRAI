@@ -49,8 +49,10 @@ public:
      }
 
 #ifdef HAVE_RAJA
-     d_workgroup = d_workpool.instantiate();
-     d_worksite = d_workgroup.run();
+     if (d_workpool.num_loops() > 0) {
+        d_workgroup = d_workpool.instantiate();
+        d_worksite = d_workgroup.run();
+     }
      d_launched = true;
 #endif
   }

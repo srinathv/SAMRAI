@@ -2752,13 +2752,14 @@ RefineSchedule::refineScratchData(
 
             }
          }
-#if defined(HAVE_RAJA)
-         if (need_sync) {
-            tbox::parallel_synchronize();
-         }
-#endif
 
          if (d_refine_patch_strategy) {
+            d_refine_patch_strategy->setPostRefineSyncFlag();
+#if defined(HAVE_RAJA)
+            if (d_refine_patch_strategy->needSynchronize()) {
+               tbox::parallel_synchronize();
+            }
+#endif
             d_refine_patch_strategy->postprocessRefineBoxes(*fine_patch,
                *crse_patch,
                fill_boxes,
