@@ -10,6 +10,7 @@
 #include "SAMRAI/tbox/Schedule.h"
 #include "SAMRAI/tbox/AllocatorDatabase.h"
 #include "SAMRAI/tbox/InputManager.h"
+#include "SAMRAI/tbox/KernelFuserStages.h"
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
@@ -110,7 +111,7 @@ Schedule::addTransaction(
    if ((d_mpi.getRank() == src_id) && (d_mpi.getRank() == dst_id)) {
       if (fuseable_transaction) {
          if (!d_local_fuser) {
-            d_local_fuser = KernelFuser::getFuser();
+            d_local_fuser = KernelFuserStages::getFuserStages()->getDefaultFuser();
          }
          fuseable_transaction->setKernelFuser(d_local_fuser);
          d_local_set_fuseable.push_front(fuseable_transaction);
@@ -121,7 +122,7 @@ Schedule::addTransaction(
       if (d_mpi.getRank() == dst_id) {
          if (fuseable_transaction) {
             if (!d_recv_fuser) {
-               d_recv_fuser = KernelFuser::getFuser();
+               d_recv_fuser = KernelFuserStages::getFuserStages()->getDefaultFuser();
             }
             fuseable_transaction->setKernelFuser(d_recv_fuser);
             d_recv_sets_fuseable[src_id].push_front(fuseable_transaction);
@@ -131,7 +132,7 @@ Schedule::addTransaction(
       } else if (d_mpi.getRank() == src_id) {
          if (fuseable_transaction) {
             if (!d_send_fuser) {
-               d_send_fuser = KernelFuser::getFuser();
+               d_send_fuser = KernelFuserStages::getFuserStages()->getDefaultFuser();
             }
             fuseable_transaction->setKernelFuser(d_send_fuser);
             d_send_sets_fuseable[dst_id].push_front(fuseable_transaction);
@@ -162,7 +163,7 @@ Schedule::appendTransaction(
    if ((d_mpi.getRank() == src_id) && (d_mpi.getRank() == dst_id)) {
       if (fuseable_transaction) {
          if (!d_local_fuser) {
-            d_local_fuser = KernelFuser::getFuser();
+            d_local_fuser = KernelFuserStages::getFuserStages()->getDefaultFuser();
          }
          fuseable_transaction->setKernelFuser(d_local_fuser);
          d_local_set_fuseable.push_back(fuseable_transaction);
@@ -173,7 +174,7 @@ Schedule::appendTransaction(
       if (d_mpi.getRank() == dst_id) {
          if (fuseable_transaction) {
             if (!d_recv_fuser) {
-               d_recv_fuser = KernelFuser::getFuser();
+               d_recv_fuser = KernelFuserStages::getFuserStages()->getDefaultFuser();
             }
             fuseable_transaction->setKernelFuser(d_recv_fuser);
             d_recv_sets_fuseable[src_id].push_back(fuseable_transaction);
@@ -183,7 +184,7 @@ Schedule::appendTransaction(
       } else if (d_mpi.getRank() == src_id) {
          if (fuseable_transaction) {
             if (!d_send_fuser) {
-               d_send_fuser = KernelFuser::getFuser();
+               d_send_fuser = KernelFuserStages::getFuserStages()->getDefaultFuser();
             }
             fuseable_transaction->setKernelFuser(d_send_fuser);
             d_send_sets_fuseable[dst_id].push_back(transaction);

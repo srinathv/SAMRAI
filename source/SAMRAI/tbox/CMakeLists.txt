@@ -28,6 +28,7 @@ set ( tbox_headers
   InputManager.h
   IOStream.h
   KernelFuser.h
+  KernelFuserStages.h
   Logger.h
   MathUtilities.h
   MathUtilities.cpp
@@ -91,6 +92,7 @@ set (tbox_sources
   IEEE.cpp
   InputManager.cpp
   KernelFuser.cpp
+  KernelFuserStages.cpp
   Logger.cpp
   MathUtilitiesSpecial.cpp
   MemoryDatabase.cpp

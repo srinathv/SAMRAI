@@ -29,7 +29,6 @@ class KernelFuser
 {
 public:
 
-  static KernelFuser* getFuser();
 
 #ifdef HAVE_RAJA
   template<typename Kernel>
@@ -74,7 +73,6 @@ public:
 
   void initialize();
 
-protected:
   KernelFuser() :
 #ifdef HAVE_RAJA
      d_workpool(AllocatorDatabase::getDatabase()->getKernelFuserAllocator()),
@@ -102,14 +100,6 @@ private:
   using WorkGroup = RAJA::WorkGroup<Policy, int, RAJA::xargs<>, Allocator>;
   using WorkSite  = RAJA::WorkSite <Policy, int, RAJA::xargs<>, Allocator>;
 #endif
-
-   static void startupCallback();
-   static void shutdownCallback();
-
-   static KernelFuser* s_kernel_fuser_instance;
-
-   static StartupShutdownManager::Handler
-   s_startup_handler;
 
 #ifdef HAVE_RAJA
   WorkPool d_workpool;
