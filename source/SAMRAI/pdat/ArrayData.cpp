@@ -12,7 +12,7 @@
 #define included_pdat_ArrayData_C
 
 #include "SAMRAI/tbox/KernelFuser.h"
-#include "SAMRAI/tbox/KernelFuserStages.h"
+#include "SAMRAI/tbox/ScheduleKernelFuser.h"
 #include "SAMRAI/tbox/MessageStream.h"
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/tbox/MathUtilities.h"
@@ -303,7 +303,7 @@ void ArrayData<TYPE>::copy(
       const size_t n = d_offset * d_depth;
 #if defined(HAVE_RAJA)
       tbox::KernelFuser* fuser = d_use_fuser ?
-         tbox::KernelFuserStages::getFuserStages()->getDefaultFuser() : nullptr;
+         tbox::ScheduleKernelFuser::getInstance()->getFuser() : nullptr;
       if (d_on_host) {
          hier::host_parallel_for_all(0, n, [=] (int i) {
             copyop(dst_ptr[i], src_ptr[i]);
@@ -499,7 +499,7 @@ void ArrayData<TYPE>::copyDepth(
 
 #if defined(HAVE_RAJA)
       tbox::KernelFuser* fuser = d_use_fuser ?
-         tbox::KernelFuserStages::getFuserStages()->getDefaultFuser() : nullptr;
+         tbox::ScheduleKernelFuser::getInstance()->getFuser() : nullptr;
 
       if (d_on_host) {
          hier::host_parallel_for_all(0, d_offset, [=] (int i) {
@@ -1019,7 +1019,7 @@ void ArrayData<TYPE>::fillAll(
       const size_t n = d_depth * d_offset;
 #if defined(HAVE_RAJA)
       tbox::KernelFuser* fuser = d_use_fuser ?
-         tbox::KernelFuserStages::getFuserStages()->getDefaultFuser() : nullptr;
+         tbox::ScheduleKernelFuser::getInstance()->getFuser() : nullptr;
 
       if (d_on_host) {
          hier::host_parallel_for_all(0, n, [=] (int i) {
@@ -1064,7 +1064,7 @@ void ArrayData<TYPE>::fill(
    if (!d_box.empty()) {
 #if defined(HAVE_RAJA)
       tbox::KernelFuser* fuser = d_use_fuser ?
-         tbox::KernelFuserStages::getFuserStages()->getDefaultFuser() : nullptr;
+         tbox::ScheduleKernelFuser::getInstance()->getFuser() : nullptr;
 
       if (d_on_host) {
          hier::host_parallel_for_all(0, n, [=] (int i) {
@@ -1098,7 +1098,7 @@ void ArrayData<TYPE>::fill(
    if (!ispace.empty()) {
 #if defined(HAVE_RAJA)
       tbox::KernelFuser* fuser = d_use_fuser ?
-         tbox::KernelFuserStages::getFuserStages()->getDefaultFuser() : nullptr;
+         tbox::ScheduleKernelFuser::getInstance()->getFuser() : nullptr;
 
       switch (ispace.getDim().getValue()) {
          case 1: {

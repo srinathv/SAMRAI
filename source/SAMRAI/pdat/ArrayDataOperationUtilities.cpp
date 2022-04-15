@@ -115,7 +115,7 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
 #if defined(HAVE_RAJA)
    bool use_fuser = dst.useFuser();
    tbox::KernelFuser* fuser = use_fuser ?
-      tbox::KernelFuserStages::getFuserStages()->getDefaultFuser() : nullptr;
+      tbox::ScheduleKernelFuser::getInstance()->getFuser() : nullptr;
 #endif
 
    /*
@@ -321,7 +321,7 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataBufferOperationOnBox(
 #if defined(HAVE_RAJA)
    bool use_fuser = arraydata.useFuser();
    tbox::KernelFuser* fuser = use_fuser ?
-      tbox::KernelFuserStages::getFuserStages()->getDefaultFuser() : nullptr;
+      tbox::ScheduleKernelFuser::getInstance()->getFuser() : nullptr;
 #endif
 
    /*

@@ -28,7 +28,6 @@ set ( tbox_headers
   InputManager.h
   IOStream.h
   KernelFuser.h
-  KernelFuserStages.h
   Logger.h
   MathUtilities.h
   MathUtilities.cpp
@@ -50,9 +49,11 @@ set ( tbox_headers
   SAMRAI_MPI.h
   SAMRAIManager.h
   Schedule.h
+  ScheduleKernelFuser.h
   Serializable.h
   SiloDatabase.h
   SiloDatabaseFactory.h
+  StagedKernelFusers.h
   StartupShutdownManager.h
   Statistic.h
   Statistician.h
@@ -92,7 +93,6 @@ set (tbox_sources
   IEEE.cpp
   InputManager.cpp
   KernelFuser.cpp
-  KernelFuserStages.cpp
   Logger.cpp
   MathUtilitiesSpecial.cpp
   MemoryDatabase.cpp
@@ -111,9 +111,11 @@ set (tbox_sources
   SAMRAI_MPI.cpp
   Scanner.cpp
   Schedule.cpp
+  ScheduleKernelFuser.cpp
   Serializable.cpp
   SiloDatabase.cpp
   SiloDatabaseFactory.cpp
+  StagedKernelFusers.cpp
   StartupShutdownManager.cpp
   StatTransaction.cpp
   Statistic.cpp

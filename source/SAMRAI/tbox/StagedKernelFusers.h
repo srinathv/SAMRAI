@@ -1,5 +1,5 @@
-#ifndef included_tbox_KernelFuserStages
-#define included_tbox_KernelFuserStages
+#ifndef included_tbox_StagedKernelFusers
+#define included_tbox_StagedKernelFusers
 
 #include "SAMRAI/SAMRAI_config.h"
 
@@ -13,11 +13,11 @@
 namespace SAMRAI {
 namespace tbox {
 
-class KernelFuserStages
+class StagedKernelFusers
 {
 public:
 
-   static KernelFuserStages* getFuserStages();
+   static StagedKernelFusers* getInstance();
 
 #ifdef HAVE_RAJA
    template<typename Kernel>
@@ -40,11 +40,6 @@ public:
       }
    }
 
-   KernelFuser* getDefaultFuser()
-   {
-      return &d_kernel_fusers[-99999];
-   }
-
    KernelFuser* getFuser(int stage)
    {
       return &d_kernel_fusers[stage];
@@ -63,11 +58,11 @@ public:
    void initialize();
 
 protected:
-   KernelFuserStages()
+   StagedKernelFusers()
    {
    }
 
-   virtual ~KernelFuserStages();
+   virtual ~StagedKernelFusers();
 
 
 private:
@@ -75,7 +70,7 @@ private:
    static void startupCallback();
    static void shutdownCallback();
 
-   static KernelFuserStages* s_kernel_fuser_stages_instance;
+   static StagedKernelFusers* s_staged_kernel_fusers_instance;
 
    static StartupShutdownManager::Handler
    s_startup_handler;
