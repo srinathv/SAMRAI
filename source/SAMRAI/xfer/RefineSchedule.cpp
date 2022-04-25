@@ -29,6 +29,7 @@
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/OpenMPUtilities.h"
+#include "SAMRAI/tbox/StagedKernelFusers.h"
 #include "SAMRAI/tbox/StartupShutdownManager.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -2865,6 +2866,12 @@ RefineSchedule::refineScratchData(
          ++nbr_blk_copies;
       }
    }
+
+   tbox::StagedKernelFusers::getInstance()->launch();
+#if defined(HAVE_RAJA)
+   tbox::parallel_synchronize();
+#endif
+   tbox::StagedKernelFusers::getInstance()->cleanup();
 
    if (d_refine_patch_strategy) {
       d_refine_patch_strategy->postprocessRefineLevel(
