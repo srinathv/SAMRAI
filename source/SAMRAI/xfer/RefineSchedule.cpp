@@ -2161,9 +2161,10 @@ RefineSchedule::recursiveFill(
     */
    d_coarse_priority_level_schedule->communicate();
 #if defined(HAVE_RAJA)
-   if (d_coarse_priority_level_schedule->completedTransactions()) {
-      tbox::parallel_synchronize();
-   }
+//   TODO:  Be sure that this sync isn't needed.
+//   if (d_coarse_priority_level_schedule->completedTransactions()) {
+//      tbox::parallel_synchronize();
+//   }
 #endif
 
    /*
@@ -2224,7 +2225,8 @@ RefineSchedule::recursiveFill(
          do_physical_boundary_fill);
 
 #if defined(HAVE_RAJA)
-      tbox::parallel_synchronize();
+//      TODO: This sync probably isn't necessary, but keep an eye on it. 
+//      tbox::parallel_synchronize();
 #endif
 
       /*
@@ -2344,9 +2346,10 @@ RefineSchedule::recursiveFill(
     */
    d_fine_priority_level_schedule->communicate();
 #if defined(HAVE_RAJA)
-   if (d_fine_priority_level_schedule->completedTransactions()) {
-      tbox::parallel_synchronize();
-   }
+//   TODO:  Be sure that this sync isn't needed.
+//   if (d_fine_priority_level_schedule->completedTransactions()) {
+//      tbox::parallel_synchronize();
+//   }
 #endif
 
    /*
