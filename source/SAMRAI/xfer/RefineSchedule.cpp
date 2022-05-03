@@ -2384,6 +2384,9 @@ RefineSchedule::fillPhysicalBoundaries(
    d_dst_level->setBoundaryBoxes();
 
    if (d_refine_patch_strategy) {
+#if defined(HAVE_RAJA)
+      bool bdry_is_filled = false; 
+#endif 
       for (hier::PatchLevel::iterator p(d_dst_level->begin());
            p != d_dst_level->end(); ++p) {
          const std::shared_ptr<hier::Patch>& patch(*p);
@@ -2392,8 +2395,17 @@ RefineSchedule::fillPhysicalBoundaries(
             setPhysicalBoundaryConditions(*patch,
                fill_time,
                d_boundary_fill_ghost_width);
+#if defined(HAVE_RAJA)
+            bdry_is_filled = true;
+#endif
          }
       }
+#if defined(HAVE_RAJA) 
+      if (bdry_is_filled && d_refine_patch_strategy->needSynchronize()) {
+         tbox::parallel_synchronize();
+      }
+#endif
+
    }
    t_fill_physical_boundaries->stop();
 }
@@ -2427,7 +2439,9 @@ RefineSchedule::fillSingularityBoundaries(
       const hier::IntVector& ratio = d_dst_level->getRatioToLevelZero();
 
       if (d_singularity_patch_strategy) {
-
+#if defined(HAVE_RAJA)
+         bool sing_is_filled = false;
+#endif
          for (hier::BlockId::block_t bn = 0; bn < grid_geometry->getNumberBlocks(); ++bn) {
 
             hier::BlockId block_id(bn);
@@ -2476,6 +2490,9 @@ RefineSchedule::fillSingularityBoundaries(
                                  d_dst_to_encon,
                                  fill_box, nboxes[bb],
                                  grid_geometry);
+#if defined(HAVE_RAJA)
+                              sing_is_filled = true;
+#endif
                            }
                         }
                      }
@@ -2503,6 +2520,9 @@ RefineSchedule::fillSingularityBoundaries(
                                     d_dst_to_encon,
                                     fill_box, eboxes[bb],
                                     grid_geometry);
+#if defined(HAVE_RAJA)
+                                 sing_is_filled = true;
+#endif
                               }
                            }
                         }
@@ -2511,6 +2531,11 @@ RefineSchedule::fillSingularityBoundaries(
                }
             }
          }
+#if defined(HAVE_RAJA) 
+         if (sing_is_filled && d_singularity_patch_strategy->needSynchronize()) {
+            tbox::parallel_synchronize();
+         }
+#endif
       }
    }
    t_fill_singularity_boundaries->stop();
