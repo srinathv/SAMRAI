@@ -14,10 +14,11 @@
 #include "SAMRAI/pdat/ArrayDataOperationUtilities.h"
 #include "SAMRAI/pdat/ArrayData.h"
 #include "SAMRAI/hier/ForAll.h"
-#include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/pdat/SumOperation.h"
 #include "SAMRAI/tbox/Collectives.h"
 #include "SAMRAI/tbox/NVTXUtilities.h"
+#include "SAMRAI/tbox/StagedKernelFusers.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
@@ -115,7 +116,7 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
 #if defined(HAVE_RAJA)
    bool use_fuser = dst.useFuser();
    tbox::KernelFuser* fuser = use_fuser ?
-      tbox::ScheduleKernelFuser::getInstance()->getFuser() : nullptr;
+      tbox::StagedKernelFusers::getInstance()->getFuser(0) : nullptr;
 #endif
 
    /*
@@ -321,7 +322,7 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataBufferOperationOnBox(
 #if defined(HAVE_RAJA)
    bool use_fuser = arraydata.useFuser();
    tbox::KernelFuser* fuser = use_fuser ?
-      tbox::ScheduleKernelFuser::getInstance()->getFuser() : nullptr;
+      tbox::StagedKernelFusers::getInstance()->getFuser(0) : nullptr;
 #endif
 
    /*

@@ -14,7 +14,7 @@
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/tbox/Transaction.h"
-#include "SAMRAI/tbox/KernelFuser.h"
+#include "SAMRAI/tbox/StagedKernelFusers.h"
 
 #include <iostream>
 
@@ -25,11 +25,11 @@ class TransactionFuseable :
   public Transaction
 {
 public:
-  void setKernelFuser(KernelFuser* fuser);
-  KernelFuser* getKernelFuser();
+  void setKernelFuser(StagedKernelFusers* fuser);
+  StagedKernelFusers* getKernelFuser();
 
 private:
-  KernelFuser* d_fuser{nullptr};
+  StagedKernelFusers* d_fuser{nullptr};
 };
 
 }

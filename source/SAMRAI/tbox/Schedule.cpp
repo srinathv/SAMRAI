@@ -10,7 +10,7 @@
 #include "SAMRAI/tbox/Schedule.h"
 #include "SAMRAI/tbox/AllocatorDatabase.h"
 #include "SAMRAI/tbox/InputManager.h"
-#include "SAMRAI/tbox/ScheduleKernelFuser.h"
+#include "SAMRAI/tbox/StagedKernelFusers.h"
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
@@ -110,10 +110,10 @@ Schedule::addTransaction(
 
    if ((d_mpi.getRank() == src_id) && (d_mpi.getRank() == dst_id)) {
       if (fuseable_transaction) {
-         if (!d_local_fuser) {
-            d_local_fuser = ScheduleKernelFuser::getInstance()->getFuser();
+         if (!d_local_fusers) {
+            d_local_fusers = StagedKernelFusers::getInstance();
          }
-         fuseable_transaction->setKernelFuser(d_local_fuser);
+         fuseable_transaction->setKernelFuser(d_local_fusers);
          d_local_set_fuseable.push_front(fuseable_transaction);
       } else {
          d_local_set.push_front(transaction);
@@ -121,20 +121,20 @@ Schedule::addTransaction(
    } else {
       if (d_mpi.getRank() == dst_id) {
          if (fuseable_transaction) {
-            if (!d_recv_fuser) {
-               d_recv_fuser = ScheduleKernelFuser::getInstance()->getFuser();
+            if (!d_recv_fusers) {
+               d_recv_fusers = StagedKernelFusers::getInstance();
             }
-            fuseable_transaction->setKernelFuser(d_recv_fuser);
+            fuseable_transaction->setKernelFuser(d_recv_fusers);
             d_recv_sets_fuseable[src_id].push_front(fuseable_transaction);
          } else {
             d_recv_sets[src_id].push_front(transaction);
          }
       } else if (d_mpi.getRank() == src_id) {
          if (fuseable_transaction) {
-            if (!d_send_fuser) {
-               d_send_fuser = ScheduleKernelFuser::getInstance()->getFuser();
+            if (!d_send_fusers) {
+               d_send_fusers = StagedKernelFusers::getInstance();
             }
-            fuseable_transaction->setKernelFuser(d_send_fuser);
+            fuseable_transaction->setKernelFuser(d_send_fusers);
             d_send_sets_fuseable[dst_id].push_front(fuseable_transaction);
          } else {
             d_send_sets[dst_id].push_front(transaction);
@@ -162,10 +162,10 @@ Schedule::appendTransaction(
 
    if ((d_mpi.getRank() == src_id) && (d_mpi.getRank() == dst_id)) {
       if (fuseable_transaction) {
-         if (!d_local_fuser) {
-            d_local_fuser = ScheduleKernelFuser::getInstance()->getFuser();
+         if (!d_local_fusers) {
+            d_local_fusers = StagedKernelFusers::getInstance();
          }
-         fuseable_transaction->setKernelFuser(d_local_fuser);
+         fuseable_transaction->setKernelFuser(d_local_fusers);
          d_local_set_fuseable.push_back(fuseable_transaction);
       } else {
          d_local_set.push_back(transaction);
@@ -173,20 +173,20 @@ Schedule::appendTransaction(
    } else {
       if (d_mpi.getRank() == dst_id) {
          if (fuseable_transaction) {
-            if (!d_recv_fuser) {
-               d_recv_fuser = ScheduleKernelFuser::getInstance()->getFuser();
+            if (!d_recv_fusers) {
+               d_recv_fusers = StagedKernelFusers::getInstance();
             }
-            fuseable_transaction->setKernelFuser(d_recv_fuser);
+            fuseable_transaction->setKernelFuser(d_recv_fusers);
             d_recv_sets_fuseable[src_id].push_back(fuseable_transaction);
          } else {
             d_recv_sets[src_id].push_back(transaction);
          }
       } else if (d_mpi.getRank() == src_id) {
          if (fuseable_transaction) {
-            if (!d_send_fuser) {
-               d_send_fuser = ScheduleKernelFuser::getInstance()->getFuser();
+            if (!d_send_fusers) {
+               d_send_fusers = StagedKernelFusers::getInstance();
             }
-            fuseable_transaction->setKernelFuser(d_send_fuser);
+            fuseable_transaction->setKernelFuser(d_send_fusers);
             d_send_sets_fuseable[dst_id].push_back(transaction);
          } else {
             d_send_sets[dst_id].push_back(transaction);
@@ -473,8 +473,8 @@ Schedule::postSends()
       for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
-      if (d_send_fuser && have_fuseable) {
-         d_send_fuser->launch();
+      if (d_send_fusers && have_fuseable) {
+         d_send_fusers->launch();
       }
  
       for (const auto& transaction : d_send_sets[peer_rank]) {
@@ -487,7 +487,7 @@ Schedule::postSends()
          d_completed_transactions = true;
 #if defined(HAVE_RAJA)
          parallel_synchronize();
-         if (d_send_fuser) d_send_fuser->cleanup();
+         if (d_send_fusers) d_send_fusers->cleanup();
 #endif
       }
 
@@ -546,8 +546,8 @@ Schedule::postSends()
       for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
-      if (d_send_fuser && have_fuseable) {
-         d_send_fuser->launch();
+      if (d_send_fusers && have_fuseable) {
+         d_send_fusers->launch();
       }
 
       for (const auto& transaction : d_send_sets[peer_rank]) {
@@ -559,7 +559,7 @@ Schedule::postSends()
          d_completed_transactions = true;
 #if defined(HAVE_RAJA)
          parallel_synchronize();
-         if (d_send_fuser) d_send_fuser->cleanup();
+         if (d_send_fusers) d_send_fusers->cleanup();
 #endif
       }
 
@@ -596,8 +596,8 @@ Schedule::performLocalCopies()
    for (const auto& local : d_local_set_fuseable) {
       local->copyLocalData();
    }
-   if (d_local_fuser && have_fuseable) {
-      d_local_fuser->launch();
+   if (d_local_fusers && have_fuseable) {
+      d_local_fusers->launch();
    }
 
    for (const auto& local : d_local_set) {
@@ -610,7 +610,7 @@ Schedule::performLocalCopies()
       d_completed_transactions = true;
 #if defined(HAVE_RAJA)
       parallel_synchronize();
-      if (d_local_fuser) d_local_fuser->cleanup();
+      if (d_local_fusers) d_local_fusers->cleanup();
 #endif
    }
 
@@ -661,13 +661,13 @@ Schedule::processCompletedCommunications()
          for (const auto& transaction : d_recv_sets_fuseable[sender]) {
             transaction->unpackStream(incoming_stream);
          }
-         if (d_recv_fuser || have_fuseable) {
-            d_recv_fuser->launch();
+         if (d_recv_fusers || have_fuseable) {
+            d_recv_fusers->launch();
          }
 #if defined(HAVE_RAJA)
          if (have_fuseable) {
             parallel_synchronize();
-            if (d_recv_fuser) d_recv_fuser->cleanup();
+            if (d_recv_fusers) d_recv_fusers->cleanup();
          }
 #endif
          for (const auto& transaction : d_recv_sets[sender]) {
@@ -725,13 +725,13 @@ Schedule::processCompletedCommunications()
             for (const auto& transaction : d_recv_sets_fuseable[sender]) {
                transaction->unpackStream(incoming_stream);
             }
-            if (d_recv_fuser && have_fuseable) {
-               d_recv_fuser->launch();
+            if (d_recv_fusers && have_fuseable) {
+               d_recv_fusers->launch();
             }
 #if defined(HAVE_RAJA)
             if (have_fuseable) {
                parallel_synchronize();
-               if (d_recv_fuser) d_recv_fuser->cleanup();
+               if (d_recv_fusers) d_recv_fusers->cleanup();
             }
 #endif
             for (const auto& transaction : d_recv_sets[sender]) {

@@ -4,12 +4,12 @@ namespace SAMRAI {
 namespace tbox {
 
 void
-TransactionFuseable::setKernelFuser(KernelFuser* fuser)
+TransactionFuseable::setKernelFuser(StagedKernelFusers* fuser)
 {
   d_fuser = fuser;
 }
 
-KernelFuser*
+StagedKernelFusers*
 TransactionFuseable::getKernelFuser()
 {
   return d_fuser;

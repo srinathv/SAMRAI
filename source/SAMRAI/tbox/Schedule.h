@@ -19,6 +19,7 @@
 #include "SAMRAI/tbox/Transaction.h"
 #include "SAMRAI/tbox/TransactionFuseable.h"
 #include "SAMRAI/tbox/KernelFuser.h"
+#include "SAMRAI/tbox/StagedKernelFusers.h"
 
 #include <iostream>
 #include <map>
@@ -352,8 +353,8 @@ private:
    TransactionSets d_send_sets_fuseable;
    TransactionSets d_recv_sets_fuseable;
 
-   KernelFuser* d_send_fuser{nullptr};
-   KernelFuser* d_recv_fuser{nullptr};
+   StagedKernelFusers* d_send_fusers{nullptr};
+   StagedKernelFusers* d_recv_fusers{nullptr};
 
    bool d_completed_transactions = false;
 
@@ -369,7 +370,7 @@ private:
     */
    std::list<std::shared_ptr<Transaction> > d_local_set_fuseable;
 
-   KernelFuser* d_local_fuser{nullptr};
+   StagedKernelFusers* d_local_fusers{nullptr};
 
    //@{ @name High-level asynchronous messages passing objects
 
