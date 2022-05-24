@@ -139,6 +139,12 @@ public:
       const hier::Box& coarse_box,
       const hier::IntVector& ratio) = 0;
 
+   virtual void
+   setPostCoarsenSyncFlag()
+   {
+      setNeedCoarsenSynchronize(true);
+   }
+
    /*!
     * @brief Check flag for if host-device synchronization is needed.
     *

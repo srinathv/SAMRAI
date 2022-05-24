@@ -823,6 +823,10 @@ public:
       for (Iterator ip(begin()); ip != end(); ++ip) {
          ip->deallocatePatchData(id);
       }
+
+#if defined(HAVE_RAJA)
+      tbox::StagedKernelFusers::getInstance()->launchAndCleanup();
+#endif
    }
 
    /*!
@@ -840,6 +844,10 @@ public:
       for (Iterator ip(begin()); ip != end(); ++ip) {
          ip->deallocatePatchData(components);
       }
+
+#if defined(HAVE_RAJA)
+      tbox::StagedKernelFusers::getInstance()->launchAndCleanup();
+#endif
    }
 
    /*!

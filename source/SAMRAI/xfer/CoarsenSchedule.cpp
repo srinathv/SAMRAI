@@ -313,9 +313,9 @@ CoarsenSchedule::coarsenData() const
 
    d_schedule->communicate();
 #if defined(HAVE_RAJA)
-   if (d_schedule->completedTransactions()) {
-      tbox::parallel_synchronize();
-   }
+//   if (d_schedule->completedTransactions()) {
+//      tbox::parallel_synchronize();
+//   }
 #endif
 
    /*
@@ -1043,24 +1043,37 @@ CoarsenSchedule::coarsenSourceData(
             need_sync = true;
          }
       }
+
 #if defined(HAVE_RAJA)
-      if (need_sync) {
-         tbox::parallel_synchronize();
-      }
+//      if (need_sync) {
+//         tbox::parallel_synchronize();
+//      }
 #endif
 
       if (patch_strategy) {
+         d_coarsen_patch_strategy->setPostCoarsenSyncFlag();
+#if defined(HAVE_RAJA)
+         if (d_coarsen_patch_strategy->needSynchronize()) {
+            printf("POST COARSEN SYNCHRONIZE\n");
+            tbox::parallel_synchronize();
+         }
+#endif
+
          patch_strategy->postprocessCoarsen(*temp_patch,
             *fine_patch,
             box,
             block_ratio);
-#if defined(HAVE_RAJA)
-        if (patch_strategy->needSynchronize()) {
-           tbox::parallel_synchronize();
-        }
-#endif
       }
    }
+
+   tbox::StagedKernelFusers::getInstance()->launch();
+#if defined(HAVE_RAJA)
+   if (patch_strategy->needSynchronize() || tbox::StagedKernelFusers::getInstance()->isActive()) {
+      tbox::parallel_synchronize();
+   }
+#endif
+   tbox::StagedKernelFusers::getInstance()->cleanup();
+
 }
 
 /*

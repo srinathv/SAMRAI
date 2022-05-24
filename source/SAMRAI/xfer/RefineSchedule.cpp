@@ -2763,8 +2763,6 @@ RefineSchedule::refineScratchData(
 #endif
          }
 
-         bool need_sync = false;
-
          for (size_t iri = 0; iri < d_number_refine_items; ++iri) {
             const RefineClasses::Data * const ref_item = d_refine_items[iri];
             if (ref_item->d_oprefine) {
@@ -2777,8 +2775,6 @@ RefineSchedule::refineScratchData(
                ref_item->d_oprefine->refine(*fine_patch, *crse_patch,
                   scratch_id, scratch_id,
                   *refine_overlap, local_ratio);
-               need_sync = true;
-
             }
          }
 
