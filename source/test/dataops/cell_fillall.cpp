@@ -44,32 +44,54 @@ int main(
    int num_failures = 0;
 
    hier::Index lo(0,0);
-   hier::Index hi(1,1);
+   hier::Index hi(9,17);
    hier::IntVector ghosts(dim, 0);
    hier::Box box(lo, hi, hier::BlockId(0));
-   pdat::CellData<double> cdata(box, 1, ghosts);
+   pdat::CellData<int> cdata(box, 1, ghosts);
 
-   cdata.fillAll(-1.0);
-   cdata.print(cdata.getGhostBox(), tbox::pout);
-
-   cdata.fillAll(5.27, cdata.getGhostBox());
+   cdata.fillAll(-1);
 
    pdat::CellIterator icend(pdat::CellGeometry::end(cdata.getGhostBox()));
    for (pdat::CellIterator c(pdat::CellGeometry::begin(cdata.getGhostBox()));
         c != icend; ++c) {
-      if (cdata(*c) < 0.0) {
+      if (cdata(*c) != -1) {
          ++num_failures;
       }
    }
 
-   cdata.print(cdata.getGhostBox(), tbox::pout);
+   cdata.fillAll(5, cdata.getGhostBox());
+
+   for (pdat::CellIterator c(pdat::CellGeometry::begin(cdata.getGhostBox()));
+        c != icend; ++c) {
+      if (cdata(*c) != 5) {
+         ++num_failures;
+      }
+   }
+
+   hier::Index lo_2(3,4);
+   hier::Index hi_2(7,12);
+   hier::Box box_2(lo_2, hi_2, hier::BlockId(0));
+
+   cdata.fillAll(12, box_2);
+
+   for (pdat::CellIterator c(pdat::CellGeometry::begin(cdata.getGhostBox()));
+        c != icend; ++c) {
+      if (box_2.contains(*c)) {
+         if (cdata(*c) != 12) {
+            ++num_failures;
+         }
+      } else {
+         if (cdata(*c) != 5) {
+            ++num_failures;
+         }
+      }
+   }
 
    if (num_failures == 0) {
       tbox::pout << "\nPASSED:  cell fillall" << std::endl;
    } else {
       tbox::perr << "\nFAILED:  cell fillall" << std::endl;
    }
-
 
    tbox::SAMRAIManager::shutdown();
    tbox::SAMRAIManager::finalize();
