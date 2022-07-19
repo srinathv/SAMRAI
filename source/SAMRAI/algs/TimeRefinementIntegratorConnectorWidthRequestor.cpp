@@ -41,9 +41,12 @@ TimeRefinementIntegratorConnectorWidthRequestor::TimeRefinementIntegratorConnect
  * was not registered at the time the required Connector widths are
  * computed.  This appeared to be by design (see how it uses
  * GriddingAlgorithm::resetTagBufferingData), so I didn't change it,
- * but it probably should be redesigned.  Filling the tag data ghosts
- * doesn't use recursive refine schedules, so it has no effect on the
- * fine_connector_widths.  --BTNG.
+ * but it probably should be redesigned.
+ *
+ * The fine connector widths are set to the self connector width divided
+ * by the refinement ratio for each level (rounded up if there's a remainder).
+ * This ensures that if the tag buffer causes a large self connector width,
+ * the fine connector width is large enough to support bridge operations.
  **************************************************************************
  */
 void
@@ -55,14 +58,28 @@ TimeRefinementIntegratorConnectorWidthRequestor::computeRequiredConnectorWidths(
    const tbox::Dimension& dim(patch_hierarchy.getDim());
    const int max_levels(patch_hierarchy.getMaxNumberOfLevels());
 
-   fine_connector_widths.resize(max_levels - 1, hier::IntVector::getZero(dim));
+   fine_connector_widths.resize(max_levels - 1, hier::IntVector(dim, 0, patch_hierarchy.getNumberBlocks()));
    self_connector_widths.clear();
    self_connector_widths.reserve(max_levels);
    for (size_t ln = 0; ln < static_cast<size_t>(max_levels); ++ln) {
       hier::IntVector buffer(
          dim,
-         d_tag_buffer.size() > ln ? d_tag_buffer[ln] : d_tag_buffer.back());
+         d_tag_buffer.size() > ln ? d_tag_buffer[ln] : d_tag_buffer.back(),
+         patch_hierarchy.getNumberBlocks());
       self_connector_widths.push_back(buffer);
+      if (ln < static_cast<size_t>(max_levels-1)) {
+         const hier::IntVector& ratio =
+            patch_hierarchy.getRatioToCoarserLevel(ln+1);
+         for (hier::BlockId::block_t b = 0;
+              b < patch_hierarchy.getNumberBlocks(); ++b) {
+            for (int d = 0; d < dim.getValue(); ++d) {
+               while (self_connector_widths[ln](b,d) >
+                      fine_connector_widths[ln](b,d) * ratio(b,d)) {
+                  ++fine_connector_widths[ln](b,d);  
+               }
+            }
+         }
+      }
    }
 }
 
