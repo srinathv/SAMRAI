@@ -68,14 +68,19 @@ TimeRefinementIntegratorConnectorWidthRequestor::computeRequiredConnectorWidths(
          patch_hierarchy.getNumberBlocks());
       self_connector_widths.push_back(buffer);
       if (ln < static_cast<size_t>(max_levels-1)) {
-         const hier::IntVector& ratio =
+         const hier::IntVector& ratio_to_coarse =
             patch_hierarchy.getRatioToCoarserLevel(ln+1);
-         for (hier::BlockId::block_t b = 0;
+        for (hier::BlockId::block_t b = 0;
               b < patch_hierarchy.getNumberBlocks(); ++b) {
             for (int d = 0; d < dim.getValue(); ++d) {
-               while (self_connector_widths[ln](b,d) >
-                      fine_connector_widths[ln](b,d) * ratio(b,d)) {
-                  ++fine_connector_widths[ln](b,d);  
+               int& fine_w = fine_connector_widths[ln](b,d);
+               const int& self_w = self_connector_widths[ln](b,d);
+               const int& ratio = ratio_to_coarse(b,d);
+               if (fine_w * ratio < self_w) {
+                  fine_w = self_w / ratio;
+                  if (self_w % ratio) {
+                     ++fine_w;
+                  }
                }
             }
          }
