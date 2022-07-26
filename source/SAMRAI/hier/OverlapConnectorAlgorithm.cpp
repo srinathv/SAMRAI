@@ -1204,6 +1204,8 @@ OverlapConnectorAlgorithm::privateBridge(
       TBOX_ERROR("Errant message detected.");
    }
 
+   s_operation_mpi_tag = 0;
+
    setupCommunication(
       all_comms,
       comm_stage,
