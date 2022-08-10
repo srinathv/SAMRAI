@@ -167,6 +167,12 @@ public:
       const hier::IntVector& min_box,
       const hier::IntVector& max_gcw);
 
+   void
+   setRatioToNewLevel(const hier::IntVector& ratio)
+   {
+      d_ratio = ratio;
+   }
+
    /*!
     * @brief Setup names of timers.
     */
@@ -321,6 +327,8 @@ private:
     * simple, coalesce.
     */
    int d_recursive_coalesce_limit;
+
+   hier::IntVector d_ratio;
 
    /*!
     * @brief Thread locker for modifying clustering outputs with multi-threads.

@@ -384,6 +384,36 @@ public:
              d_combine_efficiency[size - 1];
    }
 
+   /*!
+    * @brief Set the minimum cell request value.
+    *
+    * Set the requested minumum cell count for the patches on the new
+    * level.
+    *
+    * @param num_cells  minimum cell request value 
+    */
+   void
+   setMinimumCellRequest(
+      size_t num_cells)
+   {
+      d_min_cell_request = num_cells;
+   }
+
+   /*!
+    * @brief Set the ratio to the new level
+    *
+    * Set the refinement ratio between the tagged level and the new
+    * level to be created.
+    *
+    * @param ratio   refinement ratio
+    */
+   void
+   setRatioToNewLevel(
+      const hier::IntVector& ratio)
+   {
+      d_ratio = ratio;
+   }
+
 protected:
    /*!
     * @brief Read parameters from input database.
@@ -819,6 +849,9 @@ private:
 
    //! @brief Highest number of continueAlgorithm calls to complete nodes.
    int d_max_conts_to_complete;
+
+   size_t d_min_cell_request;
+   hier::IntVector d_ratio;
 
    //@}
 

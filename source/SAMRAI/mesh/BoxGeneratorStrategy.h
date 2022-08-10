@@ -70,6 +70,26 @@ public:
       const hier::IntVector& min_box,
       const hier::IntVector& tag_to_new_width) = 0;
 
+   /*!
+    * @brief Set a minimum cell request value.
+    *
+    * This serves as a virtual interface for child classes to receive a
+    * value that requests a minimum number of cells for the boxes produced
+    * by a box generation class.  A default no-op implementation is
+    * provided, as not all child classes may use such a feature.
+    */
+   virtual void
+   setMinimumCellRequest(
+      size_t num_cells);
+
+   /*!
+    * @brief Set the ratio to the new level that will be produced.
+    */
+   virtual void
+   setRatioToNewLevel( 
+      const hier::IntVector& ratio) = 0;
+
+
 private:
    // The following are not implemented:
    BoxGeneratorStrategy(

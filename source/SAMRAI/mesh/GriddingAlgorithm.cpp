@@ -3379,6 +3379,9 @@ GriddingAlgorithm::findRefinementBoxes(
    hier::LocalId first_local_id(0);
 
    if (!bounding_container.empty()) {
+      d_box_generator->setMinimumCellRequest(
+         d_hierarchy->getMinimumCellRequest(tag_ln+1));
+      d_box_generator->setRatioToNewLevel(ratio);
       d_box_generator->findBoxesContainingTags(
          new_box_level,
          tag_to_new,

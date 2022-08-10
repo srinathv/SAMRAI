@@ -75,6 +75,7 @@ TreeLoadBalancer::TreeLoadBalancer(
    d_comm_graph_writer(),
    d_master_workload_data_id(s_default_data_id),
    d_flexible_load_tol(0.05),
+   d_min_load(1,1.0),
    d_mca(),
    // Performance evaluation.
    d_barrier_before(false),
@@ -194,8 +195,15 @@ TreeLoadBalancer::loadBalanceBoxLevel(
    }
 
    size_t minimum_cells = 1;
+   double minimum_load = 1;
    if (hierarchy) {
       minimum_cells = hierarchy->getMinimumCellRequest(level_number);
+      if (level_number < d_min_load.size()) {
+         minimum_load = d_min_load[level_number];
+      } else {
+         minimum_load = d_min_load.back();
+      }
+      TBOX_ASSERT(minimum_load >= 0.0);
    }
 
    if (d_mpi_is_dupe) {
@@ -296,6 +304,7 @@ TreeLoadBalancer::loadBalanceBoxLevel(
          *balance_box_level.getGridGeometry(),
          balance_box_level.getRefinementRatio(),
          min_size, max_size, bad_interval, effective_cut_factor, minimum_cells,
+         minimum_load,
          d_flexible_load_tol);
 
    /*
@@ -1651,6 +1660,9 @@ TreeLoadBalancer::getFromInput(
          }
       }
 
+      if (input_db->isDouble("minimum_patch_load")) {
+         d_min_load = input_db->getDoubleVector("minimum_patch_load");
+      }
    }
 }
 

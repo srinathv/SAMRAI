@@ -448,6 +448,8 @@ private:
     */
    double d_flexible_load_tol;
 
+   std::vector<double> d_min_load;
+
    /*!
     * @brief Boolean to determine whether to use vouchers for transferring load.
     */
@@ -471,7 +473,6 @@ private:
    mutable LoadType d_global_work_sum;
    mutable LoadType d_global_work_avg;
    mutable LoadType d_local_work_max;
-   mutable LoadType d_min_load;
    mutable size_t d_num_initial_owners;
 
    //! @brief Local load subject to change.

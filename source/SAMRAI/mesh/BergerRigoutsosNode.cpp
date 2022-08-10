@@ -53,6 +53,7 @@ BergerRigoutsosNode::BergerRigoutsosNode(
    d_box(box),
    d_group(0),
    d_min_box_size(common->d_min_box.getBlockVector(box.getBlockId())),
+   d_min_cell_request(1),
    d_mpi_tag(-1),
    d_overlap(tbox::MathUtilities<size_t>::getMax()),
    d_box_acceptance(undetermined),
@@ -1263,21 +1264,29 @@ BergerRigoutsosNode::computeMinimalBoundingBoxForTags()
     * Bring the upper side of the box down past untagged index planes.
     * Do not make the box smaller than the min_box requirement.
     */
+   size_t num_cells = box_size.getProduct();
+
+   d_min_cell_request = (d_common->d_min_cell_request / d_common->d_ratio.getProduct(d_box.getBlockId()));
+
    for (tbox::Dimension::dir_t d = 0; d < d_common->getDim().getValue(); ++d) {
       TBOX_ASSERT(d_histogram[d].size() != 0);
       int* histogram_beg = &d_histogram[d][0];
       int* histogram_end = histogram_beg + d_box.numberCells(d) - 1;
       while (*histogram_beg == 0 &&
-             box_size(d) > min_box(d)) {
+             box_size(d) > min_box(d) && num_cells > d_min_cell_request) {
          ++new_lower(d);
          ++histogram_beg;
+         num_cells /= box_size(d);
          --box_size(d);
+         num_cells *= box_size(d);
       }
       while (*histogram_end == 0 &&
-             box_size(d) > min_box(d)) {
+             box_size(d) > min_box(d) && num_cells > d_min_cell_request) {
          --new_upper(d);
          --histogram_end;
+         num_cells /= box_size(d);
          --box_size(d);
+         num_cells *= box_size(d);
       }
    }
 
@@ -1406,6 +1415,8 @@ BergerRigoutsosNode::acceptOrSplitBox()
 
    if (d_box_acceptance == undetermined) {
       if (cut_margin < hier::IntVector::getZero(d_common->getDim())) {
+         d_box_acceptance = accepted_by_calculation;
+      } else if (d_box.size() <= d_min_cell_request * 2) {
          d_box_acceptance = accepted_by_calculation;
       }
    }

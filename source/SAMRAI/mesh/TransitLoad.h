@@ -83,6 +83,29 @@ public:
    insertAll(
       const hier::BoxContainer& other) = 0;
 
+   /*! @brief Insert all boxes while applying a minimum load value
+    *
+    * This virtual method allows child classes to implement a minimum load
+    * which forces boxes to have this value as their minimum load even if
+    * their computed load is smaller.  As this is an optional feature that
+    * can be implemented in child classes, the default implementation
+    * ignores the minimum load value and is equivalent to insertAll().
+    *
+    * @param other  box container with boxes to inserted into this object.
+    * @param minimum_load  minimum load value
+    *                      (ignored in default implementation)
+    */
+   virtual void
+   insertAllWithMinimumLoad(
+      const hier::BoxContainer& other,
+      double minimum_load)
+   {
+      // Child classes can implement usage of the minimum_load.  This
+      // default implementation will ignore it.
+      NULL_USE(minimum_load);
+      insertAll(other);
+   }
+
    /*!
     * @brief Insert all boxes from the given TransitLoad.
     *

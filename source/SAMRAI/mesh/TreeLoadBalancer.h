@@ -773,6 +773,8 @@ private:
     */
    double d_flexible_load_tol;
 
+   std::vector<double> d_min_load;
+
    /*!
     * @brief Metadata operations with timers set according to this object.
     */
@@ -782,7 +784,6 @@ private:
    //! @name Data shared with private methods during balancing.
    mutable std::shared_ptr<PartitioningParams> d_pparams;
    mutable LoadType d_global_avg_load;
-   mutable LoadType d_min_load;
    //@}
 
    static const int s_default_data_id;
