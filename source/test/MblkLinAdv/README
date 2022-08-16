@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and LICENSE. 
 ##
-## Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
 ## Description:   MULTIBLOCK LINEAR ADVECTION EQUATION EXAMPLE
 ##
 #########################################################################
@@ -11,7 +11,7 @@
 This README explains how to compile and run the Multiblock Linear Advection
 application.  The files in this directory are as follows:
 
-    main.C             -  application driver program
+    main.cpp             -  application driver program
     MblkLinAdv.[C,h]   -  C++ class containing routines specific to the
                           Linear Advection example and which are called from
                           SAMRAI AMR library routines

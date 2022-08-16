@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Constant refine operator for edge-centered double data on
  *                a  mesh.
  *
@@ -469,5 +469,5 @@ public:
 
 } // namespace pdat
 } // namespace SAMRAI
-#include "SAMRAI/pdat/EdgeConstantRefine.C"
+#include "SAMRAI/pdat/EdgeConstantRefine.cpp"
 #endif

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Templated miscellaneous operations for real cell-centered data.
  *
  ************************************************************************/
@@ -184,6 +184,6 @@ private:
 }
 }
 
-#include "SAMRAI/math/PatchCellDataMiscellaneousOpsReal.C"
+#include "SAMRAI/math/PatchCellDataMiscellaneousOpsReal.cpp"
 
 #endif

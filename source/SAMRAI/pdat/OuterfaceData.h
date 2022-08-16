@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Templated outerface centered patch data type
  *
  ************************************************************************/
@@ -137,7 +137,7 @@ public:
     *            outerface data object will be created.
     * @param depth gives the number of data values for each
     *              spatial location in the array.
-    * @param allocator An Umpire allocator to manage the allocation of the
+    * @param allocator A ResourceAllocator to manage the allocation of the
     *                  underlying data. 
     *
     * @pre depth > 0
@@ -634,6 +634,6 @@ typename OuterfaceData<TYPE>::template ConstView<DIM> get_const_view(
 }
 }
 
-#include "SAMRAI/pdat/OuterfaceData.C"
+#include "SAMRAI/pdat/OuterfaceData.cpp"
 
 #endif

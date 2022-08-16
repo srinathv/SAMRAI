@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Templated operations for real cell data on multiple levels.
  *
  ************************************************************************/
@@ -652,6 +652,6 @@ private:
 }
 }
 
-#include "SAMRAI/math/HierarchyCellDataOpsReal.C"
+#include "SAMRAI/math/HierarchyCellDataOpsReal.cpp"
 
 #endif

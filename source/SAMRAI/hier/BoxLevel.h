@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Set of Boxes in the same "level".
  *
  ************************************************************************/
@@ -1727,7 +1727,7 @@ private:
     * TODO: This same enum is defined in the Connector header.
     * If there is a common use for this, should it be defined in a
     * common location? Also, it seems to be used similarly to the
-    * BAD_INTEGER #define in BergerRigoutsosNode.C.  Is the intent
+    * BAD_INTEGER #define in BergerRigoutsosNode.cpp.  Is the intent
     * really the same?
     */
    enum { BAD_INT = (1 << (8 * sizeof(int) - 2)) };

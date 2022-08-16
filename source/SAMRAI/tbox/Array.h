@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   A simple array template class
  *
  ************************************************************************/
@@ -342,6 +342,6 @@ Array<double>::deleteObjects();
  * Default assume Array is not a standard type
  */
 
-#include "SAMRAI/tbox/Array.C"
+#include "SAMRAI/tbox/Array.cpp"
 
 #endif

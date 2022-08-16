@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Variable class for defining outernode centered variables
  *
  ************************************************************************/
@@ -93,6 +93,6 @@ private:
 }
 }
 
-#include "SAMRAI/pdat/OuternodeVariable.C"
+#include "SAMRAI/pdat/OuternodeVariable.cpp"
 
 #endif

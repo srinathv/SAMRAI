@@ -43,11 +43,11 @@ New features should be created in `feature/<name>`branches and be based on
 ## Citing SAMRAI
 
 We maintain a list of publications
-[here](https://computation.llnl.gov/projects/samrai/publications).
+[here](https://computing.llnl.gov/projects/samrai/publications).
 
 ## Release
 
-Copyright (c) 1997-2021, Lawrence Livermore National Security, LLC.
+Copyright (c) 1997-2022, Lawrence Livermore National Security, LLC.
 
 Produced at the Lawrence Livermore National Laboratory.
 

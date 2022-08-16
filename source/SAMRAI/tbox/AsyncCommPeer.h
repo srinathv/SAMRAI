@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
  * Description:   Staged peer-to-peer communication.
  *
  ************************************************************************/
@@ -661,6 +661,6 @@ private:
 }
 }
 
-#include "SAMRAI/tbox/AsyncCommPeer.C"
+#include "SAMRAI/tbox/AsyncCommPeer.cpp"
 
 #endif  // included_tbox_AsyncCommPeer
