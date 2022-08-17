@@ -4,3 +4,4 @@ set(MPI_CXX_COMPILER "/usr/tce/packages/mvapich2/mvapich2-2.3-gcc-7.1.0/bin/mpic
 set(MPI_Fortran_COMPILER "/usr/tce/packages/mvapich2/mvapich2-2.3-gcc-7.1.0/bin/mpif90" CACHE PATH "")
 
 set(ENABLE_HDF5 Off CACHE BOOL "")
+set(MIN_TEST_PROCS 2 CACHE INT "")
