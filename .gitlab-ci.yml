@@ -80,7 +80,7 @@ start:
     - echo ${SAMRAI_ALLOC_NAME}
     - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
     - echo ${JOBID}
-    - srun -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
+    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
 
 .test_toss_3_x86_64_ib_script:
   script:
