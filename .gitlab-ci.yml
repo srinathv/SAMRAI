@@ -46,8 +46,7 @@ after_script:
 # complete.
 stages:
   - start
-  - r_build
-  - r_test
+  - q_test
   - l_build_and_test
   - b_build_and_test
 
@@ -62,7 +61,7 @@ start:
   stage: start
   tags:
     - shell
-    - ruby
+    - quartz
   script:
     - echo "Creating a reference job for dag execution (needs keyword)"
 
@@ -78,16 +77,16 @@ start:
 .build_toss_3_x86_64_ib_script:
   script:
     - echo ${SAMRAI_ALLOC_NAME}
-    - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
-    - echo ${JOBID}
-    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
+#    - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
+#    - echo ${JOBID}
+#    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
 
 .test_toss_3_x86_64_ib_script:
   script:
     - echo ${SAMRAI_ALLOC_NAME}
     - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
     - echo ${JOBID}
-#    - salloc -t 30 -N 1 source/scripts/gitlab/build_and_test.sh --test-only
+    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
   artifacts:
     paths:
       - ctest_report_*.xml
@@ -104,6 +103,6 @@ start:
 
 # This is where jobs are included
 include:
-  - local: .gitlab/ruby.yml
+  - local: .gitlab/quartz.yml
 
 

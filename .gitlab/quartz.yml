@@ -33,7 +33,7 @@
   extends: [.build_on_quartz, .advanced_pipeline]
 
 ####
-# Generic qwartz test job, extending test script
+# Generic quartz test job, extending test script
 .test_on_quartz:
   stage: q_test
   extends: [.test_toss_3_x86_64_ib_script, .on_quartz]
