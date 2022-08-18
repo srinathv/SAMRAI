@@ -46,6 +46,7 @@ after_script:
 # complete.
 stages:
   - start
+  - q_build
   - q_test
   - l_build_and_test
   - b_build_and_test
