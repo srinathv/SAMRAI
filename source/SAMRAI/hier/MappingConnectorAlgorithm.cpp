@@ -536,6 +536,8 @@ MappingConnectorAlgorithm::privateModify(
     */
    d_object_timers->t_modify_setup_comm->start();
 
+   s_operation_mpi_tag = 0;
+
    setupCommunication(
       all_comms,
       comm_stage,
