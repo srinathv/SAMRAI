@@ -178,7 +178,6 @@ TreeLoadBalancer::loadBalanceBoxLevel(
 #ifndef DEBUG_CHECK_DIM_ASSERTIONS
    NULL_USE(domain_box_level);
 #endif
-   NULL_USE(level_number);
    TBOX_ASSERT(!balance_to_reference || balance_to_reference->hasTranspose());
    TBOX_ASSERT(!balance_to_reference ||
       balance_to_reference->isTransposeOf(balance_to_reference->getTranspose()));
@@ -198,7 +197,7 @@ TreeLoadBalancer::loadBalanceBoxLevel(
    double minimum_load = 1;
    if (hierarchy) {
       minimum_cells = hierarchy->getMinimumCellRequest(level_number);
-      if (level_number < d_min_load.size()) {
+      if (level_number < static_cast<int>(d_min_load.size())) {
          minimum_load = d_min_load[level_number];
       } else {
          minimum_load = d_min_load.back();
