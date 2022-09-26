@@ -36,12 +36,13 @@ public:
       const hier::IntVector& bad_interval,
       const hier::IntVector& cut_factor,
       size_t minimum_cells,
+      double minimum_load,
       double flexible_load_tol);
 
    PartitioningParams(
       const PartitioningParams& other);
 
-   double getMinLoad() const {
+   double getMinBoxSizeProduct() const {
       return static_cast<double>(d_min_size.getProduct());
    }
 
@@ -68,6 +69,10 @@ public:
    size_t getMinimumCellRequest() const {
       return d_minimum_cells;
    } 
+
+   double getMinimumLoad() const {
+      return d_minimum_load;
+   }
 
    const tbox::Dimension& getDim() const {
       return d_min_size.getDim();
@@ -124,6 +129,8 @@ private:
     * @brief The requested minimum for number of cells in a patch
     */
    size_t d_minimum_cells;
+
+   double d_minimum_load;
 
    /*!
     * @brief Fraction of ideal load a process can accept over and

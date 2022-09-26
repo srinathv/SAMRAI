@@ -44,6 +44,7 @@ TileClustering::TileClustering(
    d_coalesce_boxes(true),
    d_coalesce_boxes_from_same_patch(true),
    d_recursive_coalesce_limit(20),
+   d_ratio(dim, 1),
    d_debug_checks(false),
    d_log_cluster_summary(false),
    d_log_cluster(false),
