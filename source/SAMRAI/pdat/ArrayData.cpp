@@ -27,6 +27,7 @@
 #include "umpire/ResourceManager.hpp"
 #endif
 
+#include <array>
 #include <utility>
 
 

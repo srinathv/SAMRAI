@@ -19,6 +19,8 @@
 #include "SAMRAI/tbox/Collectives.h"
 #include "SAMRAI/tbox/NVTXUtilities.h"
 
+#include <array>
+
 namespace SAMRAI
 {
 namespace pdat
