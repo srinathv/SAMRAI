@@ -2891,11 +2891,9 @@ RefineSchedule::refineScratchData(
       }
    }
 
-   tbox::StagedKernelFusers::getInstance()->launch();
 #if defined(HAVE_RAJA)
    tbox::parallel_synchronize();
 #endif
-   tbox::StagedKernelFusers::getInstance()->cleanup();
 
    if (d_refine_patch_strategy) {
       d_refine_patch_strategy->postprocessRefineLevel(

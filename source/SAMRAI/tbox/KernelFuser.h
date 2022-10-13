@@ -83,6 +83,10 @@ public:
   {
   }
 
+  bool enqueued() const
+  { 
+     return (d_workpool.num_loops() > 0);
+  }
 
    virtual ~KernelFuser();
 

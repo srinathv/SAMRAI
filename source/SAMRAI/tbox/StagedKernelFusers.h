@@ -24,6 +24,7 @@ public:
    template<typename Kernel>
    void enqueue(int stage, int begin, int end, Kernel&& kernel) {
       d_kernel_fusers[stage].enqueue(begin, end, kernel);
+      d_enqueued = true;
    }
 #endif
 
@@ -57,11 +58,17 @@ public:
    {
       d_kernel_fusers.clear();
       d_launched = false;
+      d_enqueued = false;
    }
 
    bool launched()
    {
       return d_launched;
+   }
+
+   bool enqueued()
+   {
+      return d_enqueued;
    }
 
    void initialize();
@@ -98,6 +105,7 @@ private:
    std::map<int, KernelFuser> d_kernel_fusers;
 
    bool d_launched = false;
+   bool d_enqueued = false;
 
 };
 

@@ -1054,7 +1054,6 @@ CoarsenSchedule::coarsenSourceData(
          d_coarsen_patch_strategy->setPostCoarsenSyncFlag();
 #if defined(HAVE_RAJA)
          if (d_coarsen_patch_strategy->needSynchronize()) {
-            printf("POST COARSEN SYNCHRONIZE\n");
             tbox::parallel_synchronize();
          }
 #endif
