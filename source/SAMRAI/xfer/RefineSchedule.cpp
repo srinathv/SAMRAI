@@ -2892,7 +2892,9 @@ RefineSchedule::refineScratchData(
    }
 
 #if defined(HAVE_RAJA)
-   tbox::parallel_synchronize();
+   if (d_refine_patch_strategy->needSynchronize()) {
+      tbox::parallel_synchronize();
+   }
 #endif
 
    if (d_refine_patch_strategy) {

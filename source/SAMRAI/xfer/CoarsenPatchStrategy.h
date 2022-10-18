@@ -16,6 +16,7 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchLevel.h"
 
 #include <set>
 
@@ -138,6 +139,27 @@ public:
       const hier::Patch& fine,
       const hier::Box& coarse_box,
       const hier::IntVector& ratio) = 0;
+
+
+   virtual void
+   preprocessCoarsenLevel(
+      hier::PatchLevel& coarse_level,
+      const hier::PatchLevel& fine_level) {
+      NULL_USE(coarse_level);
+      NULL_USE(fine_level);
+      setNeedCoarsenSynchronize(false);
+   }
+
+
+   virtual void
+   postprocessCoarsenLevel(
+      hier::PatchLevel& coarse_level,
+      const hier::PatchLevel& fine_level) {
+      NULL_USE(coarse_level);
+      NULL_USE(fine_level);
+      setNeedCoarsenSynchronize(false);
+   }
+
 
    virtual void
    setPostCoarsenSyncFlag()

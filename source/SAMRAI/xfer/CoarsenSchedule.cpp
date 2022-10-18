@@ -1004,6 +1004,17 @@ void
 CoarsenSchedule::coarsenSourceData(
    CoarsenPatchStrategy* patch_strategy) const
 {
+   if (patch_strategy) {
+      patch_strategy->preprocessCoarsenLevel(
+         *d_temp_crse_level,
+         *d_fine_level);
+#if defined(HAVE_RAJA)
+      if (patch_strategy->needSynchronize()) {
+         tbox::parallel_synchronize();
+      }
+#endif
+   }
+
    /*
     * Loop over all local patches (fine and temp have the same mapping)
     */
@@ -1051,7 +1062,7 @@ CoarsenSchedule::coarsenSourceData(
 #endif
 
       if (patch_strategy) {
-         d_coarsen_patch_strategy->setPostCoarsenSyncFlag();
+         patch_strategy->setPostCoarsenSyncFlag();
 #if defined(HAVE_RAJA)
          if (d_coarsen_patch_strategy->needSynchronize()) {
             tbox::parallel_synchronize();
@@ -1065,13 +1076,22 @@ CoarsenSchedule::coarsenSourceData(
       }
    }
 
-   tbox::StagedKernelFusers::getInstance()->launch();
 #if defined(HAVE_RAJA)
-   if (patch_strategy->needSynchronize() || tbox::StagedKernelFusers::getInstance()->launched()) {
+   if (patch_strategy->needSynchronize()) {
       tbox::parallel_synchronize();
    }
 #endif
-   tbox::StagedKernelFusers::getInstance()->cleanup();
+
+   if (patch_strategy) {
+      patch_strategy->postprocessCoarsenLevel(
+         *d_temp_crse_level,
+         *d_fine_level);
+#if defined(HAVE_RAJA)
+      if (patch_strategy->needSynchronize()) {
+         tbox::parallel_synchronize();
+      }
+#endif
+   }
 
 }
 
