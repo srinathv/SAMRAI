@@ -668,14 +668,15 @@ Schedule::performLocalCopies()
    for (const auto& local : d_local_set_fuseable) {
       local->copyLocalData();
    }
-   if (d_local_fusers && have_fuseable) {
-      d_local_fusers->launch();
-   }
 
    for (const auto& local : d_local_set) {
       local->copyLocalData();
    }
    d_object_timers->t_local_copies->stop();
+
+   if (d_local_fusers && have_fuseable) {
+      d_local_fusers->launch();
+   }
 
    bool have_non_fuseable = !d_local_set.empty();
    if (have_fuseable || have_non_fuseable) {
