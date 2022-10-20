@@ -18,6 +18,7 @@
 #include "SAMRAI/hier/Connector.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/tbox/Schedule.h"
+#include "SAMRAI/tbox/ScheduleOpsStrategy.h"
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/xfer/CoarsenClasses.h"
 #include "SAMRAI/xfer/CoarsenPatchStrategy.h"
@@ -195,6 +196,8 @@ public:
    static void
    setScheduleGenerationMethod(
       const std::string& method);
+
+   void setScheduleOpsStrategy(tbox::ScheduleOpsStrategy* strategy);
 
    /*!
     * @brief Print the coarsen schedule state to the specified data stream.

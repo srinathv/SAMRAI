@@ -23,6 +23,7 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/tbox/Schedule.h"
+#include "SAMRAI/tbox/ScheduleOpsStrategy.h"
 #include "SAMRAI/tbox/Timer.h"
 
 #include <iostream>
@@ -312,6 +313,8 @@ public:
     * be any fillData() calls on a particular RefineSchedule.
     */
    void deallocateInternalData();
+
+   void setScheduleOpsStrategy(tbox::ScheduleOpsStrategy* strategy);
 
    /*!
     * @brief Print the refine schedule data to the specified data stream.

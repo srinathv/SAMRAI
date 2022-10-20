@@ -5130,6 +5130,24 @@ RefineSchedule::setDeterministicUnpackOrderingFlag(bool flag)
    }
 }
 
+void
+RefineSchedule::setScheduleOpsStrategy(tbox::ScheduleOpsStrategy* strategy)
+{
+   if (d_coarse_priority_level_schedule) {
+      d_coarse_priority_level_schedule->setScheduleOpsStrategy(strategy);
+   }
+   if (d_fine_priority_level_schedule) {
+      d_fine_priority_level_schedule->setScheduleOpsStrategy(strategy);
+   }
+   if (d_coarse_interp_schedule) {
+      d_coarse_interp_schedule->setScheduleOpsStrategy(strategy);
+   }
+   if (d_coarse_interp_encon_schedule) {
+      d_coarse_interp_encon_schedule->setScheduleOpsStrategy(strategy);
+   }
+}
+
+
 /*
  **************************************************************************
  *

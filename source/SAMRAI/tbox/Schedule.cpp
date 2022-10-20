@@ -279,6 +279,11 @@ void
 Schedule::beginCommunication()
 {
    d_object_timers->t_begin_communication->start();
+
+   if (d_ops_strategy) {
+      d_ops_strategy->preCommunicate();
+   }
+
    allocateCommunicationObjects();
    postReceives();
    postSends();
@@ -298,7 +303,14 @@ Schedule::finalizeCommunication()
    performLocalCopies();
    processCompletedCommunications();
    deallocateCommunicationObjects();
+
+   if (d_ops_strategy) {
+      d_ops_strategy->postCommunicate();
+   }
+
    d_object_timers->t_finalize_communication->stop();
+
+
 }
 
 /*
@@ -514,7 +526,12 @@ Schedule::postSends()
       }
    }
 
+   if (d_ops_strategy) {
+      d_ops_strategy->postPack();
+   }
+
    if (using_gpu) {
+/*
       if (d_send_fusers && have_fuseable) {
          d_send_fusers->launch();
       }
@@ -525,7 +542,7 @@ Schedule::postSends()
          if (d_send_fusers) d_send_fusers->cleanup();
       }
 #endif
-
+*/
       for (auto comm_peer = d_send_coms.lower_bound(rank);
            comm_peer != d_send_coms.end();
            ++comm_peer) {
@@ -621,7 +638,12 @@ Schedule::postSends()
       }
    }
 
+   if (d_ops_strategy) {
+      d_ops_strategy->postPack();
+   }
+
    if (using_gpu) {
+/*
       if (d_send_fusers && have_fuseable) {
          d_send_fusers->launch();
       }
@@ -632,6 +654,7 @@ Schedule::postSends()
          if (d_send_fusers) d_send_fusers->cleanup();
       }
 #endif
+*/
 
       for (auto comm_peer = d_send_coms.begin();
            comm_peer != d_send_coms.lower_bound(rank);
@@ -662,6 +685,10 @@ Schedule::postSends()
 void
 Schedule::performLocalCopies()
 {
+   if (d_ops_strategy) {
+      d_ops_strategy->preCopy();
+   } 
+
    bool have_fuseable = !d_local_set_fuseable.empty();
 
    d_object_timers->t_local_copies->start();
@@ -674,6 +701,11 @@ Schedule::performLocalCopies()
    }
    d_object_timers->t_local_copies->stop();
 
+   if (d_ops_strategy) {
+      d_ops_strategy->postCopy();
+   }
+
+/*
    if (d_local_fusers && have_fuseable) {
       d_local_fusers->launch();
    }
@@ -686,6 +718,7 @@ Schedule::performLocalCopies()
       if (d_local_fusers) d_local_fusers->cleanup();
 #endif
    }
+*/
 
 }
 
@@ -765,6 +798,10 @@ Schedule::processCompletedCommunications()
 
       // Unpack in order of completed receives.
 
+      if (d_ops_strategy) {
+         d_ops_strategy->preUnpack();
+      } 
+
       bool have_fuseable = false;
       bool have_non_fuseable = false;
       std::map<int, std::shared_ptr<MessageStream> > incoming_streams;
@@ -816,6 +853,9 @@ Schedule::processCompletedCommunications()
          }
       }
 
+      d_ops_strategy->postUnpack();
+
+/*
       if (d_recv_fusers && have_fuseable) {
          d_recv_fusers->launch();
       }
@@ -825,6 +865,7 @@ Schedule::processCompletedCommunications()
          if (d_recv_fusers) d_recv_fusers->cleanup();
       }
 #endif
+*/
 
       for (auto& comms : d_recv_coms) {
          auto& completed_comm = comms.second;

@@ -16,6 +16,7 @@
 #include "SAMRAI/tbox/AsyncCommStage.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/MessageStream.h"
+#include "SAMRAI/tbox/ScheduleOpsStrategy.h"
 #include "SAMRAI/tbox/Transaction.h"
 #include "SAMRAI/tbox/TransactionFuseable.h"
 #include "SAMRAI/tbox/KernelFuser.h"
@@ -290,6 +291,11 @@ public:
       return "Schedule";
    }
 
+   void setScheduleOpsStrategy(ScheduleOpsStrategy* strategy)
+   {
+      d_ops_strategy = strategy;
+   }
+
    bool completedTransactions() const
    {
       return d_completed_transactions;
@@ -371,6 +377,8 @@ private:
    std::list<std::shared_ptr<Transaction> > d_local_set_fuseable;
 
    StagedKernelFusers* d_local_fusers{nullptr};
+
+   ScheduleOpsStrategy* d_ops_strategy{nullptr};
 
    //@{ @name High-level asynchronous messages passing objects
 

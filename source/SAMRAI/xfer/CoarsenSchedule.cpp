@@ -1266,6 +1266,17 @@ CoarsenSchedule::setDeterministicUnpackOrderingFlag(bool flag)
    }
 }
 
+void
+CoarsenSchedule::setScheduleOpsStrategy(tbox::ScheduleOpsStrategy* strategy)
+{
+   if (d_schedule) {
+      d_schedule->setScheduleOpsStrategy(strategy);
+   }
+   if (d_precoarsen_refine_schedule) {
+      d_precoarsen_refine_schedule->setScheduleOpsStrategy(strategy);
+   }
+}
+
 /*
  * ************************************************************************
  *
