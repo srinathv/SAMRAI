@@ -8,14 +8,16 @@
  *
  ************************************************************************/
 #include "SAMRAI/tbox/Schedule.h"
+
 #include "SAMRAI/tbox/AllocatorDatabase.h"
+#include "SAMRAI/tbox/Collectives.h"
+#include "SAMRAI/tbox/GPUUtilities.h"
 #include "SAMRAI/tbox/InputManager.h"
-#include "SAMRAI/tbox/StagedKernelFusers.h"
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/StagedKernelFusers.h"
 #include "SAMRAI/tbox/TimerManager.h"
-#include "SAMRAI/tbox/Collectives.h"
 
 #include <cstring>
 
@@ -433,6 +435,10 @@ Schedule::postSends()
 
    int rank = d_mpi.getRank();
 
+   bool using_gpu = GPUUtilities::isUsingGPU();
+   bool have_fuseable = false;
+   bool have_non_fuseable = false;
+   std::map<int, std::shared_ptr<MessageStream> > outgoing_streams;
    for (auto comm_peer = d_send_coms.lower_bound(rank);
         comm_peer != d_send_coms.end(); 
         ++comm_peer) {
@@ -456,7 +462,7 @@ Schedule::postSends()
       }
 
       // Pack outgoing data into a message.
-      MessageStream outgoing_stream(
+      outgoing_streams[peer_rank] = std::make_shared<MessageStream>(
          byte_count,
          MessageStream::Write,
          nullptr,
@@ -466,29 +472,28 @@ Schedule::postSends()
 #endif
          );
 
+      MessageStream& outgoing_stream = *outgoing_streams[peer_rank];
+
       d_object_timers->t_pack_stream->start();
 
-      bool have_fuseable = !(d_send_sets_fuseable[peer_rank].empty());
-
+      if (!have_fuseable) {
+         have_fuseable = !(d_send_sets_fuseable[peer_rank].empty());
+      }
+ 
       for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
-      if (d_send_fusers && have_fuseable) {
-         d_send_fusers->launch();
-      }
- 
+
       for (const auto& transaction : d_send_sets[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
 
-      bool have_non_fuseable = !(d_send_sets[peer_rank].empty());
+      if (!have_non_fuseable) {
+         have_non_fuseable = !(d_send_sets[peer_rank].empty());
+      }
 
       if (have_fuseable || have_non_fuseable) {
          d_completed_transactions = true;
-#if defined(HAVE_RAJA)
-         parallel_synchronize();
-         if (d_send_fusers) d_send_fusers->cleanup();
-#endif
       }
 
       d_object_timers->t_pack_stream->stop();
@@ -498,14 +503,49 @@ Schedule::postSends()
          comm->limitFirstDataLength(byte_count);
       }
 
-      // Begin non-blocking send operation.
-      comm->beginSend(
-         (const char *)outgoing_stream.getBufferStart(),
-         static_cast<int>(outgoing_stream.getCurrentSize()));
-      if (comm->isDone()) {
-         comm->pushToCompletionQueue();
+      if (!using_gpu) {
+         // Begin non-blocking send operation.
+         comm->beginSend(
+            (const char *)outgoing_stream.getBufferStart(),
+            static_cast<int>(outgoing_stream.getCurrentSize()));
+         if (comm->isDone()) {
+            comm->pushToCompletionQueue();
+         }
       }
    }
+
+   if (using_gpu) {
+      if (d_send_fusers && have_fuseable) {
+         d_send_fusers->launch();
+      }
+
+#if defined(HAVE_RAJA)
+      if (using_gpu && (have_fuseable || have_non_fuseable)) {
+         parallel_synchronize();
+         if (d_send_fusers) d_send_fusers->cleanup();
+      }
+#endif
+
+      for (auto comm_peer = d_send_coms.lower_bound(rank);
+           comm_peer != d_send_coms.end();
+           ++comm_peer) {
+         const int peer_rank = (*comm_peer).first;
+         auto& comm = (*comm_peer).second;
+         MessageStream& outgoing_stream = *outgoing_streams[peer_rank];
+
+         // Begin non-blocking send operation.
+         comm->beginSend(
+            (const char *)outgoing_stream.getBufferStart(),
+            static_cast<int>(outgoing_stream.getCurrentSize()));
+         if (comm->isDone()) {
+            comm->pushToCompletionQueue();
+         }
+      }
+   }
+
+   outgoing_streams.clear();
+   have_fuseable = false;
+   have_non_fuseable = false;
 
    for (auto comm_peer = d_send_coms.begin();
         comm_peer != d_send_coms.lower_bound(rank); 
@@ -530,7 +570,7 @@ Schedule::postSends()
       }
 
       // Pack outgoing data into a message.
-      MessageStream outgoing_stream(
+      outgoing_streams[peer_rank] = std::make_shared<MessageStream>(
          byte_count,
          MessageStream::Write,
          nullptr,
@@ -540,27 +580,27 @@ Schedule::postSends()
 #endif
          );
 
-      bool have_fuseable = !(d_send_sets_fuseable[peer_rank].empty());
+      MessageStream& outgoing_stream = *outgoing_streams[peer_rank];
+
+      if (!have_fuseable) {
+         have_fuseable = !(d_send_sets_fuseable[peer_rank].empty());
+      }
 
       d_object_timers->t_pack_stream->start();
       for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
-      if (d_send_fusers && have_fuseable) {
-         d_send_fusers->launch();
-      }
 
       for (const auto& transaction : d_send_sets[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
-      bool have_non_fuseable = !(d_send_sets[peer_rank].empty());
+
+      if (!have_non_fuseable) {
+         have_non_fuseable = !(d_send_sets[peer_rank].empty());
+      }
 
       if (have_fuseable || have_non_fuseable) {
          d_completed_transactions = true;
-#if defined(HAVE_RAJA)
-         parallel_synchronize();
-         if (d_send_fusers) d_send_fusers->cleanup();
-#endif
       }
 
       d_object_timers->t_pack_stream->stop();
@@ -570,16 +610,48 @@ Schedule::postSends()
          comm->limitFirstDataLength(byte_count);
       }
 
-      // Begin non-blocking send operation.
-      comm->beginSend(
-         (const char *)outgoing_stream.getBufferStart(),
-         static_cast<int>(outgoing_stream.getCurrentSize()));
-      if (comm->isDone()) {
-         comm->pushToCompletionQueue();
+      if (!using_gpu) {
+         // Begin non-blocking send operation.
+         comm->beginSend(
+            (const char *)outgoing_stream.getBufferStart(),
+            static_cast<int>(outgoing_stream.getCurrentSize()));
+         if (comm->isDone()) {
+            comm->pushToCompletionQueue();
+         }
+      }
+   }
+
+   if (using_gpu) {
+      if (d_send_fusers && have_fuseable) {
+         d_send_fusers->launch();
+      }
+
+#if defined(HAVE_RAJA)
+      if (using_gpu && (have_fuseable || have_non_fuseable)) {
+         parallel_synchronize();
+         if (d_send_fusers) d_send_fusers->cleanup();
+      }
+#endif
+
+      for (auto comm_peer = d_send_coms.begin();
+           comm_peer != d_send_coms.lower_bound(rank);
+           ++comm_peer) {
+         const int peer_rank = (*comm_peer).first;
+         auto& comm = (*comm_peer).second;
+         MessageStream& outgoing_stream = *outgoing_streams[peer_rank];
+
+         // Begin non-blocking send operation.
+         comm->beginSend(
+            (const char *)outgoing_stream.getBufferStart(),
+            static_cast<int>(outgoing_stream.getCurrentSize()));
+         if (comm->isDone()) {
+            comm->pushToCompletionQueue();
+         }
       }
    }
 
    d_object_timers->t_post_sends->stop();
+
 }
 
 /*
@@ -654,29 +726,24 @@ Schedule::processCompletedCommunications()
 #endif
             );
 
-
          bool have_fuseable = !(d_recv_sets_fuseable[sender].empty());
 
          d_object_timers->t_unpack_stream->start();
          for (const auto& transaction : d_recv_sets_fuseable[sender]) {
             transaction->unpackStream(incoming_stream);
          }
-         if (d_recv_fusers || have_fuseable) {
-            d_recv_fusers->launch();
-         }
-#if defined(HAVE_RAJA)
-         if (have_fuseable) {
-            parallel_synchronize();
-            if (d_recv_fusers) d_recv_fusers->cleanup();
-         }
-#endif
          for (const auto& transaction : d_recv_sets[sender]) {
             transaction->unpackStream(incoming_stream);
          }
          bool have_non_fuseable = !(d_recv_sets[sender].empty());
+
+         if (d_recv_fusers || have_fuseable) {
+            d_recv_fusers->launch();
+         }
 #if defined(HAVE_RAJA)
-         if (have_non_fuseable) {
+         if (have_fuseable || have_non_fuseable) {
             parallel_synchronize();
+            if (d_recv_fusers) d_recv_fusers->cleanup();
          }
 #endif
          if (have_fuseable || have_non_fuseable) {
@@ -697,7 +764,10 @@ Schedule::processCompletedCommunications()
 
       // Unpack in order of completed receives.
 
-      size_t num_senders = d_recv_sets.size();
+      bool have_fuseable = false;
+      bool have_non_fuseable = false;
+      std::map<int, std::shared_ptr<MessageStream> > incoming_streams;
+
       while (d_com_stage.hasCompletedMembers() || d_com_stage.advanceSome()) {
 
          AsyncCommPeer<char>* completed_comm =
@@ -709,7 +779,7 @@ Schedule::processCompletedCommunications()
 
             const int sender = completed_comm->getPeerRank();
 
-            MessageStream incoming_stream(
+            incoming_streams[sender] = std::make_shared<MessageStream>(
                static_cast<size_t>(completed_comm->getRecvSize()) * sizeof(char),
                MessageStream::Read,
                completed_comm->getRecvData(),
@@ -719,41 +789,46 @@ Schedule::processCompletedCommunications()
 #endif
                );
 
-            bool have_fuseable = !(d_recv_sets_fuseable[sender].empty());
+            MessageStream& incoming_stream = *incoming_streams[sender];
+
+            if (!have_fuseable) {
+               have_fuseable = !(d_recv_sets_fuseable[sender].empty());
+            }
+            if (!have_non_fuseable) {
+               have_non_fuseable = !(d_recv_sets[sender].empty());
+            }
 
             d_object_timers->t_unpack_stream->start();
             for (const auto& transaction : d_recv_sets_fuseable[sender]) {
                transaction->unpackStream(incoming_stream);
             }
-            if (d_recv_fusers && have_fuseable) {
-               d_recv_fusers->launch();
-            }
-#if defined(HAVE_RAJA)
-            if (have_fuseable) {
-               parallel_synchronize();
-               if (d_recv_fusers) d_recv_fusers->cleanup();
-            }
-#endif
             for (const auto& transaction : d_recv_sets[sender]) {
                transaction->unpackStream(incoming_stream);
             }
-            bool have_non_fuseable = !(d_recv_sets[sender].empty());
-#if defined(HAVE_RAJA)
-            if (have_non_fuseable) {
-               parallel_synchronize();
-            }
-#endif
             if (have_fuseable || have_non_fuseable) {
                d_completed_transactions = true;
             }
 
             d_object_timers->t_unpack_stream->stop();
-            completed_comm->clearRecvData();
          } else {
             // No further action required for completed send.
          }
       }
 
+      if (d_recv_fusers && have_fuseable) {
+         d_recv_fusers->launch();
+      }
+#if defined(HAVE_RAJA)
+      if (have_fuseable || have_non_fuseable) {
+         parallel_synchronize();
+         if (d_recv_fusers) d_recv_fusers->cleanup();
+      }
+#endif
+
+      for (auto& comms : d_recv_coms) {
+         auto& completed_comm = comms.second;
+         completed_comm->clearRecvData();
+      }
    }
 
    d_object_timers->t_process_incoming_messages->stop();

@@ -37,6 +37,12 @@ struct GPUUtilities {
 static void
 setUsingGPU(bool using_gpu);
 
+static bool
+isUsingGPU()
+{
+   return s_using_gpu;
+}
+
 /*!
  * @brief Synchronizes GPU threads.
  *

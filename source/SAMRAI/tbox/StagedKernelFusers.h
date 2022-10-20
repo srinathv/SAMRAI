@@ -10,6 +10,7 @@
 #include "RAJA/RAJA.hpp"
 #endif
 
+#include <map>
 
 namespace SAMRAI {
 namespace tbox {
