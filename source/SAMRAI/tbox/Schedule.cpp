@@ -437,6 +437,11 @@ void
 Schedule::postSends()
 {
    d_object_timers->t_post_sends->start();
+
+   if (d_ops_strategy) {
+      d_ops_strategy->prePack();
+   }
+
    /*
     * We loop through d_send_sets starting with the first set with
     * rank higher than the local process, continuing at the opposite
@@ -451,9 +456,15 @@ Schedule::postSends()
    bool have_fuseable = false;
    bool have_non_fuseable = false;
    std::map<int, std::shared_ptr<MessageStream> > outgoing_streams;
-   for (auto comm_peer = d_send_coms.lower_bound(rank);
-        comm_peer != d_send_coms.end(); 
-        ++comm_peer) {
+
+   bool wrapped = d_send_coms.empty();
+   auto end_loop = d_send_coms.lower_bound(rank);
+   auto comm_peer = end_loop;
+   if (comm_peer == d_send_coms.end()) {
+      comm_peer = d_send_coms.begin();
+      wrapped = true;
+   }
+   while (!wrapped || comm_peer != end_loop) {
       const int peer_rank = (*comm_peer).first;
       auto& comm = (*comm_peer).second;
 
@@ -524,6 +535,12 @@ Schedule::postSends()
             comm->pushToCompletionQueue();
          }
       }
+
+      ++comm_peer;
+      if (comm_peer == d_send_coms.end() && comm_peer != end_loop) {
+         wrapped = true;
+         comm_peer = d_send_coms.begin();
+      }
    }
 
    if (d_ops_strategy) {
@@ -531,21 +548,15 @@ Schedule::postSends()
    }
 
    if (using_gpu) {
-/*
-      if (d_send_fusers && have_fuseable) {
-         d_send_fusers->launch();
+
+      wrapped = d_send_coms.empty();
+      comm_peer = end_loop;
+      if (comm_peer == d_send_coms.end()) {
+         comm_peer = d_send_coms.begin();
+         wrapped = true;
       }
 
-#if defined(HAVE_RAJA)
-      if (using_gpu && (have_fuseable || have_non_fuseable)) {
-         parallel_synchronize();
-         if (d_send_fusers) d_send_fusers->cleanup();
-      }
-#endif
-*/
-      for (auto comm_peer = d_send_coms.lower_bound(rank);
-           comm_peer != d_send_coms.end();
-           ++comm_peer) {
+      while (!wrapped || comm_peer != end_loop) {
          const int peer_rank = (*comm_peer).first;
          auto& comm = (*comm_peer).second;
          MessageStream& outgoing_stream = *outgoing_streams[peer_rank];
@@ -557,118 +568,11 @@ Schedule::postSends()
          if (comm->isDone()) {
             comm->pushToCompletionQueue();
          }
-      }
-   }
 
-   outgoing_streams.clear();
-   have_fuseable = false;
-   have_non_fuseable = false;
-
-   for (auto comm_peer = d_send_coms.begin();
-        comm_peer != d_send_coms.lower_bound(rank); 
-        ++comm_peer) {
-      const int peer_rank = (*comm_peer).first;
-      auto& comm = (*comm_peer).second;
-
-      size_t byte_count = 0;
-      bool can_estimate_incoming_message_size = true;
-      for (const auto& transaction : d_send_sets[peer_rank]) {
-         if (!transaction->canEstimateIncomingMessageSize()) {
-            can_estimate_incoming_message_size = false;
-         }
-         byte_count += transaction->computeOutgoingMessageSize();
-      }
-
-      for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
-         if (!transaction->canEstimateIncomingMessageSize()) {
-            can_estimate_incoming_message_size = false;
-         }
-         byte_count += transaction->computeOutgoingMessageSize();
-      }
-
-      // Pack outgoing data into a message.
-      outgoing_streams[peer_rank] = std::make_shared<MessageStream>(
-         byte_count,
-         MessageStream::Write,
-         nullptr,
-         true
-#ifdef HAVE_UMPIRE
-         , AllocatorDatabase::getDatabase()->getStreamAllocator()
-#endif
-         );
-
-      MessageStream& outgoing_stream = *outgoing_streams[peer_rank];
-
-      if (!have_fuseable) {
-         have_fuseable = !(d_send_sets_fuseable[peer_rank].empty());
-      }
-
-      d_object_timers->t_pack_stream->start();
-      for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
-         transaction->packStream(outgoing_stream);
-      }
-
-      for (const auto& transaction : d_send_sets[peer_rank]) {
-         transaction->packStream(outgoing_stream);
-      }
-
-      if (!have_non_fuseable) {
-         have_non_fuseable = !(d_send_sets[peer_rank].empty());
-      }
-
-      if (have_fuseable || have_non_fuseable) {
-         d_completed_transactions = true;
-      }
-
-      d_object_timers->t_pack_stream->stop();
-
-      if (can_estimate_incoming_message_size) {
-         // Receiver knows message size so set it exactly.
-         comm->limitFirstDataLength(byte_count);
-      }
-
-      if (!using_gpu) {
-         // Begin non-blocking send operation.
-         comm->beginSend(
-            (const char *)outgoing_stream.getBufferStart(),
-            static_cast<int>(outgoing_stream.getCurrentSize()));
-         if (comm->isDone()) {
-            comm->pushToCompletionQueue();
-         }
-      }
-   }
-
-   if (d_ops_strategy) {
-      d_ops_strategy->postPack();
-   }
-
-   if (using_gpu) {
-/*
-      if (d_send_fusers && have_fuseable) {
-         d_send_fusers->launch();
-      }
-
-#if defined(HAVE_RAJA)
-      if (using_gpu && (have_fuseable || have_non_fuseable)) {
-         parallel_synchronize();
-         if (d_send_fusers) d_send_fusers->cleanup();
-      }
-#endif
-*/
-
-      for (auto comm_peer = d_send_coms.begin();
-           comm_peer != d_send_coms.lower_bound(rank);
-           ++comm_peer) {
-         const int peer_rank = (*comm_peer).first;
-         auto& comm = (*comm_peer).second;
-         MessageStream& outgoing_stream = *outgoing_streams[peer_rank];
-
-         // Begin non-blocking send operation.
-         comm->beginSend(
-            (const char *)outgoing_stream.getBufferStart(),
-            static_cast<int>(outgoing_stream.getCurrentSize()));
-         if (comm->isDone()) {
-            comm->pushToCompletionQueue();
+         ++comm_peer;
+         if (comm_peer == d_send_coms.end() && comm_peer != end_loop) {
+            wrapped = true;
+            comm_peer = d_send_coms.begin();
          }
       }
    }
