@@ -19,6 +19,8 @@
 #include "SAMRAI/tbox/Collectives.h"
 #include "SAMRAI/tbox/NVTXUtilities.h"
 
+#include <array>
+
 namespace SAMRAI
 {
 namespace pdat
@@ -70,10 +72,10 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
    const hier::Box& dst_box(dst.getBox());
    const hier::Box& src_box(src.getBox());
 
-   int box_w[SAMRAI::MAX_DIM_VAL];
-   int dst_w[SAMRAI::MAX_DIM_VAL];
-   int src_w[SAMRAI::MAX_DIM_VAL];
-   int dim_counter[SAMRAI::MAX_DIM_VAL];
+   std::array<int,SAMRAI::MAX_DIM_VAL> box_w = {};
+   std::array<int,SAMRAI::MAX_DIM_VAL> dst_w = {};
+   std::array<int,SAMRAI::MAX_DIM_VAL> src_w = {};
+   std::array<int,SAMRAI::MAX_DIM_VAL> dim_counter = {};
    for (tbox::Dimension::dir_t i = 0; i < dim.getValue(); ++i) {
       box_w[i] = opbox.numberCells(i);
       dst_w[i] = dst_box.numberCells(i);
@@ -182,8 +184,8 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
       size_t dst_counter = dst_begin;
       size_t src_counter = src_begin;
 
-      size_t dst_b[SAMRAI::MAX_DIM_VAL];
-      size_t src_b[SAMRAI::MAX_DIM_VAL];
+      std::array<size_t,SAMRAI::MAX_DIM_VAL> dst_b = {};
+      std::array<size_t,SAMRAI::MAX_DIM_VAL> src_b = {};
       for (tbox::Dimension::dir_t nd = 0; nd < dim.getValue(); ++nd) {
          dst_b[nd] = dst_counter;
          src_b[nd] = src_counter;
@@ -282,9 +284,9 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataBufferOperationOnBox(
 #if !defined(HAVE_RAJA)
    const hier::Box& array_d_box(arraydata.getBox());
 
-   int box_w[SAMRAI::MAX_DIM_VAL];
-   int dat_w[SAMRAI::MAX_DIM_VAL];
-   int dim_counter[SAMRAI::MAX_DIM_VAL];
+   std::array<int,SAMRAI::MAX_DIM_VAL> box_w = {};
+   std::array<int,SAMRAI::MAX_DIM_VAL> dat_w = {};
+   std::array<int,SAMRAI::MAX_DIM_VAL> dim_counter = {};
    for (tbox::Dimension::dir_t i = 0; i < dim.getValue(); ++i) {
       box_w[i] = opbox.numberCells(i);
       dat_w[i] = array_d_box.numberCells(i);
@@ -382,7 +384,7 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataBufferOperationOnBox(
       size_t& dst_counter = (src_is_buffer ? dat_counter : buf_counter);
       size_t& src_counter = (src_is_buffer ? buf_counter : dat_counter);
 
-      int dat_b[SAMRAI::MAX_DIM_VAL];
+      std::array<int,SAMRAI::MAX_DIM_VAL> dat_b = {};
       for (tbox::Dimension::dir_t nd = 0; nd < dim.getValue(); ++nd) {
          dat_b[nd] = static_cast<int>(dat_counter);
       }
@@ -468,10 +470,11 @@ inline void ArrayDataOperationUtilities<dcomplex,SumOperation<dcomplex> >::doArr
    const hier::Box& dst_box(dst.getBox());
    const hier::Box& src_box(src.getBox());
 
-   int box_w[SAMRAI::MAX_DIM_VAL];
-   int dst_w[SAMRAI::MAX_DIM_VAL];
-   int src_w[SAMRAI::MAX_DIM_VAL];
-   int dim_counter[SAMRAI::MAX_DIM_VAL];
+   std::array<int,SAMRAI::MAX_DIM_VAL> box_w = {};
+   std::array<int,SAMRAI::MAX_DIM_VAL> dst_w = {};
+   std::array<int,SAMRAI::MAX_DIM_VAL> src_w = {};
+   std::array<int,SAMRAI::MAX_DIM_VAL> dim_counter = {};
+
    for (tbox::Dimension::dir_t i = 0; i < dim.getValue(); ++i) {
       box_w[i] = opbox.numberCells(i);
       dst_w[i] = dst_box.numberCells(i);
@@ -612,8 +615,8 @@ inline void ArrayDataOperationUtilities<dcomplex,SumOperation<dcomplex> >::doArr
       size_t dst_counter = dst_begin;
       size_t src_counter = src_begin;
 
-      size_t dst_b[SAMRAI::MAX_DIM_VAL];
-      size_t src_b[SAMRAI::MAX_DIM_VAL];
+      std::array<size_t,SAMRAI::MAX_DIM_VAL> dst_b = {};
+      std::array<size_t,SAMRAI::MAX_DIM_VAL> src_b = {};
       for (tbox::Dimension::dir_t nd = 0; nd < dim.getValue(); ++nd) {
          dst_b[nd] = dst_counter;
          src_b[nd] = src_counter;
@@ -714,9 +717,9 @@ inline void ArrayDataOperationUtilities<dcomplex, SumOperation<dcomplex> >::doAr
 #if !defined(HAVE_RAJA)
    const hier::Box& array_d_box(arraydata.getBox());
 
-   int box_w[SAMRAI::MAX_DIM_VAL];
-   int dat_w[SAMRAI::MAX_DIM_VAL];
-   int dim_counter[SAMRAI::MAX_DIM_VAL];
+   std::array<int,SAMRAI::MAX_DIM_VAL> box_w = {};
+   std::array<int,SAMRAI::MAX_DIM_VAL> dat_w = {};
+   std::array<int,SAMRAI::MAX_DIM_VAL> dim_counter = {};
    for (tbox::Dimension::dir_t i = 0; i < dim.getValue(); ++i) {
       box_w[i] = opbox.numberCells(i);
       dat_w[i] = array_d_box.numberCells(i);
@@ -844,7 +847,7 @@ inline void ArrayDataOperationUtilities<dcomplex, SumOperation<dcomplex> >::doAr
       size_t& dst_counter = (src_is_buffer ? dat_counter : buf_counter);
       size_t& src_counter = (src_is_buffer ? buf_counter : dat_counter);
 
-      int dat_b[SAMRAI::MAX_DIM_VAL];
+      std::array<int,SAMRAI::MAX_DIM_VAL> dat_b = {};
       for (tbox::Dimension::dir_t nd = 0; nd < dim.getValue(); ++nd) {
          dat_b[nd] = static_cast<int>(dat_counter);
       }
