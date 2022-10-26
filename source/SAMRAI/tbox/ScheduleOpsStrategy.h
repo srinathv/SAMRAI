@@ -4,7 +4,7 @@
  * information, see COPYRIGHT and LICENSE.
  *
  * Copyright:     (c) 1997-2022 Lawrence Livermore National Security, LLC
- * Description:   Abstract base class for kernel fuser operations
+ * Description:   Abstract base class for Schedule operations
  *
  ************************************************************************/
 
@@ -17,34 +17,75 @@
 namespace SAMRAI {
 namespace tbox {
 
-/**
+/*!
+ * ScheduleOpsStrategy is a virtual base class that provides pure virtual
+ * methods that can serve as callback hooks into user code before or after
+ * certain operations inside tbox::Schedule.
+ *
+ * tbox::Schedule contains a method where a pointer to a concrete instance
+ * of this class can be passed into the tbox::Schedule object.
+ *
+ * @see Schedule 
  */
 
 class ScheduleOpsStrategy
 {
 public:
-   /**
-    * The constructor does nothing interesting.
+   /*!
+    * @brief Default constructor
     */
    ScheduleOpsStrategy();
 
-   /**
-    * The virtual destructor does nothing interesting.
+   /*!
+    * @brief Virtual destructor
     */
    virtual ~ScheduleOpsStrategy();
 
+   /*!
+    * @brief Callback for user code operations before the communication
+    * operations in Schedule::communicate
+    */
    virtual void preCommunicate() = 0;
 
+   /*!
+    * @brief Callback for user code operations before local data copies
+    */
    virtual void preCopy() = 0;
+
+   /*!
+    * @brief Callback for user code operations before the packing of
+    * message streams
+    */
    virtual void prePack() = 0;
+
+   /*!
+    * @brief Callback for user code operations before the packing of
+    * message streams
+    */
    virtual void preUnpack() = 0;
 
-   virtual void postCopy() = 0;
-   virtual void postPack() = 0;
-   virtual void postUnpack() = 0;
-
+   /*!
+    * @brief Callback for user code operations after the communication
+    * operations in Schedule::communicate
+    */
    virtual void postCommunicate() = 0;
 
+   /*!
+    * @brief Callback for user code operations after local data copies
+    */
+   virtual void postCopy() = 0;
+
+   /*!
+    * @brief Callback for user code operations after the packing of
+    * message streams
+    */
+   virtual void postPack() = 0;
+
+   /*!
+    * @brief Callback for user code operations after the packing of
+    * message streams
+    */
+   virtual void postUnpack() = 0;
 
 private:
    ScheduleOpsStrategy(

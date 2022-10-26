@@ -291,14 +291,14 @@ public:
       return "Schedule";
    }
 
+   /*!
+    * @brief Set a pointer to a ScheduleOpsStrategy object
+    *
+    * @param strategy   Pointer to a concrete instance of ScheduleOpsStrategy
+    */
    void setScheduleOpsStrategy(ScheduleOpsStrategy* strategy)
    {
       d_ops_strategy = strategy;
-   }
-
-   bool completedTransactions() const
-   {
-      return d_completed_transactions;
    }
 
 private:
@@ -361,8 +361,6 @@ private:
 
    StagedKernelFusers* d_send_fusers{nullptr};
    StagedKernelFusers* d_recv_fusers{nullptr};
-
-   bool d_completed_transactions = false;
 
    /*
     * @brief Transactions where the source and destination are the

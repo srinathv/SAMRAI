@@ -312,11 +312,6 @@ CoarsenSchedule::coarsenData() const
     */
 
    d_schedule->communicate();
-#if defined(HAVE_RAJA)
-//   if (d_schedule->completedTransactions()) {
-//      tbox::parallel_synchronize();
-//   }
-#endif
 
    /*
     * Deallocate the source data in the temporary patch level.

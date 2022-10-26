@@ -197,6 +197,11 @@ public:
    setScheduleGenerationMethod(
       const std::string& method);
 
+   /*!
+    * @brief Set a pointer to a ScheduleOpsStrategy object
+    *
+    * @param strategy   Pointer to a concrete instance of ScheduleOpsStrategy
+    */
    void setScheduleOpsStrategy(tbox::ScheduleOpsStrategy* strategy);
 
    /*!

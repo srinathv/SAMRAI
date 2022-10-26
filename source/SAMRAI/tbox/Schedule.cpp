@@ -255,7 +255,6 @@ Schedule::communicate()
 #endif
 
    d_object_timers->t_communicate->start();
-   d_completed_transactions = false;
    beginCommunication();
    finalizeCommunication();
    d_object_timers->t_communicate->stop();
@@ -331,8 +330,6 @@ Schedule::postReceives()
        */
       return;
    }
-
-   d_completed_transactions = true;
 
    int rank = d_mpi.getRank();
 
@@ -453,8 +450,6 @@ Schedule::postSends()
    int rank = d_mpi.getRank();
 
    bool using_gpu = GPUUtilities::isUsingGPU();
-   bool have_fuseable = false;
-   bool have_non_fuseable = false;
    std::map<int, std::shared_ptr<MessageStream> > outgoing_streams;
 
    bool wrapped = d_send_coms.empty();
@@ -499,24 +494,12 @@ Schedule::postSends()
 
       d_object_timers->t_pack_stream->start();
 
-      if (!have_fuseable) {
-         have_fuseable = !(d_send_sets_fuseable[peer_rank].empty());
-      }
- 
       for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
 
       for (const auto& transaction : d_send_sets[peer_rank]) {
          transaction->packStream(outgoing_stream);
-      }
-
-      if (!have_non_fuseable) {
-         have_non_fuseable = !(d_send_sets[peer_rank].empty());
-      }
-
-      if (have_fuseable || have_non_fuseable) {
-         d_completed_transactions = true;
       }
 
       d_object_timers->t_pack_stream->stop();
@@ -593,8 +576,6 @@ Schedule::performLocalCopies()
       d_ops_strategy->preCopy();
    } 
 
-   bool have_fuseable = !d_local_set_fuseable.empty();
-
    d_object_timers->t_local_copies->start();
    for (const auto& local : d_local_set_fuseable) {
       local->copyLocalData();
@@ -608,21 +589,6 @@ Schedule::performLocalCopies()
    if (d_ops_strategy) {
       d_ops_strategy->postCopy();
    }
-
-/*
-   if (d_local_fusers && have_fuseable) {
-      d_local_fusers->launch();
-   }
-
-   bool have_non_fuseable = !d_local_set.empty();
-   if (have_fuseable || have_non_fuseable) {
-      d_completed_transactions = true;
-#if defined(HAVE_RAJA)
-      parallel_synchronize();
-      if (d_local_fusers) d_local_fusers->cleanup();
-#endif
-   }
-*/
 
 }
 
@@ -648,6 +614,10 @@ Schedule::processCompletedCommunications()
 
       int irecv = 0;
       for (auto& comms : d_recv_coms) {
+         if (d_ops_strategy) {
+            d_ops_strategy->preUnpack(); 
+         }
+
          auto& completed_comm = comms.second;
          int sender = comms.first;
          TBOX_ASSERT(sender == completed_comm->getPeerRank());
@@ -664,8 +634,6 @@ Schedule::processCompletedCommunications()
 #endif
             );
 
-         bool have_fuseable = !(d_recv_sets_fuseable[sender].empty());
-
          d_object_timers->t_unpack_stream->start();
          for (const auto& transaction : d_recv_sets_fuseable[sender]) {
             transaction->unpackStream(incoming_stream);
@@ -673,19 +641,9 @@ Schedule::processCompletedCommunications()
          for (const auto& transaction : d_recv_sets[sender]) {
             transaction->unpackStream(incoming_stream);
          }
-         bool have_non_fuseable = !(d_recv_sets[sender].empty());
 
-         if (d_recv_fusers || have_fuseable) {
-            d_recv_fusers->launch();
-         }
-#if defined(HAVE_RAJA)
-         if (have_fuseable || have_non_fuseable) {
-            parallel_synchronize();
-            if (d_recv_fusers) d_recv_fusers->cleanup();
-         }
-#endif
-         if (have_fuseable || have_non_fuseable) {
-            d_completed_transactions = true;
+         if (d_ops_strategy) {
+            d_ops_strategy->postUnpack();
          }
 
          d_object_timers->t_unpack_stream->stop();
@@ -706,8 +664,6 @@ Schedule::processCompletedCommunications()
          d_ops_strategy->preUnpack();
       } 
 
-      bool have_fuseable = false;
-      bool have_non_fuseable = false;
       std::map<int, std::shared_ptr<MessageStream> > incoming_streams;
 
       while (d_com_stage.hasCompletedMembers() || d_com_stage.advanceSome()) {
@@ -733,22 +689,12 @@ Schedule::processCompletedCommunications()
 
             MessageStream& incoming_stream = *incoming_streams[sender];
 
-            if (!have_fuseable) {
-               have_fuseable = !(d_recv_sets_fuseable[sender].empty());
-            }
-            if (!have_non_fuseable) {
-               have_non_fuseable = !(d_recv_sets[sender].empty());
-            }
-
             d_object_timers->t_unpack_stream->start();
             for (const auto& transaction : d_recv_sets_fuseable[sender]) {
                transaction->unpackStream(incoming_stream);
             }
             for (const auto& transaction : d_recv_sets[sender]) {
                transaction->unpackStream(incoming_stream);
-            }
-            if (have_fuseable || have_non_fuseable) {
-               d_completed_transactions = true;
             }
 
             d_object_timers->t_unpack_stream->stop();
@@ -758,18 +704,6 @@ Schedule::processCompletedCommunications()
       }
 
       d_ops_strategy->postUnpack();
-
-/*
-      if (d_recv_fusers && have_fuseable) {
-         d_recv_fusers->launch();
-      }
-#if defined(HAVE_RAJA)
-      if (have_fuseable || have_non_fuseable) {
-         parallel_synchronize();
-         if (d_recv_fusers) d_recv_fusers->cleanup();
-      }
-#endif
-*/
 
       for (auto& comms : d_recv_coms) {
          auto& completed_comm = comms.second;
