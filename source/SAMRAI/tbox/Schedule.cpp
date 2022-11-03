@@ -703,7 +703,9 @@ Schedule::processCompletedCommunications()
          }
       }
 
-      d_ops_strategy->postUnpack();
+      if (d_ops_strategy) {
+         d_ops_strategy->postUnpack();
+      }
 
       for (auto& comms : d_recv_coms) {
          auto& completed_comm = comms.second;
