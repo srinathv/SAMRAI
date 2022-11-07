@@ -451,6 +451,9 @@ Schedule::postSends()
 
    bool using_gpu = GPUUtilities::isUsingGPU();
    std::map<int, std::shared_ptr<MessageStream> > outgoing_streams;
+   std::map<int, bool> defer_stream;
+
+   bool defer_send = false;
 
    bool wrapped = d_send_coms.empty();
    auto end_loop = d_send_coms.lower_bound(rank);
@@ -509,14 +512,21 @@ Schedule::postSends()
          comm->limitFirstDataLength(byte_count);
       }
 
-      if (!using_gpu) {
+      if (d_ops_strategy && !defer_send) {
+         defer_send = d_ops_strategy->deferMessageSend();
+      }
+
+      if (!defer_send) {
          // Begin non-blocking send operation.
          comm->beginSend(
             (const char *)outgoing_stream.getBufferStart(),
             static_cast<int>(outgoing_stream.getCurrentSize()));
+         defer_stream[peer_rank] = false;
          if (comm->isDone()) {
             comm->pushToCompletionQueue();
          }
+      } else {
+         defer_stream[peer_rank] = true;
       }
 
       ++comm_peer;
@@ -530,7 +540,7 @@ Schedule::postSends()
       d_ops_strategy->postPack();
    }
 
-   if (using_gpu) {
+   if (defer_send) {
 
       wrapped = d_send_coms.empty();
       comm_peer = end_loop;
@@ -544,12 +554,14 @@ Schedule::postSends()
          auto& comm = (*comm_peer).second;
          MessageStream& outgoing_stream = *outgoing_streams[peer_rank];
 
+         if (defer_stream[peer_rank]) {
          // Begin non-blocking send operation.
          comm->beginSend(
             (const char *)outgoing_stream.getBufferStart(),
             static_cast<int>(outgoing_stream.getCurrentSize()));
          if (comm->isDone()) {
             comm->pushToCompletionQueue();
+         }
          }
 
          ++comm_peer;

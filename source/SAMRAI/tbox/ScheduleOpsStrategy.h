@@ -87,6 +87,8 @@ public:
     */
    virtual void postUnpack() = 0;
 
+   virtual bool deferMessageSend() = 0;
+
 private:
    ScheduleOpsStrategy(
       const ScheduleOpsStrategy&);              // not implemented
