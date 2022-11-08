@@ -87,6 +87,13 @@ public:
     */
    virtual void postUnpack() = 0;
 
+   /*!
+    * @brief Callback to direct tbox::Schedule to defer all MPI sends until
+    * all MessageStreams are packed.
+    *
+    * If this returns true, all subsequent packed streams will not be sent
+    * until after postPack is called.
+    */
    virtual bool deferMessageSend() = 0;
 
 private:

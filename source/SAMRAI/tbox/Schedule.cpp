@@ -516,6 +516,10 @@ Schedule::postSends()
          defer_send = d_ops_strategy->deferMessageSend();
       }
 
+      // Proceed with the send operation unless the call to d_ops_strategy
+      // has instructed us to defer that operation to later.  If defer_send
+      // is set to true, then sending will be deferred for all remaining
+      // iterations of this loop.
       if (!defer_send) {
          // Begin non-blocking send operation.
          comm->beginSend(
@@ -542,6 +546,9 @@ Schedule::postSends()
 
    if (defer_send) {
 
+      // If the defer_send bool was set, repeat the loop in the same order
+      // as before and make the send calls.
+
       wrapped = d_send_coms.empty();
       comm_peer = end_loop;
       if (comm_peer == d_send_coms.end()) {
@@ -555,13 +562,13 @@ Schedule::postSends()
          MessageStream& outgoing_stream = *outgoing_streams[peer_rank];
 
          if (defer_stream[peer_rank]) {
-         // Begin non-blocking send operation.
-         comm->beginSend(
-            (const char *)outgoing_stream.getBufferStart(),
-            static_cast<int>(outgoing_stream.getCurrentSize()));
-         if (comm->isDone()) {
-            comm->pushToCompletionQueue();
-         }
+            // Begin non-blocking send operation.
+            comm->beginSend(
+               (const char *)outgoing_stream.getBufferStart(),
+               static_cast<int>(outgoing_stream.getCurrentSize()));
+            if (comm->isDone()) {
+               comm->pushToCompletionQueue();
+            }
          }
 
          ++comm_peer;
