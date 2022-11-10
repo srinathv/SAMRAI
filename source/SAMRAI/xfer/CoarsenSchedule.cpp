@@ -1072,7 +1072,7 @@ CoarsenSchedule::coarsenSourceData(
    }
 
 #if defined(HAVE_RAJA)
-   if (patch_strategy->needSynchronize()) {
+   if (!patch_strategy || patch_strategy->needSynchronize()) {
       tbox::parallel_synchronize();
    }
 #endif
