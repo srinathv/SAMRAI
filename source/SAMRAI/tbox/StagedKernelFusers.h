@@ -42,6 +42,7 @@ public:
       for (auto& fuser : d_kernel_fusers) {
          fuser.second.cleanup();
       }
+      d_enqueued = false;
       d_launched = false;
    }
 

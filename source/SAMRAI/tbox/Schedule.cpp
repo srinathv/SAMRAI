@@ -8,16 +8,14 @@
  *
  ************************************************************************/
 #include "SAMRAI/tbox/Schedule.h"
-
 #include "SAMRAI/tbox/AllocatorDatabase.h"
-#include "SAMRAI/tbox/Collectives.h"
-#include "SAMRAI/tbox/GPUUtilities.h"
 #include "SAMRAI/tbox/InputManager.h"
+#include "SAMRAI/tbox/StagedKernelFusers.h"
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
-#include "SAMRAI/tbox/StagedKernelFusers.h"
 #include "SAMRAI/tbox/TimerManager.h"
+#include "SAMRAI/tbox/Collectives.h"
 
 #include <cstring>
 
@@ -278,7 +276,6 @@ void
 Schedule::beginCommunication()
 {
    d_object_timers->t_begin_communication->start();
-
    if (d_ops_strategy) {
       d_ops_strategy->preCommunicate();
    }
@@ -308,8 +305,6 @@ Schedule::finalizeCommunication()
    }
 
    d_object_timers->t_finalize_communication->stop();
-
-
 }
 
 /*
@@ -330,6 +325,7 @@ Schedule::postReceives()
        */
       return;
    }
+
 
    int rank = d_mpi.getRank();
 
@@ -447,24 +443,22 @@ Schedule::postSends()
     * potential network contention.
     */
 
-   int rank = d_mpi.getRank();
-
-   bool using_gpu = GPUUtilities::isUsingGPU();
    std::map<int, std::shared_ptr<MessageStream> > outgoing_streams;
    std::map<int, bool> defer_stream;
 
    bool defer_send = false;
 
-   bool wrapped = d_send_coms.empty();
-   auto end_loop = d_send_coms.lower_bound(rank);
-   auto comm_peer = end_loop;
-   if (comm_peer == d_send_coms.end()) {
-      comm_peer = d_send_coms.begin();
-      wrapped = true;
-   }
-   while (!wrapped || comm_peer != end_loop) {
-      const int peer_rank = (*comm_peer).first;
-      auto& comm = (*comm_peer).second;
+   int rank = d_mpi.getRank();
+   int mpi_size = d_mpi.getSize();
+   int start_rank = (rank+1) % mpi_size;
+
+
+   for (int ip = start_rank; ip != rank; ip = (ip+1) % mpi_size) {
+      if (d_send_coms.find(ip) == d_send_coms.end()) {
+         continue; 
+      }
+      const int peer_rank = ip;
+      auto& comm = d_send_coms[ip];
 
       size_t byte_count = 0;
       bool can_estimate_incoming_message_size = true;
@@ -497,10 +491,12 @@ Schedule::postSends()
 
       d_object_timers->t_pack_stream->start();
 
+      bool have_fuseable = !(d_send_sets_fuseable[peer_rank].empty());
+
       for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
-
+ 
       for (const auto& transaction : d_send_sets[peer_rank]) {
          transaction->packStream(outgoing_stream);
       }
@@ -513,14 +509,16 @@ Schedule::postSends()
       }
 
       if (d_ops_strategy && !defer_send) {
-         defer_send = d_ops_strategy->deferMessageSend();
+//         defer_send = d_ops_strategy->deferMessageSend();
+         defer_send = true;
       }
 
-      // Proceed with the send operation unless the call to d_ops_strategy
-      // has instructed us to defer that operation to later.  If defer_send
-      // is set to true, then sending will be deferred for all remaining
-      // iterations of this loop.
       if (!defer_send) {
+
+#if defined(HAVE_RAJA)
+         parallel_synchronize();
+#endif
+
          // Begin non-blocking send operation.
          comm->beginSend(
             (const char *)outgoing_stream.getBufferStart(),
@@ -533,11 +531,6 @@ Schedule::postSends()
          defer_stream[peer_rank] = true;
       }
 
-      ++comm_peer;
-      if (comm_peer == d_send_coms.end() && comm_peer != end_loop) {
-         wrapped = true;
-         comm_peer = d_send_coms.begin();
-      }
    }
 
    if (d_ops_strategy) {
@@ -545,42 +538,28 @@ Schedule::postSends()
    }
 
    if (defer_send) {
+      for (int ip = start_rank; ip != rank; ip = (ip+1) % mpi_size) {
+         if (d_send_coms.find(ip) == d_send_coms.end()) {
+            continue;
+         }
+         const int peer_rank = ip;
+         auto& comm = d_send_coms[ip];
 
-      // If the defer_send bool was set, repeat the loop in the same order
-      // as before and make the send calls.
-
-      wrapped = d_send_coms.empty();
-      comm_peer = end_loop;
-      if (comm_peer == d_send_coms.end()) {
-         comm_peer = d_send_coms.begin();
-         wrapped = true;
-      }
-
-      while (!wrapped || comm_peer != end_loop) {
-         const int peer_rank = (*comm_peer).first;
-         auto& comm = (*comm_peer).second;
          MessageStream& outgoing_stream = *outgoing_streams[peer_rank];
 
+         // Begin non-blocking send operation.
          if (defer_stream[peer_rank]) {
-            // Begin non-blocking send operation.
             comm->beginSend(
                (const char *)outgoing_stream.getBufferStart(),
-               static_cast<int>(outgoing_stream.getCurrentSize()));
+                static_cast<int>(outgoing_stream.getCurrentSize()));
             if (comm->isDone()) {
                comm->pushToCompletionQueue();
             }
-         }
-
-         ++comm_peer;
-         if (comm_peer == d_send_coms.end() && comm_peer != end_loop) {
-            wrapped = true;
-            comm_peer = d_send_coms.begin();
          }
       }
    }
 
    d_object_timers->t_post_sends->stop();
-
 }
 
 /*
@@ -591,11 +570,12 @@ Schedule::postSends()
 void
 Schedule::performLocalCopies()
 {
+   d_object_timers->t_local_copies->start();
+
    if (d_ops_strategy) {
       d_ops_strategy->preCopy();
-   } 
+   }
 
-   d_object_timers->t_local_copies->start();
    for (const auto& local : d_local_set_fuseable) {
       local->copyLocalData();
    }
@@ -603,13 +583,15 @@ Schedule::performLocalCopies()
    for (const auto& local : d_local_set) {
       local->copyLocalData();
    }
-   d_object_timers->t_local_copies->stop();
 
    if (d_ops_strategy) {
       d_ops_strategy->postCopy();
    }
 
+   d_object_timers->t_local_copies->stop();
+
 }
+
 
 /*
  *************************************************************************
@@ -634,10 +616,11 @@ Schedule::processCompletedCommunications()
       int irecv = 0;
       for (auto& comms : d_recv_coms) {
          if (d_ops_strategy) {
-            d_ops_strategy->preUnpack(); 
+            d_ops_strategy->preUnpack();
          }
 
          auto& completed_comm = comms.second;
+
          int sender = comms.first;
          TBOX_ASSERT(sender == completed_comm->getPeerRank());
          completed_comm->completeCurrentOperation();
@@ -652,6 +635,7 @@ Schedule::processCompletedCommunications()
             , AllocatorDatabase::getDatabase()->getStreamAllocator()
 #endif
             );
+
 
          d_object_timers->t_unpack_stream->start();
          for (const auto& transaction : d_recv_sets_fuseable[sender]) {
@@ -681,9 +665,7 @@ Schedule::processCompletedCommunications()
 
       if (d_ops_strategy) {
          d_ops_strategy->preUnpack();
-      } 
-
-      std::map<int, std::shared_ptr<MessageStream> > incoming_streams;
+      }
 
       while (d_com_stage.hasCompletedMembers() || d_com_stage.advanceSome()) {
 
@@ -696,7 +678,7 @@ Schedule::processCompletedCommunications()
 
             const int sender = completed_comm->getPeerRank();
 
-            incoming_streams[sender] = std::make_shared<MessageStream>(
+            MessageStream incoming_stream(
                static_cast<size_t>(completed_comm->getRecvSize()) * sizeof(char),
                MessageStream::Read,
                completed_comm->getRecvData(),
@@ -706,12 +688,13 @@ Schedule::processCompletedCommunications()
 #endif
                );
 
-            MessageStream& incoming_stream = *incoming_streams[sender];
+            bool have_fuseable = !(d_recv_sets_fuseable[sender].empty());
 
             d_object_timers->t_unpack_stream->start();
             for (const auto& transaction : d_recv_sets_fuseable[sender]) {
                transaction->unpackStream(incoming_stream);
             }
+
             for (const auto& transaction : d_recv_sets[sender]) {
                transaction->unpackStream(incoming_stream);
             }
@@ -730,6 +713,7 @@ Schedule::processCompletedCommunications()
          auto& completed_comm = comms.second;
          completed_comm->clearRecvData();
       }
+
    }
 
    d_object_timers->t_process_incoming_messages->stop();

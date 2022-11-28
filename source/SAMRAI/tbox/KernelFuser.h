@@ -85,7 +85,11 @@ public:
 
   bool enqueued() const
   { 
+#ifdef HAVE_RAJA
      return (d_workpool.num_loops() > 0);
+#else
+     return false;
+#endif
   }
 
    virtual ~KernelFuser();
