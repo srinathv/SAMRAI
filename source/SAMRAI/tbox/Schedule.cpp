@@ -492,13 +492,17 @@ Schedule::postSends()
       d_object_timers->t_pack_stream->start();
 
       bool have_fuseable = !(d_send_sets_fuseable[peer_rank].empty());
+      bool have_nonfuseable = !(d_send_sets[peer_rank].empty());
 
-      for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
-         transaction->packStream(outgoing_stream);
-      }
+
+      if (have_fuseable || have_nonfuseable) { 
+         for (const auto& transaction : d_send_sets_fuseable[peer_rank]) {
+            transaction->packStream(outgoing_stream);
+         }
  
-      for (const auto& transaction : d_send_sets[peer_rank]) {
-         transaction->packStream(outgoing_stream);
+         for (const auto& transaction : d_send_sets[peer_rank]) {
+            transaction->packStream(outgoing_stream);
+         }
       }
 
       d_object_timers->t_pack_stream->stop();
@@ -509,8 +513,8 @@ Schedule::postSends()
       }
 
       if (d_ops_strategy && !defer_send) {
-//         defer_send = d_ops_strategy->deferMessageSend();
-         defer_send = true;
+         defer_send = d_ops_strategy->deferMessageSend();
+//         defer_send = true;
       }
 
       if (!defer_send) {
@@ -538,6 +542,13 @@ Schedule::postSends()
    }
 
    if (defer_send) {
+
+#if defined(HAVE_RAJA)
+      if (!d_ops_strategy) {
+         parallel_synchronize();
+      }
+#endif
+
       for (int ip = start_rank; ip != rank; ip = (ip+1) % mpi_size) {
          if (d_send_coms.find(ip) == d_send_coms.end()) {
             continue;
