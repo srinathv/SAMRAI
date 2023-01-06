@@ -78,6 +78,21 @@ public:
    insertAll(
       const hier::BoxContainer& box_container);
 
+   /*! @brief Insert all boxes while applying a minimum load value
+    *
+    * The minimum load value is assigned to any boxes whose computed load
+    * is smaller than the given value.  This allows for boxes with small
+    * true loads to be treated as having a larger fixed load value, if that
+    * behavior is desired by the calling code.
+    *
+    * @param other  box container with boxes to inserted into this object.
+    * @param minimum_load  minimum load value
+    */
+   void
+   insertAllWithMinimumLoad(
+      const hier::BoxContainer& box_container,
+      double minimum_load);
+
    //! @copydoc TransitLoad::insertAll( TransitLoad & )
    void
    insertAll(

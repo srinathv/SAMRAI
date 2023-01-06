@@ -138,6 +138,25 @@ void BoxTransitSet::insertAll(const hier::BoxContainer& other)
    }
 }
 
+void BoxTransitSet::insertAllWithMinimumLoad(
+   const hier::BoxContainer& other,
+   double minimum_load)
+{
+   size_t old_size = d_set.size();
+   for (hier::BoxContainer::const_iterator bi = other.begin(); bi != other.end(); ++bi) {
+      BoxInTransit new_box(*bi);
+      new_box.setLoad(
+         tbox::MathUtilities<double>::Max(new_box.getLoad(), minimum_load));
+      d_set.insert(new_box);
+      d_sumload += new_box.getLoad();
+      d_sumsize += new_box.getSize();
+   }
+   if (d_set.size() != old_size + other.size()) {
+      TBOX_ERROR("BoxTransitSet's insertAllWithMinimum currently can't weed out duplicates.");
+   }
+}
+
+
 /*
  *************************************************************************
  *************************************************************************
@@ -725,7 +744,7 @@ BoxTransitSet::adjustLoad(
        * Skip breaking if adding/subtracting the min load overshoots the range and worsens distance to range.
        */
       if (tbox::MathUtilities<double>::Abs(main_bin.getSumLoad() - 0.5 * (high_load + low_load)) <=
-          0.5 * d_pparams->getMinLoad()) {
+          0.5 * d_pparams->getMinBoxSizeProduct()) {
          break;
       }
 

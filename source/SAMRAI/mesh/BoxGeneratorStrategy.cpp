@@ -28,5 +28,12 @@ BoxGeneratorStrategy::~BoxGeneratorStrategy()
 {
 }
 
+void
+BoxGeneratorStrategy::setMinimumCellRequest(
+   size_t num_cells)
+{
+   NULL_USE(num_cells);
+}
+
 }
 }

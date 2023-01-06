@@ -715,7 +715,9 @@ BalanceBoxBreaker::breakOffLoad_cubic(TrialBreak& trial) const
       }
 
       corner_box_size = corner_box.numberCells();
-      corner_box_load = trial.computeBreakOffLoad(corner_box);
+      if (corner_box.size() >= d_pparams->getMinimumCellRequest()) {
+         corner_box_load = trial.computeBreakOffLoad(corner_box);
+      }
 
       if (d_print_break_steps) {
          tbox::plog << "Initial corner box " << bn << " is " << corner_box
@@ -1103,6 +1105,10 @@ double BalanceBoxBreaker::TrialBreak::computeBreakOffLoad(
       breakoff_load = (d_whole_box_load /
                        static_cast<double>(d_whole_box.size())) *
                       static_cast<double>(box.size());
+
+      if (breakoff_load < d_pparams->getMinimumLoad()) {
+         breakoff_load = static_cast<double>(d_pparams->getMinimumLoad());
+      }
    } else {
       /*
        * If their are corner weights, use them in the load computation.

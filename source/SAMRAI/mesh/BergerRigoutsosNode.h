@@ -529,6 +529,12 @@ private:
    hier::IntVector d_min_box_size;
 
    /*!
+    * Requested minimum size for total cell count of an accepted box.
+    * This minimum may not be enforced in all cases.
+    */
+   size_t d_min_cell_request;
+
+   /*!
     * @brief MPI tag for message within a node.
     *
     * The tag is determined by on the process that owns the parent

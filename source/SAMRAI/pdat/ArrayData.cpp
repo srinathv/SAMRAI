@@ -29,6 +29,7 @@
 #include "umpire/ResourceManager.hpp"
 #endif
 
+#include <array>
 #include <utility>
 
 
@@ -1146,9 +1147,9 @@ void ArrayData<TYPE>::fill(
 #else
       const tbox::Dimension& dim = box.getDim();
 
-      int box_w[SAMRAI::MAX_DIM_VAL];
-      int dst_w[SAMRAI::MAX_DIM_VAL];
-      int dim_counter[SAMRAI::MAX_DIM_VAL];
+      std::array<int,SAMRAI::MAX_DIM_VAL> box_w = {};
+      std::array<int,SAMRAI::MAX_DIM_VAL> dst_w = {};
+      std::array<int,SAMRAI::MAX_DIM_VAL> dim_counter = {};
       for (tbox::Dimension::dir_t i = 0; i < dim.getValue(); ++i) {
          box_w[i] = ispace.numberCells(i);
          dst_w[i] = d_box.numberCells(i);
@@ -1159,7 +1160,7 @@ void ArrayData<TYPE>::fill(
 
       size_t dst_counter = d_box.offset(ispace.lower()) + d * d_offset;
 
-      size_t dst_b[SAMRAI::MAX_DIM_VAL];
+      std::array<size_t,SAMRAI::MAX_DIM_VAL> dst_b = {};
       for (tbox::Dimension::dir_t nd = 0; nd < dim.getValue(); ++nd) {
          dst_b[nd] = dst_counter;
       }

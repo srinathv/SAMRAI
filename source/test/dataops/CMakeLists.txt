@@ -21,6 +21,12 @@ blt_add_executable(
 
 
 blt_add_executable(
+  NAME cell_fillall
+  SOURCES cell_fillall.cpp
+  DEPENDS_ON
+    ${dataops_depends})
+
+blt_add_executable(
   NAME cell_patchtest
   SOURCES cell_patchtest.cpp
   DEPENDS_ON

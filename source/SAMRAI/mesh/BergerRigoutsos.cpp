@@ -96,7 +96,9 @@ BergerRigoutsos::BergerRigoutsos(
    d_num_boxes_generated(0),
    d_num_conts_to_complete(0),
    d_max_conts_to_complete(0),
-
+   d_min_cell_request(1),
+   d_ratio(dim, 1),
+ 
    // Performance timing...
    d_barrier_before(false),
    d_barrier_after(false),

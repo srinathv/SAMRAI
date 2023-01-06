@@ -728,6 +728,10 @@ int main(
           */
          tbox::pout << "\tClustering..." << std::endl;
          tbox::SAMRAI_MPI::getSAMRAIWorld().Barrier();
+         box_generator->setMinimumCellRequest(
+            hierarchy->getMinimumCellRequest(1));
+         box_generator->setRatioToNewLevel(hierarchy->getRatioToCoarserLevel(1));
+
          box_generator->findBoxesContainingTags(
             L1,
             L0_to_L1,
@@ -924,6 +928,10 @@ int main(
           */
          tbox::pout << "\tClustering..." << std::endl;
          tbox::SAMRAI_MPI::getSAMRAIWorld().Barrier();
+         box_generator->setMinimumCellRequest(
+            hierarchy->getMinimumCellRequest(2));
+         box_generator->setRatioToNewLevel(hierarchy->getRatioToCoarserLevel(2));
+
          box_generator->findBoxesContainingTags(
             L2,
             L1_to_L2,
@@ -1008,7 +1016,7 @@ int main(
                *L2,
                L2_to_L1,
                hierarchy,
-               1,
+               2,
                hierarchy->getSmallestPatchSize(2),
                hierarchy->getLargestPatchSize(2),
                domain_box_level,
