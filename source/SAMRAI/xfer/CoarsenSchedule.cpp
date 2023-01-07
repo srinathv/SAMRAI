@@ -1059,7 +1059,7 @@ CoarsenSchedule::coarsenSourceData(
       if (patch_strategy) {
          patch_strategy->setPostCoarsenSyncFlag();
 #if defined(HAVE_RAJA)
-         if (d_coarsen_patch_strategy->needSynchronize()) {
+         if (patch_strategy->needSynchronize()) {
             tbox::parallel_synchronize();
          }
 #endif
