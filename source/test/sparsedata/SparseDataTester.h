@@ -22,6 +22,7 @@
 #include <vector>
 #include <memory>
 
+#define SPARSE_NUM_INDICES 5
 namespace sam_test {
 
 using namespace SAMRAI;
@@ -46,7 +47,7 @@ public:
    void
    testTiming();
    bool
-   testPackStream();
+   testPackStream(int num_indices = SPARSE_NUM_INDICES);
    bool
    testDatabaseInterface();
 
@@ -58,7 +59,8 @@ private:
 
    void
    _fillObject(
-      std::shared_ptr<SparseDataType> sparse_data);
+      std::shared_ptr<SparseDataType> sparse_data,
+      int num_indices = SPARSE_NUM_INDICES);
    void
    _getDblKeys(
       std::vector<std::string>& keys);
@@ -84,6 +86,8 @@ private:
 
    bool d_initialized;
    tbox::Dimension d_dim;
+
+   int d_num_indices = 0;
 };
 
 } // end namespace sam_test
