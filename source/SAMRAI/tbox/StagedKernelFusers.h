@@ -1,3 +1,13 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and LICENSE.
+ *
+ * Copyright:     (c) 1997-2023 Lawrence Livermore National Security, LLC
+ * Description:   Singleton container of kernel fusers
+ *
+ ************************************************************************/
+
 #ifndef included_tbox_StagedKernelFusers
 #define included_tbox_StagedKernelFusers
 
