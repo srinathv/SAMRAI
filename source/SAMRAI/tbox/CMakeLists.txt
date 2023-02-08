@@ -49,7 +49,6 @@ set ( tbox_headers
   SAMRAI_MPI.h
   SAMRAIManager.h
   Schedule.h
-  ScheduleKernelFuser.h
   ScheduleOpsStrategy.h
   Serializable.h
   SiloDatabase.h
@@ -112,7 +111,6 @@ set (tbox_sources
   SAMRAI_MPI.cpp
   Scanner.cpp
   Schedule.cpp
-  ScheduleKernelFuser.cpp
   ScheduleOpsStrategy.cpp
   Serializable.cpp
   SiloDatabase.cpp
