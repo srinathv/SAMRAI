@@ -10,20 +10,32 @@
 
 #include "SAMRAI/tbox/KernelFuser.h"
 
+#include "SAMRAI/tbox/AllocatorDatabase.h"
 
 namespace SAMRAI {
 namespace tbox {
 
 
+KernelFuser::KernelFuser() :
+#ifdef HAVE_RAJA
+   d_workpool(AllocatorDatabase::getDatabase()->getKernelFuserAllocator()),
+   d_workgroup(d_workpool.instantiate()),
+   d_worksite(d_workgroup.run()),
+#endif
+   d_launched(false)
+{
+}
+
 KernelFuser::~KernelFuser()
 {
 }
 
+/*
 void
 KernelFuser::initialize()
 {
 }
-
+*/
 
 }
 }

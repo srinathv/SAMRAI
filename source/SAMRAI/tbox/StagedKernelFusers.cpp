@@ -24,6 +24,14 @@ StagedKernelFusers::s_startup_handler(
     0,
     tbox::StartupShutdownManager::priorityArenaManager);
 
+StagedKernelFusers::StagedKernelFusers()
+{
+}
+
+StagedKernelFusers::~StagedKernelFusers()
+{
+}
+
 void
 StagedKernelFusers::startupCallback()
 {
@@ -46,10 +54,6 @@ StagedKernelFusers::getInstance()
       s_staged_kernel_fusers_instance = new StagedKernelFusers();
    }
    return s_staged_kernel_fusers_instance;
-}
-
-StagedKernelFusers::~StagedKernelFusers()
-{
 }
 
 void
