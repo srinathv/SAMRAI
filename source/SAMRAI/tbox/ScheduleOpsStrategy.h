@@ -96,6 +96,20 @@ public:
     */
    virtual bool deferMessageSend() = 0;
 
+   /*!
+    * @brief Tell whether a host-device synchronize is needed.
+    *
+    * This virtual method is provided so that the child implementations
+    * can be able to indicate whether their operations have been left
+    * in a state that requires tbox::Schedule to call a host-device
+    * synchronize.  For example if child implmentation of this class
+    * has just called a synchronize, it can return false, which tells
+    * tbox::Schedule to skip the next synchronize call in its own code.
+    *
+    * The default implementation returns true as the safest default behavior,
+    * as it will make tbox::Schedule call synchronize every time there
+    * is any uncertainty about whether it is required.
+    */
    virtual bool needSynchronize()
    {
       return true;
