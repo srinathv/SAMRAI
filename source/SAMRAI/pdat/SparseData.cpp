@@ -414,9 +414,11 @@ SparseData<BOX_GEOMETRY>::getDataStreamSize(
       }
    }
 
+   // an int for the number of items.  This value is always packed
+   // into the MessageStream, even if it is zero.
+   bytes += tbox::MessageStream::getSizeof<int>();
+
    if (num_items > 0) {
-      // an int for the number of items
-      bytes += tbox::MessageStream::getSizeof<int>();
 
       // an int for the each of the attribute list sizes.
       bytes += num_items * tbox::MessageStream::getSizeof<int>();

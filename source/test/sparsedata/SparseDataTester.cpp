@@ -16,7 +16,6 @@
 #include <string>
 #include <cstdlib>
 
-#define NUM_INDICES 5
 using namespace SAMRAI;
 
 namespace sam_test {
@@ -134,6 +133,7 @@ SparseDataTester::testRemove()
    std::shared_ptr<SparseDataType> sample(_createEmptySparseData());
    _fillObject(sample);
    bool success = (!sample->empty() ? true : false);
+
    hier::Index idx = _getRandomIndex();
 
    int size = d_sparse_data->size();
@@ -153,18 +153,18 @@ SparseDataTester::testRemove()
       sample->clear();
       success = success && (sample->empty() ? true : false);
    }
-
+ 
    return success;
 
 }
 
 bool
-SparseDataTester::testPackStream()
+SparseDataTester::testPackStream(int num_indices)
 {
    bool success = true;
 
    std::shared_ptr<SparseDataType> sample(_createEmptySparseData());
-   _fillObject(sample);
+   _fillObject(sample, num_indices);
 
    hier::Index lo = hier::Index(d_dim, 0);
    hier::Index hi = hier::Index(d_dim, 100);
@@ -206,32 +206,38 @@ SparseDataTester::testPackStream()
  *    tbox::plog << std::endl;
  * }
  */
-   for ( ; iter != sample->end(); ++iter) {
-      tbox::plog << "iter1 node: " << std::endl;
-      tbox::plog << iter;
-
-      bool found = false;
-      SparseDataType::iterator iter2(sample2.get());
-      for ( ; iter2 != sample2->end(); ++iter2) {
-         if (iter.equals(iter2)) {
-            found = true;
-            tbox::plog << "iter2 node: " << std::endl;
-            tbox::plog << iter2;
-            break;
-         }
-      }
-
-      if (!found) {
+   if (num_indices == 0) {
+      if (!sample2->empty()) {
          success = false;
       }
-      tbox::plog << std::endl;
-   }
+   } else {
+      for ( ; iter != sample->end(); ++iter) {
+         tbox::plog << "iter1 node: " << std::endl;
+         tbox::plog << iter;
+      
+         bool found = false;
+         SparseDataType::iterator iter2(sample2.get());
+         for ( ; iter2 != sample2->end(); ++iter2) {
+            if (iter.equals(iter2)) {
+               found = true;
+               tbox::plog << "iter2 node: " << std::endl;
+               tbox::plog << iter2;
+               break;
+            }
+         }
+   
+         if (!found) {
+            success = false;
+         }
+         tbox::plog << std::endl;
+      }
 
-   const pdat::DoubleAttributeId did =
-      sample2->getDblAttributeId("double_key_0");
+      const pdat::DoubleAttributeId did =
+         sample2->getDblAttributeId("double_key_0");
 
-   if (!sample2->isValid(did)) {
-      success = false;
+      if (!sample2->isValid(did)) {
+         success = false;
+      }
    }
    sample->clear();
    sample2->clear();
@@ -339,7 +345,7 @@ SparseDataTester::_getRandomIndex()
 {
    // return a random index in the range that we created
    // with _fillObject
-   int val = (rand() % NUM_INDICES);
+   int val = (rand() % d_num_indices);
    hier::IntVector v(d_dim, 0);
    v[0] = val;
    v[1] = val;
@@ -348,8 +354,11 @@ SparseDataTester::_getRandomIndex()
 
 void
 SparseDataTester::_fillObject(
-   std::shared_ptr<SparseDataType> sparse_data)
+   std::shared_ptr<SparseDataType> sparse_data,
+   int num_indices)
 {
+   d_num_indices = num_indices;
+
    hier::IntVector v(d_dim, 0);
    double* dvalues = new double[DSIZE];
    _getDblValues(dvalues);
@@ -357,7 +366,7 @@ SparseDataTester::_fillObject(
    _getIntValues(ivalues);
 
    SparseDataType::iterator iter;
-   for (int i = 1; i < NUM_INDICES; ++i) {
+   for (int i = 1; i < d_num_indices; ++i) {
       v[0] = i;
       v[1] = i;
       hier::Index idx(v);
