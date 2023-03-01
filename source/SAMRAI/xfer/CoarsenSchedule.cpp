@@ -1037,7 +1037,6 @@ CoarsenSchedule::coarsenSourceData(
 #endif
       }
 
-      bool need_sync = false;
       for (size_t ici = 0; ici < d_number_coarsen_items; ++ici) {
          const CoarsenClasses::Data * const crs_item =
             d_coarsen_items[ici];
@@ -1046,15 +1045,8 @@ CoarsenSchedule::coarsenSourceData(
             crs_item->d_opcoarsen->coarsen(*temp_patch, *fine_patch,
                source_id, source_id,
                box, block_ratio);
-            need_sync = true;
          }
       }
-
-#if defined(HAVE_RAJA)
-//      if (need_sync) {
-//         tbox::parallel_synchronize();
-//      }
-#endif
 
       if (patch_strategy) {
          patch_strategy->setPostCoarsenSyncFlag();

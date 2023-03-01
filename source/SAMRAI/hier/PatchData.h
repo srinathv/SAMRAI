@@ -20,15 +20,6 @@
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI {
-
-/*
- * Forward declaration of KernelFuser class - required here because it sucks in
- * RAJA and requires CUDA.
- */
-//namespace tbox {
-//class KernelFuser;
-//}
-
 namespace hier {
 
 /**
@@ -169,6 +160,12 @@ public:
       const PatchData& src,
       const BoxOverlap& overlap) = 0;
 
+   /**
+    * Copy data from the source into the destination using the designated
+    * overlap descriptor.  The overlap description will have been computed
+    * using the appropriate box geometry objects.  The default implementation
+    * of this method will call packStream without the fuser argument.
+    */
    virtual void
    copyFuseable(
       const PatchData& src,

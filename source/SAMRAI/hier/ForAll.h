@@ -175,8 +175,6 @@ struct for_all<1> {
 };
 
 
-// 2D and 3D don't use the fuser for anything pending suppor for
-// multidimensional loops in KernelFuser.
 template <>
 struct for_all<2> {
    template <typename Policy, typename LoopBody,
