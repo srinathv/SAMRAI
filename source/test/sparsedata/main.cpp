@@ -108,6 +108,14 @@ int main(
             ++fail_count;
          }
 
+         success = tester.testPackStream(0);
+         if (success)
+            tbox::plog << "PASSED: Test 6a: packStream empty SparseData" << std::endl;
+         else {
+            tbox::perr << "FAILED: packStream empty SparseData " << std::endl;
+            ++fail_count;
+         }
+
          success = tester.testDatabaseInterface();
          if (success)
             tbox::plog << "PASSED: Test 7: database interface" << std::endl;
