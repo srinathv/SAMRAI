@@ -163,6 +163,17 @@ public:
    /**
     * Copy data from the source into the destination using the designated
     * overlap descriptor.  The overlap description will have been computed
+    * using the appropriate box geometry objects.  The default implementation
+    * of this method will call packStream without the fuser argument.
+    */
+   virtual void
+   copyFuseable(
+      const PatchData& src,
+      const BoxOverlap& overlap);
+
+   /**
+    * Copy data from the source into the destination using the designated
+    * overlap descriptor.  The overlap description will have been computed
     * using the appropriate box geometry objects If this member function
     * cannot complete the copy from the destination, then it may throw an
     * assertion (aka dump core in a failed assertion).
@@ -207,6 +218,18 @@ public:
       const BoxOverlap& overlap) const = 0;
 
    /**
+    * Pack data lying on the specified index set into the output stream using
+    * the given KernelFuser. The default implementation of this method will
+    * call packStream without the fuser argument. See the abstract stream
+    * virtual base class for more information about the packing operators
+    * defined for streams.
+    */
+   virtual void
+   packStreamFuseable(
+      tbox::MessageStream& stream,
+      const BoxOverlap& overlap) const;
+
+   /**
     * Unpack data from the message stream into the specified index set.
     * See the abstract stream virtual base class for more information about
     * the packing operators defined for streams.
@@ -215,6 +238,18 @@ public:
    unpackStream(
       tbox::MessageStream& stream,
       const BoxOverlap& overlap) = 0;
+
+   /**
+    * Unpack data from the message stream into the specified index set using
+    * the given KernelFuser. The default implementation of this method will
+    * call unpackStream without the fuser argument. See the abstract stream
+    * virtual base class for more information about the packing operators
+    * defined for streams.
+    */
+   virtual void
+   unpackStreamFuseable(
+      tbox::MessageStream& stream,
+      const BoxOverlap& overlap);
 
    /**
     * Checks that class version and restart file version are equal.  If so,

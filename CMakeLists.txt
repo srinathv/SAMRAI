@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.1)
 project(SAMRAI C CXX Fortran)
 
 set(SAMRAI_VERSION_MAJOR 4)
-set(SAMRAI_VERSION_MINOR 1)
-set(SAMRAI_VERSION_PATCHLEVEL 1)
+set(SAMRAI_VERSION_MINOR 2)
+set(SAMRAI_VERSION_PATCHLEVEL 0)
 set(SAMRAI_VERSION
   "${SAMRAI_VERSION_MAJOR}.${SAMRAI_VERSION_MINOR}.${SAMRAI_VERSION_PATCHLEVEL}")
 
@@ -39,7 +39,7 @@ set(ENABLE_CUDA Off CACHE Bool "Enable CUDA")
 set(ENABLE_MPI On CACHE Bool "Enable MPI.")
 set(ENABLE_TESTS On CACHE Bool "Enable Tests.")
 set(ENABLE_DOCS Off CACHE Bool "Enable Docs.")
-set(BLT_CXX_STD "c++11" CACHE STRING "Version of C++ standard")
+set(BLT_CXX_STD "c++14" CACHE STRING "Version of C++ standard")
 set(gtest_disable_pthreads ON CACHE BOOL "")
 
 message(STATUS "Enable Test Flag Top: ${ENABLE_TESTS} " )
@@ -60,8 +60,6 @@ option(ENABLE_PERF_TESTS "Enable Performance Tests." Off)
 set(MIN_TEST_PROCS 1 CACHE INT "Minimum number of procs for tests.")
 set(NUM_PERF_PROCS 8 CACHE INT "Number of processors for performance tests.")
 option(ENABLE_CHECK_ASSERTIONS "Enable assertion checking." On)
-option(ENABLE_CHECK_DEV_ASSERTIONS "Enable SAMRAI developer assertion checking." Off)
-option(ENABLE_CHECK_DIM_ASSERTIONS "Enable assertion checking for dimensions." Off)
 option(ENABLE_BOX_COUNTING "Turns on box telemetry." Off)
 option(ENABLE_DEPRECATED "Build with deprecated features." On)
 option(ENABLE_TIMERS "Enable SAMRAI timers." On)
@@ -73,6 +71,7 @@ set(CUDA_ARCH "sm_70" CACHE STRING "Compute architecture to pass to CUDA builds"
 set(CMAKE_CUDA_FLAGS "" CACHE STRING "")
 set(CMAKE_INSTALL_LIBDIR lib)
 #set(CMAKE_INSTALL_RPATH_USE_LINK_PATH Off CACHE Bool "Rpath uses Link path")
+set(SAMRAI_RAJA_WORKGROUP_THREADS 512 CACHE INT "Number of workgroup threads")
 
 include(GNUInstallDirs)
 

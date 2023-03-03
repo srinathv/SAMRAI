@@ -23,6 +23,7 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/tbox/Schedule.h"
+#include "SAMRAI/tbox/ScheduleOpsStrategy.h"
 #include "SAMRAI/tbox/Timer.h"
 
 #include <iostream>
@@ -314,6 +315,13 @@ public:
    void deallocateInternalData();
 
    /*!
+    * @brief Set a pointer to a ScheduleOpsStrategy object
+    *
+    * @param strategy   Pointer to a concrete instance of ScheduleOpsStrategy
+    */
+   void setScheduleOpsStrategy(tbox::ScheduleOpsStrategy* strategy);
+
+   /*!
     * @brief Print the refine schedule data to the specified data stream.
     *
     * @param[out] stream Output data stream.
@@ -534,9 +542,11 @@ private:
     * If the scratch and destination patch data components are the same,
     * then no copying is performed.
     *
+    * @return  Returns true only if copies were performed.
+    *
     * @pre d_dst_level
     */
-   void
+   bool 
    copyScratchToDestination() const;
 
    /*!

@@ -312,9 +312,6 @@ CoarsenSchedule::coarsenData() const
     */
 
    d_schedule->communicate();
-#if defined(HAVE_RAJA)
-   tbox::parallel_synchronize();
-#endif
 
    /*
     * Deallocate the source data in the temporary patch level.
@@ -1002,6 +999,17 @@ void
 CoarsenSchedule::coarsenSourceData(
    CoarsenPatchStrategy* patch_strategy) const
 {
+   if (patch_strategy) {
+      patch_strategy->preprocessCoarsenLevel(
+         *d_temp_crse_level,
+         *d_fine_level);
+#if defined(HAVE_RAJA)
+      if (patch_strategy->needSynchronize()) {
+         tbox::parallel_synchronize();
+      }
+#endif
+   }
+
    /*
     * Loop over all local patches (fine and temp have the same mapping)
     */
@@ -1023,7 +1031,9 @@ CoarsenSchedule::coarsenSourceData(
          patch_strategy->preprocessCoarsen(*temp_patch,
             *fine_patch, box, block_ratio);
 #if defined(HAVE_RAJA)
-         tbox::parallel_synchronize();
+         if (patch_strategy->needSynchronize()) {
+            tbox::parallel_synchronize();
+         }
 #endif
       }
 
@@ -1037,20 +1047,39 @@ CoarsenSchedule::coarsenSourceData(
                box, block_ratio);
          }
       }
-#if defined(HAVE_RAJA)
-      tbox::parallel_synchronize();
-#endif
 
       if (patch_strategy) {
+         patch_strategy->setPostCoarsenSyncFlag();
+#if defined(HAVE_RAJA)
+         if (patch_strategy->needSynchronize()) {
+            tbox::parallel_synchronize();
+         }
+#endif
+
          patch_strategy->postprocessCoarsen(*temp_patch,
             *fine_patch,
             box,
             block_ratio);
-#if defined(HAVE_RAJA)
-        tbox::parallel_synchronize();
-#endif
       }
    }
+
+#if defined(HAVE_RAJA)
+   if (!patch_strategy || patch_strategy->needSynchronize()) {
+      tbox::parallel_synchronize();
+   }
+#endif
+
+   if (patch_strategy) {
+      patch_strategy->postprocessCoarsenLevel(
+         *d_temp_crse_level,
+         *d_fine_level);
+#if defined(HAVE_RAJA)
+      if (patch_strategy->needSynchronize()) {
+         tbox::parallel_synchronize();
+      }
+#endif
+   }
+
 }
 
 /*
@@ -1221,6 +1250,17 @@ CoarsenSchedule::setDeterministicUnpackOrderingFlag(bool flag)
    }
    if (d_precoarsen_refine_schedule) {
       d_precoarsen_refine_schedule->setDeterministicUnpackOrderingFlag(flag);
+   }
+}
+
+void
+CoarsenSchedule::setScheduleOpsStrategy(tbox::ScheduleOpsStrategy* strategy)
+{
+   if (d_schedule) {
+      d_schedule->setScheduleOpsStrategy(strategy);
+   }
+   if (d_precoarsen_refine_schedule) {
+      d_precoarsen_refine_schedule->setScheduleOpsStrategy(strategy);
    }
 }
 
