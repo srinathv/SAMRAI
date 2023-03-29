@@ -35,6 +35,11 @@ variables:
 # This defines the default behavior, may be overridden it.
 before_script:
   - date
+  - echo $CI_COMMIT_BRANCH
+  - echo $SAMRAI_ALL_TARGETS
+  - echo $SAMRAI_CI_RUBY
+  - echo $SAMRAI_CI_QUARTZ
+  - echo $SAMRAI_ALLOC_NAME
 
 after_script:
   - date
@@ -46,10 +51,7 @@ after_script:
 # complete.
 stages:
   - start
-  - q_build
-  - q_test
-  - l_build_and_test
-  - b_build_and_test
+  - build_and_test
 
 # The start job is actually a dumb one, which serves as a reference to start
 # q_allocate_resources, l_build_and_test and b_build_and_test simultaneously.
@@ -77,18 +79,19 @@ start:
 # use it (slurm specific).
 .build_toss_3_x86_64_ib_script:
   script:
-    - echo ${SAMRAI_ALLOC_NAME}
+    - echo ${SAMRAI_ALL_TARGETS}
 #    - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
 #    - echo ${JOBID}
 #    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
 
-.test_toss_3_x86_64_ib_script:
+.build_and_test_toss_3_x86_64_ib_script:
   script:
     - echo ${SAMRAI_ALLOC_NAME}
     - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
     - echo ${JOBID}
     - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
   artifacts:
+    when: always
     paths:
       - ctest_report_*.xml
 
@@ -105,5 +108,4 @@ start:
 # This is where jobs are included
 include:
   - local: .gitlab/quartz.yml
-
-
+  - local: .gitlab/ruby.yml

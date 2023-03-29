@@ -9,6 +9,7 @@
 ########################################################################
 set -o errexit
 set -o nounset
+set -x 
 
 # Check environment variables
 sys_type=${SYS_TYPE:-""}
@@ -46,7 +47,7 @@ then
 
     conf_suffix="host-configs/${sys_type}/${compiler}.cmake"
 
-    generic_conf="${project_dir}/.radiuss-ci/gitlab/conf/${conf_suffix}"
+    generic_conf="${project_dir}/${conf_suffix}"
     if [[ ! -f ${generic_conf} ]]
     then
         echo "ERROR: Host-config file ${generic_conf} does not exist" && exit 1
@@ -77,7 +78,7 @@ then
 
     ctest_out=0
 
-    ( ctest --output-on-failure -T test 2>&1 || ( ctest_out=$?; echo "Error(s) in CTest" ) ) | tee tests_output.txt
+    ( ctest --output-junit test_junit.xml --test-dir Testing --output-on-failure -T test 2>&1 || ( ctest_out=$?; echo "Error(s) in CTest" ) ) | tee tests_output.txt
 
     no_test_str="No tests were found!!!"
     if [[ "$(tail -n 1 tests_output.txt)" == "${no_test_str}" ]]
@@ -94,3 +95,4 @@ then
 
     exit ${ctest_out}
 fi
+
