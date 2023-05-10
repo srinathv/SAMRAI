@@ -104,7 +104,19 @@ then
 
     ctest_out=0
 
+    if [[ -f DartConfiguration.tcl ]]
+    then
+      if [[ -d Testing ]]
+      then
+        if [[ ! -f Testing/DartConfiguration.tcl ]]
+        then
+          cp ./DartConfiguration.tcl Testing
+        fi
+      fi
+    fi
+
     ( ctest --output-junit test_junit.xml --test-dir Testing --output-on-failure -T test 2>&1 || ( ctest_out=$?; echo "Error(s) in CTest" ) ) | tee tests_output.txt
+    # ( make test ) | tee tests_output.txt
 
     no_test_str="No tests were found!!!"
     if [[ "$(tail -n 1 tests_output.txt)" == "${no_test_str}" ]]
