@@ -52,16 +52,26 @@ then
     ln -s ${camp_config}
     ln -s ${umpire_config}
 
-    git clone git@github.com:LLNL/raja.git
-    cd raja
-    git checkout v2022.03.1
-    git submodule init; git submodule update
-    cd ..
-    git clone git@github.com:LLNL/umpire.git
-    cd umpire
-    git checkout v2022.03.1
-    git submodule init; git submodule update
-    cd ..
+    if [[ ! -d /usr/WS1/samrai/tpl/raja/v2022.03.1 ]]
+    then
+        git clone git@github.com:LLNL/raja.git
+        cd raja
+        git checkout v2022.03.1
+        git submodule init; git submodule update
+        cd ..
+    else
+        cp -r /usr/WS1/samrai/tpl/raja/v2022.03.1 raja
+    fi
+    if [[ ! -d /usr/WS1/samrai/tpl/umpire/v2022.03.1 ]]
+    then
+        git clone git@github.com:LLNL/umpire.git
+        cd umpire
+        git checkout v2022.03.1
+        git submodule init; git submodule update
+        cd ..
+    else
+        cp -r /usr/WS1/samrai/tpl/umpire/v2022.03.1 umpire
+    fi
 
     tpl_script="${project_dir}/source/scripts/gitlab/build_tpl.sh"
 
