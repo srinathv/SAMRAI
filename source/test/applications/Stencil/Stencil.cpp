@@ -23,7 +23,7 @@ Stencil::Stencil(
    algs::HyperbolicPatchStrategy(),
    d_object_name(name),
    d_grid_geometry(grid_geom),
-   d_velocity({1.0,0.0}),
+   d_velocity({1.0,0.0,0.0}),
    d_dim(dim),
    d_allocator(tbox::AllocatorDatabase::getDatabase()->getDefaultAllocator()),
    d_rho_variables(),
@@ -43,6 +43,7 @@ Stencil::Stencil(
 
       d_rho_variables.push_back( std::make_shared<pdat::CellVariable<double> >(dim, var_name, d_allocator, 1));
    }
+
 }
 
 void
@@ -92,13 +93,23 @@ Stencil::initializeDataOnPatch(
    NULL_USE(initial_time);
    // initialize
    if (initial_time) {
-      for ( const auto& rho_var : d_rho_variables ) {
-         auto rho = pdat::get_view<2, pdat::CellData<double> >(patch.getPatchData(rho_var, getDataContext()));
-         // CellView<double, 2> rho(SAMRAI_SHARED_PTR_CAST<pdat::CellData<double> >(patch.getPatchData(rho_var, getDataContext())));
+      if (d_dim.getValue() == 2) {
+        for ( const auto& rho_var : d_rho_variables ) {
+           auto rho = pdat::get_view<2, pdat::CellData<double> >(patch.getPatchData(rho_var, getDataContext()));
 
-         hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int j, int k) {
-            rho(j,k) = 0.0;
-         });
+           hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int j, int k) {
+              rho(j,k) = 0.0;
+           });
+        }
+      } else {
+        for ( const auto& rho_var : d_rho_variables ) {
+           auto rho = pdat::get_view<3, pdat::CellData<double> >(patch.getPatchData(rho_var, getDataContext()));
+
+           hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int i, int j, int k) {
+              rho(i,j,k) = 0.0;
+           });
+
+        }
       }
    }
 
@@ -116,12 +127,15 @@ Stencil::computeStableDtOnPatch(
    NULL_USE(dt_time);
    const std::shared_ptr<geom::CartesianPatchGeometry> pgeom(
       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry>(patch.getPatchGeometry()));
+   double dx = pgeom->getDx()[0];
+   double dy = pgeom->getDx()[1];
+   double min_length = dx > dy ? dy : dx;
+   if (d_dim.getValue() == 3) {
+      double dz = pgeom->getDx()[2];
+      min_length = min_length > dz ? dz : min_length;
+   }
 
-   const double dx = pgeom->getDx()[0];
-   const double dy = pgeom->getDx()[1];
-   const double min_length = dx > dy ? dy : dx;
-
-   double velocity_mag = std::sqrt(d_velocity[0]*d_velocity[0] + d_velocity[1]*d_velocity[1]);
+   double velocity_mag = std::sqrt(d_velocity[0]*d_velocity[0] + d_velocity[1]*d_velocity[1] + d_velocity[2]*d_velocity[2]);
 
    RANGE_POP;
 
@@ -149,35 +163,66 @@ Stencil::conservativeDifferenceOnPatch(
    RANGE_PUSH("Stencil::conservativeDifference", 1);
    NULL_USE(time);
    NULL_USE(at_syncronization);
-   auto rho_new = pdat::get_view<2, pdat::CellData<double>>(patch.getPatchData(d_rho_update, getDataContext()));
-
-   // CellView<double, 2> rhoNew(SAMRAI_SHARED_PTR_CAST<pdat::CellData<double> >(patch.getPatchData(d_rho_update, getDataContext())));
 
    const std::shared_ptr<geom::CartesianPatchGeometry> pgeom(
       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry>(patch.getPatchGeometry()));
 
-   const double dx = pgeom->getDx()[0];
-   const double dy = pgeom->getDx()[1];
-   for ( const auto& rho_var : d_rho_variables ) {
-      auto rho = pdat::get_view<2, pdat::CellData<double>>(patch.getPatchData(rho_var, getDataContext()));
-      // CellView<double, 2> rho(SAMRAI_SHARED_PTR_CAST<pdat::CellData<double> >(patch.getPatchData(rho_var, getDataContext())));
+   if (d_dim.getValue() == 2) {
+      auto rho_new = pdat::get_view<2, pdat::CellData<double>>(patch.getPatchData(d_rho_update, getDataContext()));
 
-      const double an_abs_lr = ABS(d_velocity[0]) * 0.5;
-      const double an_abs_tb = ABS(d_velocity[1]) * 0.5;
-      const double an_lr = d_velocity[0] * 0.5;
-      const double an_tb = d_velocity[1] * 0.5;
+      const double dx = pgeom->getDx()[0];
+      const double dy = pgeom->getDx()[1];
+      for ( const auto& rho_var : d_rho_variables ) {
+         auto rho = pdat::get_view<2, pdat::CellData<double>>(patch.getPatchData(rho_var, getDataContext()));
 
-      hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int j, int k) {
-         const double FL = (rho(j-1,k) + rho(j,k)) * an_abs_lr + (rho(j-1,k) - rho(j,k)) * an_lr;
-         const double FR = (rho(j,k) + rho(j+1,k)) * an_abs_lr + (rho(j,k) - rho(j+1,k)) * an_lr;
-         const double FT = (rho(j,k) + rho(j,k+1)) * an_abs_tb + (rho(j,k) - rho(j,k+1)) * an_tb;
-         const double FB = (rho(j,k-1) + rho(j,k)) * an_abs_tb + (rho(j,k-1) - rho(j,k)) * an_tb;
-         rho_new(j,k) = rho(j,k) - dt * (1.0 / dx * (FR - FL) + 1.0 / dy * (FT - FB));
-      });
+         const double an_abs_lr = ABS(d_velocity[0]) * 0.5;
+         const double an_abs_tb = ABS(d_velocity[1]) * 0.5;
+         const double an_lr = d_velocity[0] * 0.5;
+         const double an_tb = d_velocity[1] * 0.5;
 
-      hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int j, int k) {
-         rho(j,k) = rho_new(j,k);
-      });
+         hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int j, int k) {
+            const double FL = (rho(j-1,k) + rho(j,k)) * an_abs_lr + (rho(j-1,k) - rho(j,k)) * an_lr;
+            const double FR = (rho(j,k) + rho(j+1,k)) * an_abs_lr + (rho(j,k) - rho(j+1,k)) * an_lr;
+            const double FT = (rho(j,k) + rho(j,k+1)) * an_abs_tb + (rho(j,k) - rho(j,k+1)) * an_tb;
+            const double FB = (rho(j,k-1) + rho(j,k)) * an_abs_tb + (rho(j,k-1) - rho(j,k)) * an_tb;
+            rho_new(j,k) = rho(j,k) - dt * (1.0 / dx * (FR - FL) + 1.0 / dy * (FT - FB));
+         });
+
+         hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int j, int k) {
+            rho(j,k) = rho_new(j,k);
+         });
+      }
+   } else {
+      auto rho_new = pdat::get_view<3, pdat::CellData<double>>(patch.getPatchData(d_rho_update, getDataContext()));
+
+      const double dx = pgeom->getDx()[0];
+      const double dy = pgeom->getDx()[1];
+      const double dz = pgeom->getDx()[2];
+      for ( const auto& rho_var : d_rho_variables ) {
+         auto rho = pdat::get_view<3, pdat::CellData<double>>(patch.getPatchData(rho_var, getDataContext()));
+
+         const double an_abs_I = ABS(d_velocity[0]) * 0.5;
+         const double an_abs_J = ABS(d_velocity[1]) * 0.5;
+         const double an_abs_K = ABS(d_velocity[2]) * 0.5;
+         const double an_I = d_velocity[0] * 0.5;
+         const double an_J = d_velocity[1] * 0.5;
+         const double an_K = d_velocity[2] * 0.5;
+
+         hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int i, int j, int k) {
+            const double IL = (rho(i-1,j,k) + rho(i,j,k)) * an_abs_I + (rho(i-1,j,k) - rho(i,j,k)) * an_I;
+            const double IH = (rho(i,j,k) + rho(i+1,j,k)) * an_abs_I + (rho(i,j,k) - rho(i+1,j,k)) * an_I;
+            const double JL = (rho(i,j,k) + rho(i,j-1,k)) * an_abs_J + (rho(i,j,k) - rho(i,j-1,k)) * an_J;
+            const double JH = (rho(i,j+1,k) + rho(i,j,k)) * an_abs_J + (rho(i,j+1,k) - rho(i,j,k)) * an_J;
+            const double KL = (rho(i,j,k) + rho(i,j,k-1)) * an_abs_K + (rho(i,j,k) - rho(i,j,k-1)) * an_K;
+            const double KH = (rho(i,j,k+1) + rho(i,j,k)) * an_abs_K + (rho(i,j,k+1) - rho(i,j,k)) * an_K;
+            rho_new(i,j,k) = rho(i,j,k) - dt * (1.0 / dx * (IH - IL) + 1.0 / dy * (JH - JL) + 1.0 / dz * (KH - KL));
+         });
+
+         hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int i, int j, int k) {
+            rho(i,j,k) = rho_new(i,j,k);
+         });
+
+      }
    }
    RANGE_POP;
 }
@@ -197,38 +242,53 @@ Stencil::tagGradientDetectorCells(
    /*
     * Only need to tag the first variable.
     */
-   auto rho = pdat::get_const_view<2, pdat::CellData<double> >(patch.getPatchData(d_rho_variables[0], getDataContext()));
-   // CellView<double, 2> rho(SAMRAI_SHARED_PTR_CAST<pdat::CellData<double> >(patch.getPatchData(d_rho_variables[0], getDataContext())));
-
-   auto tags = pdat::get_view<2, pdat::CellData<int> >(patch.getPatchData(tag_index));
-   // CellView<int, 2> tags(SAMRAI_SHARED_PTR_CAST<pdat::CellData<int> >(patch.getPatchData(tag_index)));
 
    double tag_threshold = d_tag_threshold;
 
-   const hier::Index ifirst = patch.getBox().lower();
-   const hier::Index ilast = patch.getBox().upper();
+   if (d_dim.getValue() == 2) {
+      auto rho = pdat::get_const_view<2, pdat::CellData<double> >(patch.getPatchData(d_rho_variables[0], getDataContext()));
 
-//   const int ifirst0 = ifirst(0);
-//   const int ifirst1 = ifirst(1);
-//   const int ilast0 = ilast(0);
-//   const int ilast1 = ilast(1);
+      auto tags = pdat::get_view<2, pdat::CellData<int> >(patch.getPatchData(tag_index));
 
-   hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int j, int k) {
-      const double d2x = ABS(rho(j+1,k) - 2.0*rho(j,k) + rho(j-1,k));
-      const double d2y = ABS(rho(j,k+1) - 2.0*rho(j,k) + rho(j,k-1));
 
-      /*
-       * TODO: fix boundary conditions for diagonal gradient detection
-       */
-      const double dxy = 0.0; // ABS(rho(j+1,k+1) - 2.0*rho(j,k) + rho(j-1,k-1));
-      const double dyx = 0.0; // ABS(rho(j-1,k+1) - 2.0*rho(j,k) + rho(j+1,k-1));
+      hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int j, int k) {
+         const double d2x = ABS(rho(j+1,k) - 2.0*rho(j,k) + rho(j-1,k));
+         const double d2y = ABS(rho(j,k+1) - 2.0*rho(j,k) + rho(j,k-1));
 
-      const double dd = MAX(d2x,MAX(d2y,MAX(dxy,dyx)));
+         /*
+          * TODO: fix boundary conditions for diagonal gradient detection
+          */
+         const double dxy = 0.0; // ABS(rho(j+1,k+1) - 2.0*rho(j,k) + rho(j-1,k-1));
+         const double dyx = 0.0; // ABS(rho(j-1,k+1) - 2.0*rho(j,k) + rho(j+1,k-1));
 
-      if (dd > tag_threshold) {
-         tags(j,k) = 1;
-      }
-   });
+         const double dd = MAX(d2x,MAX(d2y,MAX(dxy,dyx)));
+
+         if (dd > tag_threshold) {
+            tags(j,k) = 1;
+         }
+      });
+   } else {
+      auto rho = pdat::get_const_view<3, pdat::CellData<double> >(patch.getPatchData(d_rho_variables[0], getDataContext()));
+
+      auto tags = pdat::get_view<3, pdat::CellData<int> >(patch.getPatchData(tag_index));
+
+
+      hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int i, int j, int k) {
+         const double d2x = ABS(rho(i+1,j,k) - 2.0*rho(i,j,k) + rho(i-1,j,k));
+         const double d2y = ABS(rho(i,j+1,k) - 2.0*rho(i,j,k) + rho(i,j-1,k));
+         const double d2z = ABS(rho(i,j,k+1) - 2.0*rho(i,j,k) + rho(i,j,k-1));
+
+         /*
+          * TODO: fix boundary conditions for diagonal gradient detection
+          */
+
+         const double dd = MAX(d2x,MAX(d2y,d2z));
+
+         if (dd > tag_threshold) {
+            tags(i,j,k) = 1;
+         }
+      });
+   }
 
    RANGE_POP;
 }
@@ -247,67 +307,145 @@ Stencil::setPhysicalBoundaryConditions(
    const std::shared_ptr<geom::CartesianPatchGeometry> pgeom(
       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry>(patch.getPatchGeometry()));
 
-   const std::vector<hier::BoundaryBox>& edge_bdry
-      = pgeom->getCodimensionBoundaries(Bdry::EDGE2D);
+   if (d_dim.getValue() == 2) {
+      const std::vector<hier::BoundaryBox>& edge_bdry
+         = pgeom->getCodimensionBoundaries(Bdry::EDGE2D);
 
 
-   for ( const auto& rho_var : d_rho_variables ) {
-      auto field = pdat::get_view<2, pdat::CellData<double> >(patch.getPatchData(rho_var, getDataContext()));
-      // CellView<double, 2> field(SAMRAI_SHARED_PTR_CAST<pdat::CellData<double> >(patch.getPatchData(rho_var, getDataContext())));
+      for ( const auto& rho_var : d_rho_variables ) {
+         auto field = pdat::get_view<2, pdat::CellData<double> >(patch.getPatchData(rho_var, getDataContext()));
 
-      const hier::Index ifirst = patch.getBox().lower();
-      const hier::Index ilast = patch.getBox().upper();
+         const hier::Index ifirst = patch.getBox().lower();
+         const hier::Index ilast = patch.getBox().upper();
 
-      const int ifirst0 = ifirst(0);
-      const int ifirst1 = ifirst(1);
-      const int ilast0 = ilast(0);
-      const int ilast1 = ilast(1);
+         const int ifirst0 = ifirst(0);
+         const int ifirst1 = ifirst(1);
+         const int ilast0 = ilast(0);
+         const int ilast1 = ilast(1);
 
-      for(unsigned int i = 0; i < edge_bdry.size(); i++) {
+         for(unsigned int i = 0; i < edge_bdry.size(); i++) {
 
-         const auto edge = edge_bdry[i].getLocationIndex();
+            const auto edge = edge_bdry[i].getLocationIndex();
 
-         const hier::Box boundary_box(pgeom->getBoundaryFillBox(
-                                         edge_bdry[i],
-                                         patch.getBox(),
-                                         ghost_width_to_fill));
+            const hier::Box boundary_box(pgeom->getBoundaryFillBox(
+                                            edge_bdry[i],
+                                            patch.getBox(),
+                                            ghost_width_to_fill));
 
-         switch(edge) {
-         case (BdryLoc::YLO) :
-         {
-            hier::parallel_for_all(boundary_box, 0, [=] SAMRAI_HOST_DEVICE (int j) {
-               field(j, ifirst1-1)  = field(j,ifirst1);
-               if (depth == 2) { field(j, ifirst1-2)  = field(j,ifirst1+1); }
-            });
+            switch(edge) {
+            case (BdryLoc::YLO) :
+            {
+               hier::parallel_for_all(boundary_box, 0, [=] SAMRAI_HOST_DEVICE (int j) {
+                  field(j, ifirst1-1)  = field(j,ifirst1);
+                  if (depth == 2) { field(j, ifirst1-2)  = field(j,ifirst1+1); }
+               });
+            }
+            break;
+            case (BdryLoc::YHI) :
+            {
+               hier::parallel_for_all(boundary_box, 0, [=] SAMRAI_HOST_DEVICE (int j) {
+                  field(j,ilast1+1) = field(j,ilast1);
+                  if (depth == 2) { field(j,ilast1+2) = field(j,ilast1-1); }
+               });
+            }
+            break;
+            case (BdryLoc::XLO) :
+            {
+               hier::parallel_for_all(boundary_box, 1, [=] SAMRAI_HOST_DEVICE (int k) {
+                  field(ifirst0-1,k) = 1.0;
+                  if (depth == 2) { field(ifirst0-2,k) = 1.0; }
+               });
+            }
+            break;
+            case (BdryLoc::XHI) :
+            {
+               hier::parallel_for_all(boundary_box, 1, [=] SAMRAI_HOST_DEVICE (int k) {
+                  field(ilast0+1,k) = field(ilast0,k);
+                  if (depth == 2) { field(ilast0+2,k) = field(ilast0-1,k); }
+               });
+            }
+            break;
+            }
          }
-         break;
-         case (BdryLoc::YHI) :
-         {
-            hier::parallel_for_all(boundary_box, 0, [=] SAMRAI_HOST_DEVICE (int j) {
-               field(j,ilast1+1) = field(j,ilast1);
-               if (depth == 2) { field(j,ilast1+2) = field(j,ilast1-1); }
-            });
+      } // for rho_var
+   } else {
+
+      const std::vector<hier::BoundaryBox>& face_bdry
+         = pgeom->getCodimensionBoundaries(Bdry::FACE3D);
+
+
+      for ( const auto& rho_var : d_rho_variables ) {
+         auto field = pdat::get_view<3, pdat::CellData<double> >(patch.getPatchData(rho_var, getDataContext()));
+
+         const hier::Index ifirst = patch.getBox().lower();
+         const hier::Index ilast = patch.getBox().upper();
+
+         const int ifirst0 = ifirst(0);
+         const int ifirst1 = ifirst(1);
+         const int ifirst2 = ifirst(2);
+         const int ilast0 = ilast(0);
+         const int ilast1 = ilast(1);
+         const int ilast2 = ilast(2);
+
+         for(unsigned int b = 0; b < face_bdry.size(); b++) {
+
+            const auto face = face_bdry[b].getLocationIndex();
+
+            const hier::Box& boundary_box = face_bdry[b].getBox();
+
+            switch(face) {
+            case (BdryLoc::ZLO) :
+            {
+               hier::parallel_for_all(boundary_box, [=] SAMRAI_HOST_DEVICE (int i, int j, int k) {
+                  field(i,j,ifirst2-1)  = field(i,j,ifirst2);
+                  field(i,j,ifirst2-2)  = field(i,j,ifirst2+1);
+               });
+            }
+            break;
+            case (BdryLoc::ZHI) :
+            {
+               hier::parallel_for_all(boundary_box, [=] SAMRAI_HOST_DEVICE (int i, int j, int k) {
+                  field(i,j,ilast2+1) = field(i,j,ilast2);
+                  field(i,j,ilast2+2) = field(i,j,ilast2-1);
+               });
+            }
+            break;
+            case (BdryLoc::YLO) :
+            {
+               hier::parallel_for_all(boundary_box, [=] SAMRAI_HOST_DEVICE (int i, int j, int k) {
+                  field(i,ifirst1-1,k)  = field(i,ifirst1,k);
+                  field(i,ifirst1-2,k)  = field(i,ifirst1+1,k);
+               });
+            }
+            break;
+            case (BdryLoc::YHI) :
+            {
+               hier::parallel_for_all(boundary_box, [=] SAMRAI_HOST_DEVICE (int i, int j, int k) {
+                  field(i,ilast1+1,k) = field(i,ilast1,k);
+                  field(i,ilast1+2,k) = field(i,ilast1-1,k);
+               });
+            }
+            break;
+            case (BdryLoc::XLO) :
+            {
+               hier::parallel_for_all(boundary_box, [=] SAMRAI_HOST_DEVICE (int i, int j, int k) {
+                  field(ifirst0-1,j,k) = 1.0;
+                  field(ifirst0-2,j,k) = 1.0;
+               });
+            }
+            break;
+            case (BdryLoc::XHI) :
+            {
+               hier::parallel_for_all(boundary_box, [=] SAMRAI_HOST_DEVICE (int i, int j, int k) {
+                  field(ilast0+1,j,k) = field(ilast0,j,k);
+                  field(ilast0+2,j,k) = field(ilast0-1,j,k);
+               });
+            }
+            break;
+            }
          }
-         break;
-         case (BdryLoc::XLO) :
-         {
-            hier::parallel_for_all(boundary_box, 1, [=] SAMRAI_HOST_DEVICE (int k) {
-               field(ifirst0-1,k) = 1.0;
-               if (depth == 2) { field(ifirst0-2,k) = 1.0; }
-            });
-         }
-         break;
-         case (BdryLoc::XHI) :
-         {
-            hier::parallel_for_all(boundary_box, 1, [=] SAMRAI_HOST_DEVICE (int k) {
-               field(ilast0+1,k) = field(ilast0,k);
-               if (depth == 2) { field(ilast0+2,k) = field(ilast0-1,k); }
-            });
-         }
-         break;
-         }
-      }
-   } // for rho_var
+      } // for rho_var
+   }
 
    RANGE_POP;
 }
@@ -318,16 +456,31 @@ Stencil::computeNorm(const std::shared_ptr<hier::VariableContext>& context, hier
    const std::shared_ptr<geom::CartesianPatchGeometry> pgeom(
       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry>(patch.getPatchGeometry()));
 
-   const double dx = pgeom->getDx()[0];
-   const double dy = pgeom->getDx()[1];
+   double dx = pgeom->getDx()[0];
+   double dy = pgeom->getDx()[1];
+   double dz = 0.0;
+   if (d_dim.getValue() == 3) {
+      dz = pgeom->getDx()[2];
+   }
 
    tbox::parallel_reduction_variable_t<tbox::Reduction::Sum, double> norm(0.0);
-   for ( const auto& rho_var : d_rho_variables ) {
-      auto rho = pdat::get_const_view<2, pdat::CellData<double>>(patch.getPatchData(rho_var, context));
-      // CellView<double, 2> rho(SAMRAI_SHARED_PTR_CAST<pdat::CellData<double> >(patch.getPatchData(rho_var, context)));
-      hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int j, int k) {
-         norm += ABS(rho(j,k)) * dx * dy;
-      });
+
+   if (d_dim.getValue() == 2) { 
+      for ( const auto& rho_var : d_rho_variables ) {
+         auto rho = pdat::get_const_view<2, pdat::CellData<double>>(patch.getPatchData(rho_var, context));
+         hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int j, int k) {
+            norm += ABS(rho(j,k)) * dx * dy;
+         });
+      }
+   } else {
+      for ( const auto& rho_var : d_rho_variables ) {
+         auto rho = pdat::get_const_view<3, pdat::CellData<double>>(patch.getPatchData(rho_var, context));
+
+         hier::parallel_for_all(patch.getBox(), [=] SAMRAI_HOST_DEVICE (int i, int j, int k) {
+            norm += ABS(rho(i,j,k)) * dx * dy * dz;
+         });
+
+      }
    }
    return norm.get();
 }
