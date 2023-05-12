@@ -62,9 +62,9 @@ then
     fi
     if [[ ! -d /usr/WS1/samrai/tpl/umpire/v2022.03.1 ]]
     then
-        wget https://github.com/LLNL/umpire/releases/download/v2022.03.1/umpire-v2022.03.1.tar.gz
-        tar xvf umpire-v2022.03.1.tar.gz
-        mv umpire-v2022.03.1 umpire
+        wget https://github.com/LLNL/umpire/releases/download/v2022.03.1/umpire-2022.03.1.tar.gz
+        tar xvf umpire-2022.03.1.tar.gz
+        mv umpire-2022.03.1 umpire
     else
         cp -r /usr/WS1/samrai/tpl/umpire/v2022.03.1 umpire
     fi
