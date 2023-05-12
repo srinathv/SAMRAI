@@ -65,6 +65,9 @@ if (ENABLE_CUDA)
   if (CUDA_FOUND)
     set (HAVE_CUDA True)
   endif ()
+  if (ENABLE_NVTX_REGIONS)
+    set (ENABLE_NVTX_REGIONS True)
+  endif ()
 endif ()
 
 # HDF5
