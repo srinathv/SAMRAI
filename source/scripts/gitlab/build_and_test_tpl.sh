@@ -54,21 +54,17 @@ then
 
     if [[ ! -d /usr/WS1/samrai/tpl/raja/v2022.03.1 ]]
     then
-        git clone git@github.com:LLNL/raja.git
-        cd raja
-        git checkout v2022.03.1
-        git submodule init; git submodule update
-        cd ..
+        wget https://github.com/LLNL/RAJA/releases/download/v2022.03.1/RAJA-v2022.03.1.tar.gz
+        tar xvf RAJA-v2022.03.1.tar.gz
+        mv RAJA-v2022.03.1 raja
     else
         cp -r /usr/WS1/samrai/tpl/raja/v2022.03.1 raja
     fi
     if [[ ! -d /usr/WS1/samrai/tpl/umpire/v2022.03.1 ]]
     then
-        git clone git@github.com:LLNL/umpire.git
-        cd umpire
-        git checkout v2022.03.1
-        git submodule init; git submodule update
-        cd ..
+        wget https://github.com/LLNL/umpire/releases/download/v2022.03.1/umpire-v2022.03.1.tar.gz
+        tar xvf umpire-v2022.03.1.tar.gz
+        mv umpire-v2022.03.1 umpire
     else
         cp -r /usr/WS1/samrai/tpl/umpire/v2022.03.1 umpire
     fi
