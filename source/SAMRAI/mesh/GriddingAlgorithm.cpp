@@ -1402,7 +1402,7 @@ GriddingAlgorithm::regridFinerLevel(
           * Determine boxes containing cells on level with a true tag
           * value.
           */
-         RANGE_PUSH("findbox", 3);
+         RANGE_PUSH("findRefinemetBoxes", 3);
          findRefinementBoxes(
             new_box_level,
             tag_to_new,
@@ -1466,7 +1466,7 @@ GriddingAlgorithm::regridFinerLevel(
        * next finer level if it is no longer needed.
        */
 
-      RANGE_PUSH("nex_box_level", 3);
+      RANGE_PUSH("new_box_level", 3);
       if (new_box_level && new_box_level->isInitialized()) {
 
          /*
