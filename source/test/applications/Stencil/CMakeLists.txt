@@ -26,7 +26,8 @@ set_target_properties(stencil PROPERTIES LINKER_LANGUAGE CXX)
 
 set (test_inputs ${CMAKE_CURRENT_SOURCE_DIR}/test_inputs/box2d_adv.input
                  ${CMAKE_CURRENT_SOURCE_DIR}/test_inputs/box2d_debug.input
-                 ${CMAKE_CURRENT_SOURCE_DIR}/test_inputs/step.2d.input)
+                 ${CMAKE_CURRENT_SOURCE_DIR}/test_inputs/step.2d.input
+                 ${CMAKE_CURRENT_SOURCE_DIR}/test_inputs/box3d_2_50.input)
 file (GLOB perf_inputs ${CMAKE_CURRENT_SOURCE_DIR}/test_inputs/*_50_*input
                        ${CMAKE_CURRENT_SOURCE_DIR}/test_inputs/*_20_*input)
 
