@@ -89,7 +89,7 @@ start:
     - echo ${SAMRAI_ALLOC_NAME}
     - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
     - echo ${JOBID}
-    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
+    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test_tpl.sh
   artifacts:
     when: always
     paths:
@@ -110,7 +110,7 @@ start:
     - echo ${SAMRAI_ALLOC_NAME}
     - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
     - echo ${JOBID}
-    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
+    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test_tpl.sh
   artifacts:
     when: always
     paths:
@@ -120,7 +120,7 @@ start:
 # allow pre-allocation the same way slurm does.
 .build_blueos_3_ppc64le_ib_script:
   script:
-    - lalloc 1 -W 10 source/scripts/gitlab/build_and_test.sh
+    - lalloc 1 -W 10 source/scripts/gitlab/build_and_test_tpl.sh
 
 .build_blueos_3_ppc64le_ib_p9_script:
   extends: .build_blueos_3_ppc64le_ib_script
