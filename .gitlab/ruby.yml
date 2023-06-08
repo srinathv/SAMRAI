@@ -17,54 +17,26 @@
     - shell
     - ruby
   rules:
-    - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $SAMRAI_CI_QUARTZ == "OFF"' #run except if ...
+    - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $SAMRAI_CI_RUBY == "OFF"' #run except if ...
       when: never
     - if: '$CI_JOB_NAME =~ /release_resources/'
       when: always
     - when: on_success
 
 ####
-# Generic ruby build job, extending build script
-.build_on_ruby:
-  stage: r_build
-  extends: [.build_toss_3_x86_64_ib_script, .on_ruby]
-
-.build_on_ruby_advanced:
-  extends: [.build_on_ruby, .advanced_pipeline]
-
-####
 # Generic ruby test job, extending test script
-.test_on_ruby:
-  stage: r_test
-  extends: [.test_toss_3_x86_64_ib_script, .on_ruby]
+.build_and_test_on_ruby:
+  stage: build_and_test
+  extends: [.build_and_test_toss_4_x86_64_ib_script, .on_ruby]
 
-.test_on_ruby_advanced:
-  extends: [.test_on_ruby, .advanced_pipeline]
+.build_and_test_on_ruby_advanced:
+  extends: [.build_and_test_on_ruby, .advanced_pipeline]
 
-####
-# Here are all ruby build jobs
-
-gcc_7_1_0 (build on ruby):
-  variables:
-    COMPILER: "gcc_7_1_0"
-  extends: .build_on_ruby
-
-gcc_8_1_0 (build on ruby):
-  variables:
-    COMPILER: "gcc_8_1_0"
-  extends: .build_on_ruby
 
 ####
-# Here are all ruby tests jobs
-
-gcc_7_1_0 (test on ruby):
+# Build and test jobs for specific compilers, extends generic ruby build and test job
+gcc_10_3_1 (build_and_test on ruby):
   variables:
-    COMPILER: "gcc_7_1_0"
-  extends: .test_on_ruby
-  needs: ["gcc_7_1_0 (build on ruby)"]
+    COMPILER: "gcc_10_3_1"
+  extends: .build_and_test_on_ruby
 
-gcc_8_1_0 (test on ruby):
-  variables:
-    COMPILER: "gcc_8_1_0"
-  extends: .test_on_ruby
-  needs: ["gcc_8_1_0 (build on ruby)"]

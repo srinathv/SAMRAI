@@ -45,6 +45,36 @@ then
     # If building, then delete everything first
     rm -rf ${build_dir} && mkdir -p ${build_dir} && cd ${build_dir}
 
+    raja_config="${project_dir}/host-configs/${sys_type}/${compiler}-raja.cmake"
+    camp_config="${project_dir}/host-configs/${sys_type}/${compiler}-camp.cmake"
+    umpire_config="${project_dir}/host-configs/${sys_type}/${compiler}-umpire.cmake"
+    ln -s ${raja_config}
+    ln -s ${camp_config}
+    ln -s ${umpire_config}
+
+    if [[ ! -d /usr/WS1/samrai/tpl/raja/v2022.03.1 ]]
+    then
+        wget https://github.com/LLNL/RAJA/releases/download/v2022.03.1/RAJA-v2022.03.1.tar.gz
+        tar xvf RAJA-v2022.03.1.tar.gz
+        mv RAJA-v2022.03.1 raja
+    else
+        cp -r /usr/WS1/samrai/tpl/raja/v2022.03.1 raja
+    fi
+    if [[ ! -d /usr/WS1/samrai/tpl/umpire/v2022.03.1 ]]
+    then
+        wget https://github.com/LLNL/umpire/releases/download/v2022.03.1/umpire-2022.03.1.tar.gz
+        tar xvf umpire-2022.03.1.tar.gz
+        mv umpire-2022.03.1 umpire
+    else
+        cp -r /usr/WS1/samrai/tpl/umpire/v2022.03.1 umpire
+    fi
+
+    tpl_script="${project_dir}/source/scripts/gitlab/build_tpl.sh"
+
+    ${tpl_script} ${build_dir}/tpl_libs ${compiler}
+
+    tpl_flags="-Dcamp_DIR=${build_dir}/tpl_libs/camp/lib/cmake/camp -DRAJA_DIR=${build_dir}/tpl_libs/raja/lib/cmake/raja -Dumpire_DIR=${build_dir}/tpl_libs/umpire/lib/cmake/umpire -DENABLE_RAJA=ON -DENABLE_UMPIRE=ON"
+
     conf_suffix="host-configs/${sys_type}/${compiler}.cmake"
 
     generic_conf="${project_dir}/${conf_suffix}"
@@ -59,11 +89,13 @@ then
         echo "ERROR: Host-config file ${samrai_conf} does not exist" && exit 1
     fi
 
+
     cmake \
       -C ${generic_conf} \
       -C ${samrai_conf} \
+      ${tpl_flags} \
       ${project_dir}
-    cmake --build . -j 8
+    cmake --build . -j 20
 fi
 
 # Test
@@ -78,7 +110,19 @@ then
 
     ctest_out=0
 
+    if [[ -f DartConfiguration.tcl ]]
+    then
+      if [[ -d Testing ]]
+      then
+        if [[ ! -f Testing/DartConfiguration.tcl ]]
+        then
+          cp ./DartConfiguration.tcl Testing
+        fi
+      fi
+    fi
+
     ( ctest --output-junit test_junit.xml --test-dir Testing --output-on-failure -T test 2>&1 || ( ctest_out=$?; echo "Error(s) in CTest" ) ) | tee tests_output.txt
+    # ( make test ) | tee tests_output.txt
 
     no_test_str="No tests were found!!!"
     if [[ "$(tail -n 1 tests_output.txt)" == "${no_test_str}" ]]
