@@ -89,7 +89,7 @@ start:
     - echo ${SAMRAI_ALLOC_NAME}
     - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
     - echo ${JOBID}
-    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test_tpl.sh
+    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
   artifacts:
     when: always
     paths:
@@ -116,6 +116,19 @@ start:
     paths:
       - ctest_report_*.xml
 
+.build_toss_4_x86_64_ib_cray_script:
+  script:
+    - echo ${SAMRAI_ALL_TARGETS}
+
+.build_and_test_toss_4_x86_64_ib_cray_script:
+  script:
+# Tests run very slowly on Tioga. Just build the code on Tioga for now.
+    - flux submit --nodes=1 --watch --time=120 source/scripts/gitlab/build_and_test_tpl.sh --build-only
+  artifacts:
+    when: always
+    paths:
+      - ctest_report_*.xml
+
 # Lassen and Butte use a different job scheduler (spectrum lsf) that does not
 # allow pre-allocation the same way slurm does.
 .build_blueos_3_ppc64le_ib_script:
@@ -130,3 +143,5 @@ start:
 include:
   - local: .gitlab/quartz.yml
   - local: .gitlab/ruby.yml
+  - local: .gitlab/tioga.yml
+
