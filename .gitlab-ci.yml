@@ -135,7 +135,7 @@ start:
 # allow pre-allocation the same way slurm does.
 .build_and_test_blueos_3_ppc64le_ib_p9_script:
   script:
-    - lalloc 1 -W 10 source/scripts/gitlab/build_and_test_tpl.sh
+    - lalloc 1 -W 120 source/scripts/gitlab/build_and_test_tpl.sh
   artifacts:
     when: always
     paths:
