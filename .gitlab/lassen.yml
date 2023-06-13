@@ -1,0 +1,41 @@
+#########################################################################
+#
+# This file is part of the SAMRAI distribution.  For full copyright
+# information, see COPYRIGHT and LICENSE.
+#
+# Copyright:     (c) 1997-2023 Lawrence Livermore National Security, LLC
+#
+#########################################################################
+
+####
+# This is the share configuration of jobs for lassen
+
+####
+# In pre-build phase, allocate a node for builds
+.on_lassen:
+  tags:
+    - shell
+    - lassen
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $SAMRAI_CI_LASSEN == "OFF"' #run except if ...
+      when: never
+    - if: '$CI_JOB_NAME =~ /release_resources/'
+      when: always
+    - when: on_success
+
+####
+# Generic lassen test job, extending test script
+.build_and_test_on_lassen:
+  stage: build_and_test
+  extends: [.build_and_test_blueos_3_ppc64le_ib_p9_script, .on_lassen]
+
+.build_and_test_on_lassen_advanced:
+  extends: [.build_and_test_on_lassen, .advanced_pipeline]
+
+
+####
+# Build and test jobs for specific compilers, extends generic lassen build and test job
+clang-cuda (build_and_test on lassen):
+  variables:
+    COMPILER: "clang-cuda"
+  extends: .build_and_test_on_lassen

@@ -39,6 +39,8 @@ before_script:
   - echo $SAMRAI_ALL_TARGETS
   - echo $SAMRAI_CI_RUBY
   - echo $SAMRAI_CI_QUARTZ
+  - echo $SAMRAI_CI_LASSEN
+  - echo $SAMRAI_CI_TIOGA
   - echo $SAMRAI_ALLOC_NAME
 
 after_script:
@@ -82,14 +84,14 @@ start:
     - echo ${SAMRAI_ALL_TARGETS}
 #    - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
 #    - echo ${JOBID}
-#    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
+#    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test_tpl.sh
 
 .build_and_test_toss_3_x86_64_ib_script:
   script:
     - echo ${SAMRAI_ALLOC_NAME}
     - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
     - echo ${JOBID}
-    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
+    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test_tpl.sh
   artifacts:
     when: always
     paths:
@@ -103,7 +105,7 @@ start:
     - echo ${SAMRAI_ALL_TARGETS}
 #    - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
 #    - echo ${JOBID}
-#    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test.sh
+#    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test_tpl.sh
 
 .build_and_test_toss_4_x86_64_ib_script:
   script:
@@ -123,25 +125,27 @@ start:
 .build_and_test_toss_4_x86_64_ib_cray_script:
   script:
 # Tests run very slowly on Tioga. Just build the code on Tioga for now.
-    - flux submit --nodes=1 --watch --time=120 source/scripts/gitlab/build_and_test_tpl.sh --build-only
+    - flux --help
+    - flux submit --nodes=1 --watch --time=120 --begin-time=10s source/scripts/gitlab/build_and_test_tpl.sh --build-only
   artifacts:
     when: always
     paths:
       - ctest_report_*.xml
 
-# Lassen and Butte use a different job scheduler (spectrum lsf) that does not
+# Lassen uses a different job scheduler (spectrum lsf) that does not
 # allow pre-allocation the same way slurm does.
-.build_blueos_3_ppc64le_ib_script:
+.build_and_test_blueos_3_ppc64le_ib_p9_script:
   script:
-    - lalloc 1 -W 10 source/scripts/gitlab/build_and_test_tpl.sh
-
-.build_blueos_3_ppc64le_ib_p9_script:
-  extends: .build_blueos_3_ppc64le_ib_script
-
+    - lalloc 1 -W 120 source/scripts/gitlab/build_and_test_tpl.sh
+  artifacts:
+    when: always
+    paths:
+      - ctest_report_*.xml
 
 # This is where jobs are included
 include:
   - local: .gitlab/quartz.yml
   - local: .gitlab/ruby.yml
   - local: .gitlab/tioga.yml
+  - local: .gitlab/lassen.yml
 
