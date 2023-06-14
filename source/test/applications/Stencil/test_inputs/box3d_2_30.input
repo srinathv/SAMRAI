@@ -25,7 +25,7 @@ Main {
    // frequency at which to dump restart output--zero to turn off
    restart_interval     = 0
 
-   norm_baseline = 5.073529411765e-02
+   norm_baseline = 8.346774193554e-02
 }
 
 // Refer to tbox::TimerManager for input
@@ -39,7 +39,7 @@ TimerManager{
 
 // Refer to geom::CartesianGridGeometry and its base classes for input
 CartesianGeometry {
-   domain_boxes = [ (0,0,0) , (50,50,50) ]
+   domain_boxes = [ (0,0,0) , (30,30,30) ]
    x_lo         = 0.e0, 0.e0, 0.e0 // lower end of computational domain.
    x_up         = 1e0, 1e0, 1e0   // upper end of computational domain.
 }

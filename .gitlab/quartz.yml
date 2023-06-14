@@ -24,47 +24,19 @@
     - when: on_success
 
 ####
-# Generic quartz build job, extending build script
-.build_on_quartz:
-  stage: q_build
-  extends: [.build_toss_3_x86_64_ib_script, .on_quartz]
+# Generic quartz build and test job, extending test script
+.build_and_test_on_quartz:
+  stage: build_and_test
+  extends: [.build_and_test_toss_4_x86_64_ib_script, .on_quartz]
 
-.build_on_quartz_advanced:
-  extends: [.build_on_quartz, .advanced_pipeline]
+.build_and_test_on_quartz_advanced:
+  extends: [.build_and_test_on_quartz, .advanced_pipeline]
 
-####
-# Generic quartz test job, extending test script
-.test_on_quartz:
-  stage: q_test
-  extends: [.test_toss_3_x86_64_ib_script, .on_quartz]
-
-.test_on_quartz_advanced:
-  extends: [.test_on_quartz, .advanced_pipeline]
 
 ####
-# Here are all quartz build jobs
-
-gcc_7_1_0 (build on quartz):
+# Build and test jobs for specific compilers, extends generic quartz build and test job
+gcc_10_3_1 (build and test on quartz):
   variables:
-    COMPILER: "gcc_7_1_0"
-  extends: .build_on_quartz
+    COMPILER: "gcc_10_3_1"
+  extends: .build_and_test_on_quartz
 
-gcc_8_1_0 (build on quartz):
-  variables:
-    COMPILER: "gcc_8_1_0"
-  extends: .build_on_quartz
-
-####
-# Here are all quartz tests jobs
-
-gcc_7_1_0 (test on quartz):
-  variables:
-    COMPILER: "gcc_7_1_0"
-  extends: .test_on_quartz
-  needs: ["gcc_7_1_0 (build on quartz)"]
-
-gcc_8_1_0 (test on quartz):
-  variables:
-    COMPILER: "gcc_8_1_0"
-  extends: .test_on_quartz
-  needs: ["gcc_8_1_0 (build on quartz)"]
