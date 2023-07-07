@@ -68,21 +68,23 @@ AllocatorDatabase::initialize()
   umpire::ResourceManager& rm = umpire::ResourceManager::getInstance();
 
   if (!rm.isAllocator("samrai::data_allocator")) {
-#if defined(HAVE_CUDA) || defined(HAVE_HIP)
+#if defined(HAVE_CUDA)
     // Internal pool for allocations
-#if 1
     auto allocator = rm.makeAllocator<umpire::strategy::AllocationAdvisor>(
         "internal::samrai::um_allocation_advisor",
         rm.getAllocator(umpire::resource::Unified),
         // Set preferred location to GPU
         "PREFERRED_LOCATION");
-#endif
+
     //auto allocator = rm.getAllocator(umpire::resource::Pinned);
-#else
+#elif defined(HAVE_HIP)
+    auto allocator = rm.getAllocator(umpire::resource::Pinned);
+#else 
     auto allocator = rm.getAllocator(umpire::resource::Host);
 #endif
 
     rm.makeAllocator<umpire::strategy::QuickPool>("samrai::data_allocator", allocator);
+
   }
 
   if (!rm.isAllocator("samrai::tag_allocator")) {
@@ -174,6 +176,7 @@ AllocatorDatabase::getDefaultAllocator()
 {
 #if defined(HAVE_UMPIRE)
   umpire::ResourceManager& rm = umpire::ResourceManager::getInstance();
+
   return rm.getAllocator("samrai::data_allocator");
 #else
   return ResourceAllocator();
