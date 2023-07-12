@@ -114,16 +114,6 @@ public:
       size_t record_number,
       std::ostream& os) const;
 
-private:
-   // Unimplemented copy constructor.
-   CommGraphWriter(
-      const CommGraphWriter& other);
-
-   // Unimplemented assignment operator.
-   CommGraphWriter&
-   operator = (
-      const CommGraphWriter& rhs);
-
    struct Edge {
       Edge():d_value(0.0),
          d_dir(TO),
@@ -134,6 +124,17 @@ private:
       int d_other_node;
       std::string d_label;
    };
+
+
+private:
+   // Unimplemented copy constructor.
+   CommGraphWriter(
+      const CommGraphWriter& other);
+
+   // Unimplemented assignment operator.
+   CommGraphWriter&
+   operator = (
+      const CommGraphWriter& rhs);
 
    struct NodeValue {
       NodeValue():d_value(0.0) {
