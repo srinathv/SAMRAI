@@ -89,13 +89,13 @@ then
         echo "ERROR: Host-config file ${samrai_conf} does not exist" && exit 1
     fi
 
-
-    cmake \
+    cmake_cmd="/usr/tce/packages/cmake/cmake-3.23.1/bin/cmake"
+    ${cmake_cmd} \
       -C ${generic_conf} \
       -C ${samrai_conf} \
       ${tpl_flags} \
       ${project_dir}
-    cmake --build . -j 20
+    ${cmake_cmd} --build . -j 20
 fi
 
 # Test
