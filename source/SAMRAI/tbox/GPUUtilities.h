@@ -56,6 +56,10 @@ parallel_synchronize()
    if (s_using_gpu) {
       RAJA::synchronize<RAJA::cuda_synchronize>();
    }
+#elif defined(HAVE_HIP) && defined(HAVE_RAJA)
+ if (s_using_gpu) {
+      RAJA::synchronize<RAJA::hip_synchronize>();
+   }
 #endif       
 }
 

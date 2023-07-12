@@ -133,6 +133,9 @@
 /* Compiling with NVCC for CUDA */
 #cmakedefine HAVE_CUDA
 
+/* Compiling with HIP */
+#cmakedefine HAVE_HIP
+
 /* Add NVTX regions */
 #cmakedefine ENABLE_NVTX_REGIONS
 
