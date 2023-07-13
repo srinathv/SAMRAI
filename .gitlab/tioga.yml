@@ -35,7 +35,7 @@
 
 ####
 # Build and test jobs for specific compilers, extends generic tioga build and test job
-cce_15_0_1_rocm_4_5_3 (build_only on tioga):
+amdclang_rocm_5_5_0 (build_only on tioga):
   variables:
-    COMPILER: "cce-15.0.1-rocm-4.5.3"
+    COMPILER: "amdclang-rocm-5.5.0"
   extends: .build_and_test_on_tioga

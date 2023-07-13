@@ -52,21 +52,21 @@ then
     ln -s ${camp_config}
     ln -s ${umpire_config}
 
-    if [[ ! -d /usr/WS1/samrai/tpl/raja/v2022.03.1 ]]
+    if [[ ! -d /usr/WS1/samrai/tpl/raja/v2023.06.0 ]]
     then
-        wget https://github.com/LLNL/RAJA/releases/download/v2022.03.1/RAJA-v2022.03.1.tar.gz
-        tar xvf RAJA-v2022.03.1.tar.gz
-        mv RAJA-v2022.03.1 raja
+        wget https://github.com/LLNL/RAJA/releases/download/v2023.06.0/RAJA-v2023.06.0.tar.gz
+        tar xvf RAJA-v2023.06.0.tar.gz
+        mv RAJA-v2023.06.0 raja
     else
-        cp -r /usr/WS1/samrai/tpl/raja/v2022.03.1 raja
+        cp -r /usr/WS1/samrai/tpl/raja/v2023.06.0 raja
     fi
-    if [[ ! -d /usr/WS1/samrai/tpl/umpire/v2022.03.1 ]]
+    if [[ ! -d /usr/WS1/samrai/tpl/umpire/v2023.06.0 ]]
     then
-        wget https://github.com/LLNL/umpire/releases/download/v2022.03.1/umpire-2022.03.1.tar.gz
-        tar xvf umpire-2022.03.1.tar.gz
-        mv umpire-2022.03.1 umpire
+        wget https://github.com/LLNL/umpire/releases/download/v2023.06.0/umpire-2023.06.0.tar.gz
+        tar xvf umpire-2023.06.0.tar.gz
+        mv umpire-2023.06.0 umpire
     else
-        cp -r /usr/WS1/samrai/tpl/umpire/v2022.03.1 umpire
+        cp -r /usr/WS1/samrai/tpl/umpire/v2023.06.0 umpire
     fi
 
     tpl_script="${project_dir}/source/scripts/gitlab/build_tpl.sh"
@@ -89,13 +89,13 @@ then
         echo "ERROR: Host-config file ${samrai_conf} does not exist" && exit 1
     fi
 
-
-    cmake \
+    cmake_cmd="/usr/tce/packages/cmake/cmake-3.23.1/bin/cmake"
+    ${cmake_cmd} \
       -C ${generic_conf} \
       -C ${samrai_conf} \
       ${tpl_flags} \
       ${project_dir}
-    cmake --build . -j 20
+    ${cmake_cmd} --build . -j 20
 fi
 
 # Test

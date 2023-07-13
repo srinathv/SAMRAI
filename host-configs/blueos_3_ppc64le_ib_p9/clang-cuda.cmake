@@ -24,4 +24,8 @@ set(CMAKE_C_FLAGS "--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 -O2 -mtune=po
 set(CMAKE_CXX_FLAGS "--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 -std=c++14 -O2 -mtune=power9  -mpower9-vector -fPIC -Wl,-ldl,-lrt,-lpthread -L/usr/tce/packages/gcc/gcc-8.3.1/rh/lib/gcc/ppc64le-redhat-linux/8" CACHE STRING "")
 set(BLT_CXX_STD "c++14" CACHE STRING "")
 set(ENABLE_TESTS On CACHE BOOL "") 
-set(ENABLE_SAMRAI_TESTS On CACHE BOOL "") 
+set(ENABLE_SAMRAI_TESTS On CACHE BOOL "")
+set(CUDA_ARCHITECTURES "70" CACHE STRING "")
+set(CMAKE_CUDA_ARCHITECTURES "70" CACHE STRING "")
+set(BLT_CLANG_CUDA_ARCH "sm_70" CACHE STRING "")
+

@@ -51,6 +51,7 @@ CAMP_SRC=$BASE_DIR/raja/tpl/camp
 RAJA_CONFIG=$BASE_DIR/$2-raja.cmake
 UMPIRE_CONFIG=$BASE_DIR/$2-umpire.cmake
 CAMP_CONFIG=$BASE_DIR/$2-camp.cmake
+cmake_cmd="/usr/tce/packages/cmake/cmake-3.23.1/bin/cmake"
 
 if [ ! -f "$RAJA_CONFIG" ]; then
    >&2 echo "build_tpl.sh:  Unable to find file $RAJA_CONFIG"
@@ -69,7 +70,7 @@ if [ ! -d "$BASE_DIR/raja-build" ]; then
   mkdir $BASE_DIR/raja-build
 fi
 cd $BASE_DIR/raja-build
-cmake $RAJA_SRC -C $RAJA_CONFIG -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/raja
+${cmake_cmd} $RAJA_SRC -C $RAJA_CONFIG -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/raja
 make -j
 make install
 cd $BASE_DIR
@@ -78,7 +79,7 @@ if [ ! -d "$BASE_DIR/umpire-build" ]; then
   mkdir $BASE_DIR/umpire-build
 fi
 cd $BASE_DIR/umpire-build
-cmake $UMPIRE_SRC -C $UMPIRE_CONFIG -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/umpire
+${cmake_cmd} $UMPIRE_SRC -C $UMPIRE_CONFIG -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/umpire
 make -j
 make install
 cd $BASE_DIR
@@ -87,7 +88,7 @@ if [ ! -d "$BASE_DIR/camp-build" ]; then
   mkdir $BASE_DIR/camp-build
 fi
 cd $BASE_DIR/camp-build
-cmake $CAMP_SRC -C $CAMP_CONFIG -DBLT_SOURCE_DIR=$RAJA_SRC/blt -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/camp
+${cmake_cmd} $CAMP_SRC -C $CAMP_CONFIG -DBLT_SOURCE_DIR=$RAJA_SRC/blt -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/camp
 make -j
 make install
 cd $BASE_DIR
