@@ -80,6 +80,15 @@ int main(
   tbox::SAMRAIManager::initialize();
 
   /*
+   * Set tag allocator to use pinned memory.
+   */
+#if defined(HAVE_CUDA) || defined(HAVE_HIP)
+  umpire::ResourceManager& rm = umpire::ResourceManager::getInstance();
+  rm.makeAllocator<umpire::strategy::QuickPool>("samrai::tag_allocator",
+    rm.getAllocator(umpire::resource::Pinned));
+#endif
+
+  /*
    * Initialize SAMRAI, enable logging, and process command line.
    */
   tbox::SAMRAIManager::startup();
