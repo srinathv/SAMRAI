@@ -99,7 +99,7 @@ ArrayData<TYPE>::ArrayData(
 #if defined(HAVE_UMPIRE)
                           ,
                           d_allocator(umpire::ResourceManager::getInstance().getAllocator("samrai::data_allocator")),
-                          d_array(d_allocator.allocate(d_depth * d_offset * sizeof(TYPE))),
+                          d_array(d_allocator.allocate(d_depth * d_offset)),
 #else
                           ,
                           d_array(d_depth * d_offset),
@@ -132,7 +132,7 @@ ArrayData<TYPE>::ArrayData(
    d_box(box),
 #if defined(HAVE_UMPIRE)
    d_allocator(allocator),
-   d_array(d_allocator.allocate(d_depth * d_offset * sizeof(TYPE))),
+   d_array(d_allocator.allocate(d_depth * d_offset)),
 #else
    d_array(d_depth * d_offset),
 #endif
@@ -159,7 +159,7 @@ template <class TYPE>
 ArrayData<TYPE>::~ArrayData()
 {
 #if defined(HAVE_UMPIRE)
-   d_allocator.deallocate(d_array, d_depth * d_offset * sizeof(TYPE));
+   d_allocator.deallocate(d_array, d_depth * d_offset);
 #endif
 }
 
