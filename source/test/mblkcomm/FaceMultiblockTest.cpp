@@ -134,8 +134,8 @@ void FaceMultiblockTest::initializeDataOnPatch(
          face_data->fillAll((FACE_MBLK_KERNEL_TYPE)block_id.getBlockValue());
 
       }
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
    }
 }

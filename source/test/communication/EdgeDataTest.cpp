@@ -796,8 +796,8 @@ void EdgeDataTest::setPhysicalBoundaryConditions(
       TBOX_ASSERT(edge_data);
 
       hier::Box patch_interior = edge_data->getBox();
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       checkPatchInteriorData(edge_data, patch_interior, pgeom);
 

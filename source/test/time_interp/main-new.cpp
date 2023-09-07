@@ -143,8 +143,8 @@ int main(
       pdat::CellDoubleLinearTimeInterpolateOp cell_op;
       cell_op.timeInterpolate(cell_dst, ghost_box, cell_ovlp, cell_old, cell_new);
 
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
       for (int dd = 0; dd < data_depth; ++dd) {
@@ -210,8 +210,8 @@ int main(
       pdat::NodeDoubleLinearTimeInterpolateOp node_op;
 
       node_op.timeInterpolate(node_dst, ghost_box, node_ovlp, node_old, node_new);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
       hier::BoxContainer ovlp_boxes;
@@ -289,8 +289,8 @@ int main(
       pdat::FaceDoubleLinearTimeInterpolateOp face_op;
       face_op.timeInterpolate(face_dst, ghost_box, face_ovlp, face_old, face_new);
 
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       for (unsigned short axis = 0; axis < dim.getValue(); ++axis) {
          hier::BoxContainer ovlp_boxes;
@@ -339,8 +339,8 @@ int main(
 
       oface_op.timeInterpolate(oface_dst, box, face_ovlp, oface_old, oface_new);
 
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       for (unsigned short axis = 0; axis < dim.getValue(); ++axis) {
          for (int face = 0; face < 2; ++face) {
@@ -422,8 +422,8 @@ int main(
 
       side_op.timeInterpolate(side_dst, ghost_box, side_ovlp, side_old, side_new);
 
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       for (unsigned short axis = 0; axis < dim.getValue(); ++axis) {
          hier::BoxContainer ovlp_boxes;
@@ -471,8 +471,8 @@ int main(
       pdat::OutersideDoubleLinearTimeInterpolateOp oside_op;
 
       oside_op.timeInterpolate(oside_dst, box, side_ovlp, oside_old, oside_new);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
       for (unsigned short axis = 0; axis < dim.getValue(); ++axis) {
@@ -554,8 +554,8 @@ int main(
 
       edge_op.timeInterpolate(edge_dst, ghost_box, edge_ovlp, edge_old, edge_new);
 
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       for (unsigned short axis = 0; axis < dim.getValue(); ++axis) {
          hier::BoxContainer ovlp_boxes;

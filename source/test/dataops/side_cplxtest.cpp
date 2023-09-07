@@ -273,8 +273,8 @@ int main(
                   patch->getPatchData(swgt_id)));
             TBOX_ASSERT(data);
             data->fillAll(side_vol);
-#if defined(HAVE_CUDA)
-            cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+            tbox::parallel_synchronize();
 #endif
             pdat::SideIndex fi(dim);
 
@@ -287,8 +287,8 @@ int main(
 
                if (ln == 0) {
                   data->fillAll(0.0, (coarse_fine * patch->getBox()));
-#if defined(HAVE_CUDA)
-                  cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+                  tbox::parallel_synchronize();
 #endif
 
                   if (patch->getLocalId() == 0) {
@@ -390,8 +390,8 @@ int main(
 
                if (ln == 0) {
                   data->fillAll(0.0, (coarse_fine * patch->getBox()));
-#if defined(HAVE_CUDA)
-                  cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+                  tbox::parallel_synchronize();
 #endif
 
                   if (patch->getLocalId() == 0) {
@@ -624,8 +624,8 @@ int main(
       // Test #1b: math::HierarchySideDataOpsComplex::sumControlVolumes()
       // Expected: norm = 1.0
       double norm = side_ops->sumControlVolumes(svindx[0], swgt_id);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       {
          double compare;
@@ -666,8 +666,8 @@ int main(
       // Expected: v0 = (2.0,1.5)
       dcomplex val0 = dcomplex(2.0, 1.5);
       side_ops->setToScalar(svindx[0], val0);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!complexDataSameAsValue(svindx[0], val0, hierarchy)) {
          ++num_failures;
@@ -681,8 +681,8 @@ int main(
       // Expected: v1 = (4.0, 3.0)
       dcomplex val1(4.0, 3.0);
       side_ops->setToScalar(svindx[1], dcomplex(4.0, 3.0));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!complexDataSameAsValue(svindx[1], val1, hierarchy)) {
          ++num_failures;
@@ -695,8 +695,8 @@ int main(
       // Test #4: math::HierarchySideDataOpsComplex::copyData()
       // Expected: v2 = v1 = (4.0, 3.0)
       side_ops->copyData(svindx[2], svindx[1]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!complexDataSameAsValue(svindx[2], val1, hierarchy)) {
          ++num_failures;
@@ -709,8 +709,8 @@ int main(
       // Test #5: math::HierarchySideDataOpsComplex::swapData()
       // Expected:  v0 = (4.0, 3.0), v1 = (2.0,1.5)
       side_ops->swapData(svindx[0], svindx[1]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!complexDataSameAsValue(svindx[0], val1, hierarchy)) {
          ++num_failures;
@@ -730,8 +730,8 @@ int main(
       // Test #6: math::HierarchySideDataOpsComplex::scale()
       // Expected:  v2 = 0.25 * v2 = (1.0,0.75)
       side_ops->scale(svindx[2], 0.25, svindx[2]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       dcomplex val_scale(1.0, 0.75);
       if (!complexDataSameAsValue(svindx[2], val_scale, hierarchy)) {
@@ -745,8 +745,8 @@ int main(
       // Test #7: math::HierarchySideDataOpsComplex::add()
       // Expected:  v3 = v0 + v1 = (6.0, 4.5)
       side_ops->add(svindx[3], svindx[0], svindx[1]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       dcomplex val_add(6.0, 4.5);
       if (!complexDataSameAsValue(svindx[3], val_add, hierarchy)) {
@@ -759,15 +759,15 @@ int main(
 
       // Reset v0: v0 = (0.0,4.5)
       side_ops->setToScalar(svindx[0], dcomplex(0.0, 4.5));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
       // Test #8: math::HierarchySideDataOpsComplex::subtract()
       // Expected:  v1 = v3 - v0 = (6.0,0.0)
       side_ops->subtract(svindx[1], svindx[3], svindx[0]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       dcomplex val_sub(6.0, 0.0);
       if (!complexDataSameAsValue(svindx[1], val_sub, hierarchy)) {
@@ -781,8 +781,8 @@ int main(
       // Test #9a: math::HierarchySideDataOpsComplex::addScalar()
       // Expected:  v1 = v1 + (0.0,-4.0) = (6.0,-4.0)
       side_ops->addScalar(svindx[1], svindx[1], dcomplex(0.0, -4.0));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       dcomplex val_addScalar(6.0, -4.0);
       if (!complexDataSameAsValue(svindx[1], val_addScalar, hierarchy)) {
@@ -796,8 +796,8 @@ int main(
       // Test #9b: math::HierarchySideDataOpsComplex::addScalar()
       // Expected:  v2 = v2 + (0.0,0.25) = (1.0,1.0)
       side_ops->addScalar(svindx[2], svindx[2], dcomplex(0.0, 0.25));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       val_addScalar = dcomplex(1.0, 1.0);
       if (!complexDataSameAsValue(svindx[2], val_addScalar, hierarchy)) {
@@ -811,8 +811,8 @@ int main(
       // Test #9c: math::HierarchySideDataOpsComplex::addScalar()
       // Expected:  v2 = v2 + (3.0,-4.0) = (4.0,-3.0)
       side_ops->addScalar(svindx[2], svindx[2], dcomplex(3.0, -4.0));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       val_addScalar = dcomplex(4.0, -3.0);
       if (!complexDataSameAsValue(svindx[2], val_addScalar, hierarchy)) {
@@ -825,15 +825,15 @@ int main(
 
       // Rest v3:  v3 = (0.5, 0.0)
       side_ops->setToScalar(svindx[3], dcomplex(0.5, 0.0));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
       // Test #10: math::HierarchySideDataOpsComplex::multiply()
       // Expected:  v1 = v3 * v1 = (3.0,-2.0)
       side_ops->multiply(svindx[1], svindx[3], svindx[1]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       dcomplex val_mult(3.0, -2.0);
       if (!complexDataSameAsValue(svindx[1], val_mult, hierarchy)) {
@@ -847,8 +847,8 @@ int main(
       // Test #11: math::HierarchySideDataOpsComplex::divide()
       // Expected:  v0 = v2 / v1 = (1.3846153846154,-0.076923076923077)
       side_ops->divide(svindx[0], svindx[2], svindx[1]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       dcomplex val_div(1.3846153846154, -0.076923076923077);
       if (!complexDataSameAsValue(svindx[0], val_div, hierarchy)) {
@@ -862,8 +862,8 @@ int main(
       // Test #12: math::HierarchySideDataOpsComplex::reciprocal()
       // Expected:  v1 = 1 / v1 = (0.23076923076923, 0.15384615384615)
       side_ops->reciprocal(svindx[1], svindx[1]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       dcomplex val_rec(0.23076923076923, 0.15384615384615);
       if (!complexDataSameAsValue(svindx[1], val_rec, hierarchy)) {
@@ -984,8 +984,8 @@ int main(
       // Test #14: math::HierarchySideDataOpsComplex::L1Norm() - w/o control weight
       // Expected:  bogus_l1_norm = 2217.003379
       double bogus_l1_norm = side_ops->L1Norm(svindx[2]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       {
          double compare;
@@ -1007,8 +1007,8 @@ int main(
       // Test #15: math::HierarchySideDataOpsComplex::L1Norm() - w/control weight
       // Expected:  correct_l1_norm = 5.0
       double correct_l1_norm = side_ops->L1Norm(svindx[2], swgt_id);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       {
          double compare;
@@ -1030,8 +1030,8 @@ int main(
       // Test #16: math::HierarchySideDataOpsComplex::L2Norm()
       // Expected:  l2_norm = 5.0
       double l2_norm = side_ops->L2Norm(svindx[2], swgt_id);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       {
          double compare;
@@ -1052,8 +1052,8 @@ int main(
       // Test #17: math::HierarchySideDataOpsComplex::maxNorm() - w/o control weight
       // Expected:  bogus_max_norm = 1000.19998
       double bogus_max_norm = side_ops->maxNorm(svindx[2]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(bogus_max_norm, 1000.19998)) {
          ++num_failures;
@@ -1067,8 +1067,8 @@ int main(
       // Test #18: math::HierarchySideDataOpsComplex::maxNorm() - w/control weight
       // Expected:  max_norm = 5.0
       double max_norm = side_ops->maxNorm(svindx[2], swgt_id);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(max_norm, 5.0)) {
          ++num_failures;
@@ -1083,16 +1083,16 @@ int main(
       side_ops->setToScalar(svindx[0], dcomplex(1.0, -3.0));
       side_ops->setToScalar(svindx[1], dcomplex(2.5, 3.0));
       side_ops->setToScalar(svindx[2], dcomplex(7.0, 0.0));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
       // Test #19: math::HierarchySideDataOpsComplex::linearSum()
       // Expected:  v3 = (2.0,5.0)
       side_ops->linearSum(svindx[3],
          dcomplex(2.0, 0.0), svindx[1], dcomplex(0.0, -1.0), svindx[0]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       dcomplex val_linearSum(2.0, 5.0);
       if (!complexDataSameAsValue(svindx[3], val_linearSum, hierarchy)) {
@@ -1106,8 +1106,8 @@ int main(
       // Test #20: math::HierarchySideDataOpsComplex::axmy()
       // Expected:  v3 = (6.5,12.0)
       side_ops->axmy(svindx[3], 3.0, svindx[1], svindx[0]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       dcomplex val_axmy(6.5, 12.0);
       if (!complexDataSameAsValue(svindx[3], val_axmy, hierarchy)) {
@@ -1121,8 +1121,8 @@ int main(
       // Test #21a: math::HierarchySideDataOpsComplex::dot() - (ind2) * (ind1)
       // Expected:  cdot = (17.5,-21.0)
       dcomplex cdot = side_ops->dot(svindx[2], svindx[1], swgt_id);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double ctl_wt;
       if (dim.getValue() == 2) {
@@ -1142,8 +1142,8 @@ int main(
       // Test #21b: math::HierarchySideDataOpsComplex::dot() - (ind1) * (ind2)
       // Expected:  cdot = (17.5,-1.0)
       dcomplex cdot2 = side_ops->dot(svindx[1], svindx[2], swgt_id);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       dcomplex ans_1_dot_2(17.5 * ctl_wt, 21.0 * ctl_wt);
       if (!tbox::MathUtilities<dcomplex>::equalEps(cdot2, ans_1_dot_2)) {
@@ -1157,12 +1157,12 @@ int main(
       // Test #22: math::HierarchySideDataOpsComplex::abs()
       // Expected:  abs(v0) = 5.0
       side_ops->setToScalar(svindx[0], dcomplex(4.0, -3.0));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       side_ops->abs(swgt_id, svindx[0]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!doubleDataSameAsValue(swgt_id, 5.0, hierarchy)) {
          ++num_failures;

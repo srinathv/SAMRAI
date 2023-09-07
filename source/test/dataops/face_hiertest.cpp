@@ -266,8 +266,8 @@ int main(
                   patch->getPatchData(fwgt_id)));
             TBOX_ASSERT(data);
             data->fillAll(face_vol);
-#if defined(HAVE_CUDA)
-            cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+            tbox::parallel_synchronize();
 #endif
             pdat::FaceIndex fi(dim);
 
@@ -280,8 +280,8 @@ int main(
 
                if (ln == 0) {
                   data->fillAll(0.0, (coarse_fine * patch->getBox()));
-#if defined(HAVE_CUDA)
-                  cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+                  tbox::parallel_synchronize();
 #endif
 
                   if (patch->getLocalId() == 0) {
@@ -397,8 +397,8 @@ int main(
 
                if (ln == 0) {
                   data->fillAll(0.0, (coarse_fine * patch->getBox()));
-#if defined(HAVE_CUDA)
-                  cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+                  tbox::parallel_synchronize();
 #endif
 
                   if (patch->getLocalId() == 0) {
@@ -636,8 +636,8 @@ int main(
       // Test #1b: math::HierarchyFaceDataOpsReal::sumControlVolumes()
       // Expected: norm = 1.0
       double norm = face_ops->sumControlVolumes(fvindx[0], fwgt_id);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       {
          double compare;
@@ -678,8 +678,8 @@ int main(
       // Expected: v0 = 2.0
       double val0 = double(2.0);
       face_ops->setToScalar(fvindx[0], val0);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!doubleDataSameAsValue(fvindx[0], val0, hierarchy)) {
          ++num_failures;
@@ -692,8 +692,8 @@ int main(
       // Test #3b: math::HierarchyFaceDataOpsReal::setToScalar()
       // Expected: v1 = (4.0)
       face_ops->setToScalar(fvindx[1], 4.0);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val1 = double(4.0);
       if (!doubleDataSameAsValue(fvindx[1], val1, hierarchy)) {
@@ -707,8 +707,8 @@ int main(
       // Test #4: math::HierarchyFaceDataOpsReal::copyData()
       // Expected: v2 = v1 = (4.0)
       face_ops->copyData(fvindx[2], fvindx[1]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!doubleDataSameAsValue(fvindx[2], val1, hierarchy)) {
          ++num_failures;
@@ -721,8 +721,8 @@ int main(
       // Test #5: math::HierarchyFaceDataOpsReal::swapData()
       // Expected: v0 = (4.0), v1 = (2.0)
       face_ops->swapData(fvindx[0], fvindx[1]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!doubleDataSameAsValue(fvindx[0], val1, hierarchy)) {
          ++num_failures;
@@ -742,8 +742,8 @@ int main(
       // Test #6: math::HierarchyFaceDataOpsReal::scale()
       // Expected: v2 = 0.25 * v2 = (1.0)
       face_ops->scale(fvindx[2], 0.25, fvindx[2]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_scale = 1.0;
       if (!doubleDataSameAsValue(fvindx[2], val_scale, hierarchy)) {
@@ -757,8 +757,8 @@ int main(
       // Test #7: math::HierarchyFaceDataOpsReal::add()
       // Expected: v3 = v0 + v1 = (6.0)
       face_ops->add(fvindx[3], fvindx[0], fvindx[1]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_add = 6.0;
       if (!doubleDataSameAsValue(fvindx[3], val_add, hierarchy)) {
@@ -771,15 +771,15 @@ int main(
 
       // Reset v0: v0 = (0.0)
       face_ops->setToScalar(fvindx[0], 0.0);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
       // Test #8: math::HierarchyFaceDataOpsReal::subtract()
       // Expected: v1 = v3 - v0 = (6.0)
       face_ops->subtract(fvindx[1], fvindx[3], fvindx[0]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_sub = 6.0;
       if (!doubleDataSameAsValue(fvindx[1], val_sub, hierarchy)) {
@@ -793,8 +793,8 @@ int main(
       // Test #9a: math::HierarchyFaceDataOpsReal::addScalar()
       // Expected: v1 = v1 + (0.0) = (6.0)
       face_ops->addScalar(fvindx[1], fvindx[1], 0.0);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_addScalar = 6.0;
       if (!doubleDataSameAsValue(fvindx[1], val_addScalar, hierarchy)) {
@@ -808,8 +808,8 @@ int main(
       // Test #9b: math::HierarchyFaceDataOpsReal::addScalar()
       // Expected: v2 = v2 + (0.0) = (1.0)
       face_ops->addScalar(fvindx[2], fvindx[2], 0.0);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       val_addScalar = 1.0;
       if (!doubleDataSameAsValue(fvindx[2], val_addScalar, hierarchy)) {
@@ -823,8 +823,8 @@ int main(
       // Test #9c: math::HierarchyFaceDataOpsReal::addScalar()
       // Expected: v2 = v2 + (3.0) = (4.0)
       face_ops->addScalar(fvindx[2], fvindx[2], 3.0);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       val_addScalar = 4.0;
       if (!doubleDataSameAsValue(fvindx[2], val_addScalar, hierarchy)) {
@@ -837,15 +837,15 @@ int main(
 
       // Reset v3: v3 = (0.5)
       face_ops->setToScalar(fvindx[3], 0.5);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
       // Test #10: math::HierarchyFaceDataOpsReal::multiply()
       // Expected:  v1 = v3 * v1 = (3.0)
       face_ops->multiply(fvindx[1], fvindx[3], fvindx[1]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_mult = 3.0;
       if (!doubleDataSameAsValue(fvindx[1], val_mult, hierarchy)) {
@@ -859,8 +859,8 @@ int main(
       // Test #11: math::HierarchyFaceDataOpsReal::divide()
       // Expected:  v0 = v2 / v1 = 1.3333333333
       face_ops->divide(fvindx[0], fvindx[2], fvindx[1]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_div = 1.3333333333333;
       if (!doubleDataSameAsValue(fvindx[0], val_div, hierarchy)) {
@@ -874,8 +874,8 @@ int main(
       // Test #12: math::HierarchyFaceDataOpsReal::reciprocal()
       // Expected:  v1 = 1 / v1 = (0.333333333)
       face_ops->reciprocal(fvindx[1], fvindx[1]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_rec = 0.3333333333333;
       if (!doubleDataSameAsValue(fvindx[1], val_rec, hierarchy)) {
@@ -889,8 +889,8 @@ int main(
       // Test #13: math::HierarchyFaceDataOpsReal::abs()
       // Expected:  v3 = abs(v2) = 4.0
       face_ops->abs(fvindx[3], fvindx[2]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_abs = 4.0;
       if (!doubleDataSameAsValue(fvindx[3], val_abs, hierarchy)) {
@@ -1012,8 +1012,8 @@ int main(
       // Test #15: math::HierarchyFaceDataOpsReal::L1Norm() - w/o control weight
       // Expected:  bogus_l1_norm = 1984.00
       double bogus_l1_norm = face_ops->L1Norm(fvindx[2]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       {
          double compare;
@@ -1035,8 +1035,8 @@ int main(
       // Test #16: math::HierarchyFaceDataOpsReal::L1Norm() - w/control weight
       // Expected:  correct_l1_norm = 4.0
       double correct_l1_norm = face_ops->L1Norm(fvindx[2], fwgt_id);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       {
          double compare;
@@ -1058,8 +1058,8 @@ int main(
       // Test #17: math::HierarchyFaceDataOpsReal::L2Norm()
       // Expected:  l2_norm =  4.0
       double l2_norm = face_ops->L2Norm(fvindx[2], fwgt_id);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       {
          double compare;
@@ -1080,8 +1080,8 @@ int main(
       // Test #18: math::HierarchyFaceDataOpsReal::L1Norm() - w/o control weight
       // Expected:  bogus_max_norm = 1000.0
       double bogus_max_norm = face_ops->maxNorm(fvindx[2]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(bogus_max_norm, 1000.0)) {
          ++num_failures;
@@ -1095,8 +1095,8 @@ int main(
       // Test #19: math::HierarchyFaceDataOpsReal::L1Norm() - w/control weight
       // Expected:  max_norm = 4.0
       double max_norm = face_ops->maxNorm(fvindx[2], fwgt_id);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(max_norm, 4.0)) {
          ++num_failures;
@@ -1111,15 +1111,15 @@ int main(
       face_ops->setToScalar(fvindx[0], 1.0);
       face_ops->setToScalar(fvindx[1], 2.5);
       face_ops->setToScalar(fvindx[2], 7.0);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
       // Test #20: math::HierarchyFaceDataOpsReal::linearSum()
       // Expected:  v3 = 5.0
       face_ops->linearSum(fvindx[3], 2.0, fvindx[1], 0.0, fvindx[0]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_linearSum = 5.0;
       if (!doubleDataSameAsValue(fvindx[3], val_linearSum, hierarchy)) {
@@ -1133,8 +1133,8 @@ int main(
       // Test #21: math::HierarchyFaceDataOpsReal::axmy()
       // Expected:  v3 = 6.5
       face_ops->axmy(fvindx[3], 3.0, fvindx[1], fvindx[0]);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_axmy = 6.5;
       if (!doubleDataSameAsValue(fvindx[3], val_axmy, hierarchy)) {
@@ -1148,8 +1148,8 @@ int main(
       // Test #22a: math::HierarchyFaceDataOpsReal::dot() - (ind2) * (ind1)
       // Expected:  cdot = 17.5
       double cdot = face_ops->dot(fvindx[2], fvindx[1], fwgt_id);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       {
          double compare;
@@ -1170,8 +1170,8 @@ int main(
       // Test #22b: math::HierarchyFaceDataOpsReal::dot() - (ind1) * (ind2)
       // Expected:  cdot = 17.5
       cdot = face_ops->dot(fvindx[1], fvindx[2], fwgt_id);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       {
          double compare;

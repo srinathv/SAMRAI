@@ -720,8 +720,8 @@ int main(
          bool exact_tagging = false;
          hierarchy->getPatchLevel(coarser_ln)->allocatePatchData(tag_data_id);
          mesh_gen->setTags(exact_tagging, hierarchy, coarser_ln, tag_data_id);
-#if defined(HAVE_CUDA)
-         cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+         tbox::parallel_synchronize();
 #endif
          /*
           * Cluster.
@@ -919,8 +919,8 @@ int main(
          bool exact_tagging = false;
          hierarchy->getPatchLevel(coarser_ln)->allocatePatchData(tag_data_id);
          mesh_gen->setTags(exact_tagging, hierarchy, coarser_ln, tag_data_id);
-#if defined(HAVE_CUDA)
-         cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+         tbox::parallel_synchronize();
 #endif
 
          /*
