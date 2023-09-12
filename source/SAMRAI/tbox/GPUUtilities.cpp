@@ -15,7 +15,7 @@ namespace SAMRAI {
 namespace tbox {
 
 bool GPUUtilities::s_using_gpu =
-#if defined(HAVE_CUDA)
+#if defined(HAVE_CUDA) || defined(HAVE_HIP)
    true;
 #else
    false;

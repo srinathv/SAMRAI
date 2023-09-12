@@ -618,8 +618,8 @@ int main(
       // Test #4a: math::PatchCellDataOpsReal::setToScalar()
       // Expected: cddata0 = 0.0
       cdops_double.setToScalar(cddata0, 0.0, cddata0->getGhostBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val0 = 0.0;
       if (!doubleDataSameAsValue(cdvindx[0], val0, tpatch)) {
@@ -633,8 +633,8 @@ int main(
       // Test #4b: math::PatchCellDataOpsReal::setToScalar()
       // Expected: cddata1 = 1.0
       cdops_double.setToScalar(cddata1, 1.0, cddata1->getGhostBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val1 = 1.0;
       if (!doubleDataSameAsValue(cdvindx[1], val1, tpatch)) {
@@ -648,8 +648,8 @@ int main(
       // Test #4c: math::PatchCellDataOpsReal::setToScalar()
       // Expected: cddata2 = 2.0
       cdops_double.setToScalar(cddata2, 2.0, cddata2->getGhostBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val2 = 2.0;
       if (!doubleDataSameAsValue(cdvindx[2], val2, tpatch)) {
@@ -663,8 +663,8 @@ int main(
       // Test #5: math::PatchCellDataOpsReal::add()
       // Expected: cddata0 =  cddata1 + cddata2
       cdops_double.add(cddata0, cddata1, cddata2, tpatch->getBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_add = 3.0;
       if (!doubleDataSameAsValue(cdvindx[0], val_add, tpatch)) {
@@ -682,8 +682,8 @@ int main(
       indx1(0) = 5;
       cdops_double.subtract(cddata0, cddata0, cddata2,
          hier::Box(indx0, indx1, hier::BlockId(0)));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       bool subtract_inbox_test_passed = true;
       hier::Box inbox(indx0, indx1, hier::BlockId(0));
@@ -725,8 +725,8 @@ int main(
       // Test #7: math::PatchCellDataOpsReal::scale()
       // Expected: cddata0 = 0.4 * cddata2
       cdops_double.scale(cddata0, 0.4, cddata2, tpatch->getBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_scale = 0.8;
       if (!doubleDataSameAsValue(cdvindx[0], val_scale, tpatch)) {
@@ -740,8 +740,8 @@ int main(
       // Test #8: math::PatchCellDataOpsReal::multiply()
       // Expected: cddata0 = cddata0 * cddata2
       cdops_double.multiply(cddata0, cddata0, cddata2, tpatch->getBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_mult = 1.6;
       if (!doubleDataSameAsValue(cdvindx[0], val_mult, tpatch)) {
@@ -756,8 +756,8 @@ int main(
       // Expected: cddata0 = cddata0/cddata2
       cdops_double.divide(cddata0, cddata0, cddata2,
          hier::Box(indx0, indx1, hier::BlockId(0)));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       bool divide_inbox_test_passed = true;
       val_inbox = 0.8;
@@ -796,8 +796,8 @@ int main(
       // Test #10: math::PatchCellDataOpsReal::reciprocal()
       // Expected: cddata0 = 1/cddata2
       cdops_double.reciprocal(cddata0, cddata2, tpatch->getBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_rec = 0.5;
       if (!doubleDataSameAsValue(cdvindx[0], val_rec, tpatch)) {
@@ -812,8 +812,8 @@ int main(
       cdops_double.setToScalar(cddata1, 1.0, cddata1->getGhostBox());
       cdops_double.setToScalar(cddata2, 2.0, cddata2->getGhostBox());
 
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize(); 
 #endif
       // Test #11: math::PatchCellDataOpsReal::linearSum()
       // Expected: cddata0 = 10*cddata1 + 20*cddata2
@@ -823,8 +823,8 @@ int main(
          20.0,
          cddata2,
          tpatch->getBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_linearSum = 50.0;
       if (!doubleDataSameAsValue(cdvindx[0], val_linearSum, tpatch)) {
@@ -836,31 +836,31 @@ int main(
       }
 
       cdops_double.setRandomValues(cddata0, 1.0, 0.001, hier::Box(indx0, indx1, hier::BlockId(0)));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       tbox::plog << "\ncddata0 = random " << std::endl;
       cdops_double.printData(cddata0, hier::Box(indx0, indx1, hier::BlockId(0)), tbox::plog);
 
       cdops_double.setRandomValues(cddata0, 1.0, 0.001, hier::Box(indx0, indx1, hier::BlockId(0)));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       tbox::plog << "\ncddata0 = random " << std::endl;
       cdops_double.printData(cddata0, hier::Box(indx0, indx1, hier::BlockId(0)), tbox::plog);
 
       // Reset cddata0 to 0.0
       cdops_double.setToScalar(cddata0, 0.0, cddata0->getGhostBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
       // Test #12: math::PatchCellDataOpsReal::linearSum() on box = [(3,1),(5,2)]
       // Expected: cddata0 = 10*cddata1 + 20*cddata2 on [(3,1),(5,2)]
       cdops_double.linearSum(cddata0, 10.0, cddata1, 20.0, cddata2,
          hier::Box(indx0, indx1, hier::BlockId(0)));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       bool restricted_linSum_test_passed = true;
       val_inbox = 50.0;
@@ -908,8 +908,8 @@ int main(
       newindx1(0) = 5;
       newindx1(1) = 4;
       cdops_double.setToScalar(cddata1, 21.0, hier::Box(newindx0, newindx1, hier::BlockId(0)));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
       // Test #13: math::PatchCellDataOpsReal::setToScalar() on box
@@ -978,8 +978,8 @@ int main(
       hier::Index indx2(dim, 4);
       indx2(0) = 7;
       double lmax = cdops_double.max(cddata1, hier::Box(indx0, indx2, hier::BlockId(0)));
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(lmax, 21.0)) {
          ++num_failures;
@@ -992,8 +992,8 @@ int main(
       // Test #15: math::PatchCellDataOpsReal::max() in box [(0,0),(9,4)]
       // Expected: lmax = 12345.0
       lmax = cdops_double.max(cddata1, tpatch->getBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(lmax, 12345.0)) {
          ++num_failures;
@@ -1010,14 +1010,14 @@ int main(
       cdops_double.setToScalar(cddata1, 1.0, cddata1->getGhostBox());
       cdops_double.setToScalar(cddata2, 2.0, cddata2->getGhostBox());
 
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       // Test #16: math::PatchCellDataOpsReal::axpy()
       // Expected: cddata0 = 0.5 * 1.0 + 2.0 = 2.5
       cdops_double.axpy(cddata0, 0.5, cddata1, cddata2, tpatch->getBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_axpy = 2.5;
       if (!doubleDataSameAsValue(cdvindx[0], val_axpy, tpatch)) {
@@ -1031,8 +1031,8 @@ int main(
       // Test #17: math::PatchCellDataOpsReal::axmy()
       // Expected: cddata0 = 1.5 * 2.0 - 1.0 = 2.0
       cdops_double.axmy(cddata0, 1.5, cddata2, cddata1, tpatch->getBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       double val_axmy = 2.0;
       if (!doubleDataSameAsValue(cdvindx[0], val_axmy, tpatch)) {
@@ -1050,8 +1050,8 @@ int main(
       double lsum = cdops_double.sumControlVolumes(cddata1,
             weight,
             tpatch->getBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(lsum, 0.5)) {
          ++num_failures;
@@ -1064,8 +1064,8 @@ int main(
       // Test #18b: math::PatchCellDataOpsReal::sumControlVolumes() for cddata2
       // Expected: lsum = 0.5
       lsum = cdops_double.sumControlVolumes(cddata2, weight, tpatch->getBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(lsum, 0.5)) {
          ++num_failures;
@@ -1078,8 +1078,8 @@ int main(
       // Test #19a: math::PatchCellDataOpsReal::L1norm() for cddata1
       // Expected: l1norm = 0.5
       double l1norm = cdops_double.L1Norm(cddata1, tpatch->getBox(), weight);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(l1norm, 0.5)) {
          ++num_failures;
@@ -1092,8 +1092,8 @@ int main(
       // Test #19b: math::PatchCellDataOpsReal::L1norm() for cddata2
       // Expected: l1norm = 1.0
       l1norm = cdops_double.L1Norm(cddata2, tpatch->getBox(), weight);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(l1norm, 1.0)) {
          ++num_failures;
@@ -1106,8 +1106,8 @@ int main(
       // Test #20: math::PatchCellDataOpsReal::L2norm() for cddata2
       // Expected: l2norm = sqrt(2) = 1.4142135623731
       double l2norm = cdops_double.L2Norm(cddata2, tpatch->getBox(), weight);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(l2norm, 1.4142135623731)) {
          ++num_failures;
@@ -1119,8 +1119,8 @@ int main(
 
       // Reset cddata1 to 0.5
       cdops_double.setToScalar(cddata1, 0.5, tpatch->getBox());
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
       // Test #21: math::PatchCellDataOpsReal::weightedL2norm() for cddata2
@@ -1129,8 +1129,8 @@ int main(
             cddata1,
             tpatch->getBox(),
             weight);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(wl2norm, 0.70710678118655)) {
          ++num_failures;
@@ -1143,8 +1143,8 @@ int main(
       // Test #22: math::PatchCellDataOpsReal::RMSNorm() for cddata2
       // Expected: rmsnorm= L2-Norm/sqrt(control volume) = 2.0
       double rmsnorm = cdops_double.RMSNorm(cddata2, tpatch->getBox(), weight);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(rmsnorm, 2.0)) {
          ++num_failures;
@@ -1160,8 +1160,8 @@ int main(
             cddata1,
             tpatch->getBox(),
             weight);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(wrmsnorm, 1.0)) {
          ++num_failures;
@@ -1174,8 +1174,8 @@ int main(
       // Test #24: math::PatchCellDataOpsReal::maxNorm() for cddata2
       // Expected: maxnorm = 2.0
       double maxnorm = cdops_double.maxNorm(cddata2, tpatch->getBox(), weight);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(maxnorm, 2.0)) {
          ++num_failures;
@@ -1189,14 +1189,14 @@ int main(
       cdops_double.setToScalar(cddata1, 5.0, cddata1->getGhostBox());
       cdops_double.setToScalar(cddata2, 3.0, cddata2->getGhostBox());
 
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       // Test #25: math::PatchCellDataOpsReal::dotp() - (cddata1) * (cddata2)
       // Expected: dotp = 7.5
       double dotp = cdops_double.dot(cddata1, cddata2, tpatch->getBox(), weight);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       if (!tbox::MathUtilities<double>::equalEps(dotp, 7.5)) {
          ++num_failures;

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 #########################################################################
 ##
 ## This file is part of the SAMRAI distribution.  For full copyright

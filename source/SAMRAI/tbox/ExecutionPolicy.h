@@ -121,6 +121,64 @@ struct policy_traits<policy::parallel> {
       RAJA::constant_stride_array_of_objects>;
 };
 
+#elif defined(HAVE_HIP)
+
+template <>
+struct policy_traits<policy::parallel> {
+   using Policy = RAJA::hip_exec_async<128>;
+
+   using Policy1d = RAJA::KernelPolicy<
+      RAJA::statement::HipKernelFixedAsync<256,
+         RAJA::statement::Tile<0, RAJA::tile_fixed<256>, RAJA::hip_block_x_loop,
+            RAJA::statement::For<0, RAJA::hip_thread_x_loop,
+               RAJA::statement::Lambda<0>
+            >
+         >
+      >
+   >;
+
+
+
+   using Policy2d = RAJA::KernelPolicy<
+      RAJA::statement::HipKernelFixedAsync<256,
+         RAJA::statement::Tile<1, RAJA::tile_fixed<16>, RAJA::hip_block_y_loop,
+            RAJA::statement::Tile<0, RAJA::tile_fixed<16>, RAJA::hip_block_x_loop,
+               RAJA::statement::For<1, RAJA::hip_thread_y_loop,
+                  RAJA::statement::For<0, RAJA::hip_thread_x_loop,
+                     RAJA::statement::Lambda<0>
+                  >
+               >
+            >
+         >
+      >
+   >;
+
+   using Policy3d = RAJA::KernelPolicy<
+      RAJA::statement::HipKernelFixedAsync<256,
+         RAJA::statement::Tile<2, RAJA::tile_fixed<4>, RAJA::hip_block_z_loop,
+            RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::hip_block_y_loop,
+               RAJA::statement::Tile<0, RAJA::tile_fixed<8>, RAJA::hip_block_x_loop,
+                  RAJA::statement::For<2, RAJA::hip_thread_z_loop,
+                     RAJA::statement::For<1, RAJA::hip_thread_y_loop,
+                        RAJA::statement::For<0, RAJA::hip_thread_x_loop,
+                           RAJA::statement::Lambda<0>
+                        >
+                     >
+                  >
+               >
+            >
+         >
+      >
+   >;
+
+   using ReductionPolicy = RAJA::hip_reduce;
+
+   using WorkGroupPolicy = RAJA::WorkGroupPolicy<
+      RAJA::hip_work_async<SAMRAI_RAJA_WORKGROUP_THREADS>, 
+      RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
+      RAJA::constant_stride_array_of_objects>;
+};
+
 #else
 
 // TODO: Make this an OpenMP policy if that is defined

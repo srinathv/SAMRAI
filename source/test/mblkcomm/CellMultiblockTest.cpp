@@ -138,8 +138,8 @@ void CellMultiblockTest::initializeDataOnPatch(
          hier::Box dbox = cell_data->getGhostBox();
          cell_data->fillAll((CELL_MBLK_KERNEL_TYPE)block_id.getBlockValue());
       }
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
    }
 }
@@ -242,8 +242,8 @@ void CellMultiblockTest::setPhysicalBoundaryConditions(
       }
 
    }
-#if defined(HAVE_CUDA)
-   cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+   tbox::parallel_synchronize();
 #endif
 
 }
@@ -271,8 +271,8 @@ void CellMultiblockTest::fillSingularityBoundaryConditions(
 
       hier::Box sing_fill_box(cell_data->getGhostBox() * fill_box);
       cell_data->fillAll(0.0, sing_fill_box);
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
 
 
@@ -362,8 +362,8 @@ void CellMultiblockTest::fillSingularityBoundaryConditions(
             (CELL_MBLK_KERNEL_TYPE)bbox.getLocationIndex() + 200.0, fill_box);
       }
    }
-#if defined(HAVE_CUDA)
-   cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+   tbox::parallel_synchronize();
 #endif
 }
 

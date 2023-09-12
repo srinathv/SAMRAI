@@ -32,6 +32,13 @@ synchronize<policy::parallel>()
 {
    RAJA::synchronize<RAJA::cuda_synchronize>();
 }
+#elif defined(HAVE_HIP)
+template<>
+inline void
+synchronize<policy::parallel>()
+{
+   RAJA::synchronize<RAJA::hip_synchronize>();
+}
 #endif
 
 inline void
