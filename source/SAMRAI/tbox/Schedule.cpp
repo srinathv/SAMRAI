@@ -632,7 +632,6 @@ Schedule::processCompletedCommunications()
       // Unpack in deterministic order.  Wait for receive as needed.
       // Deterministic order is lowest to highest recv rank
 
-      int irecv = 0;
       for (auto& comms : d_recv_coms) {
          if (d_ops_strategy) {
             d_ops_strategy->preUnpack();

@@ -1038,6 +1038,16 @@ public:
    {
    }
 
+   MDA_Access&
+   operator = (
+      const MDA_Access& r)
+   {
+      d_ptr = r.d_ptr;
+      d_ptr1 = r.d_ptr1;
+      d_order = r.d_order;
+      return *this;
+   }
+
    /*!
     * @brief Conversion into boolean.
     *

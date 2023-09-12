@@ -32,6 +32,15 @@ class BoxContainerSingleBlockIterator
    friend class BoxContainer;
 
 public:
+
+   BoxContainerSingleBlockIterator(
+      const BoxContainerSingleBlockIterator& other):
+   d_boxes(other.d_boxes),
+   d_block_id(other.d_block_id),
+   d_iter(other.d_iter)
+   {
+   }
+
    //! @brief Destructor
    ~BoxContainerSingleBlockIterator();
 

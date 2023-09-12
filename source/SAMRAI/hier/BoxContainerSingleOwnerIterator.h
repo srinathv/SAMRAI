@@ -31,6 +31,15 @@ class BoxContainerSingleOwnerIterator
    friend class BoxContainer;
 
 public:
+
+   BoxContainerSingleOwnerIterator(
+      const BoxContainerSingleOwnerIterator& other):
+   d_boxes(other.d_boxes),
+   d_owner_rank(other.d_owner_rank),
+   d_iter(other.d_iter)
+   {
+   }
+
    //! @brief Destructor
    ~BoxContainerSingleOwnerIterator();
 

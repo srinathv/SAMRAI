@@ -29,6 +29,15 @@ SinusoidFcn::SinusoidFcn(
    fill_n(d_ppi, d_dim.getValue(), 0.0)
 }
 
+SinusoidFcn::SinusoidFcn(
+   const SinusoidFcn& other):
+   d_dim(other.d_dim),
+   d_amp(other.d_amp)
+{
+   copy_n(other.d_npi, d_dim.getValue(), d_npi)
+   copy_n(other.d_ppi, d_dim.getValue(), d_ppi)
+}
+
 int SinusoidFcn::setAmplitude(
    const double amp) {
    d_amp = amp;

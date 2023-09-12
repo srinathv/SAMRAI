@@ -30,6 +30,9 @@ public:
    explicit SinusoidFcn(
       const tbox::Dimension& dim);
 
+   SinusoidFcn(
+      const SinusoidFcn& other);
+
    /*!
     * @brief Return the function value.
     */
