@@ -376,8 +376,8 @@ void NodeDataTest::setPhysicalBoundaryConditions(
       TBOX_ASSERT(node_data);
 
       hier::Box patch_interior = node_data->getBox();
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
       checkPatchInteriorData(node_data, patch_interior, patch);
 

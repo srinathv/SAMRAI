@@ -3,8 +3,8 @@
 # identify the location of the installed raja, umpire, camp libraries.
 
 set(ENABLE_MPI On CACHE BOOL "")
-set(CMAKE_C_COMPILER "/usr/tce/packages/rocmcc-tce/rocmcc-5.4.3/bin/amdclang" CACHE PATH "")
-set(CMAKE_CXX_COMPILER "/usr/tce/packages/rocmcc-tce/rocmcc-5.4.3/bin/hipcc" CACHE PATH "")
+set(CMAKE_CXX_COMPILER "/usr/tce/packages/cce-tce/cce-15.0.1/bin/crayCC" CACHE PATH "")
+set(CMAKE_C_COMPILER "/usr/tce/packages/cce-tce/cce-15.0.1/bin/craycc" CACHE PATH "")
 set(CMAKE_Fortran_COMPILER "/usr/tce/packages/rocmcc-tce/rocmcc-5.4.3/bin/amdflang" CACHE PATH "")
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
 set(ENABLE_OPENMP Off CACHE BOOL "")

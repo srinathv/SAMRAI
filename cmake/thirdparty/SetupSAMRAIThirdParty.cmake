@@ -40,6 +40,10 @@ if (ENABLE_RAJA OR RAJA_DIR)
     list (APPEND raja_depends cuda)
   endif ()
 
+  if (ENABLE_HIP)
+    list (APPEND raja_depends hip)
+  endif ()
+
   if (ENABLE_OPENMP)
     list (APPEND raja_depends openmp)
   endif ()
@@ -68,6 +72,15 @@ if (ENABLE_CUDA)
   if (ENABLE_NVTX_REGIONS)
     set (ENABLE_NVTX_REGIONS True)
   endif ()
+endif ()
+
+# HIP is setup by BLT
+if (ENABLE_HIP)
+  if (NOT ENABLE_UMPIRE)
+    message(FATAL_ERROR "HIP support requires UMPIRE")
+  endif ()
+
+  set (HAVE_HIP True)
 endif ()
 
 # HDF5

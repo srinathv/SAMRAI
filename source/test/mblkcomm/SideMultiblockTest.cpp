@@ -136,8 +136,8 @@ void SideMultiblockTest::initializeDataOnPatch(
          side_data->fillAll((SIDE_MBLK_KERNEL_TYPE)block_id.getBlockValue());
 
       }
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
    }
 }
@@ -310,8 +310,8 @@ void SideMultiblockTest::setPhysicalBoundaryConditions(
       }
 
    }
-#if defined(HAVE_CUDA)
-   cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+   tbox::parallel_synchronize();
 #endif
 
 }

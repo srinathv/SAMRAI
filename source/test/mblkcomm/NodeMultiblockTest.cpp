@@ -131,8 +131,8 @@ void NodeMultiblockTest::initializeDataOnPatch(
          node_data->fillAll((NODE_MBLK_KERNEL_TYPE)block_id.getBlockValue());
 
       }
-#if defined(HAVE_CUDA)
-      cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+      tbox::parallel_synchronize();
 #endif
    }
 }
@@ -295,8 +295,8 @@ void NodeMultiblockTest::setPhysicalBoundaryConditions(
       }
 
    }
-#if defined(HAVE_CUDA)
-   cudaDeviceSynchronize();
+#if defined(HAVE_RAJA)
+   tbox::parallel_synchronize();
 #endif
 
 }
