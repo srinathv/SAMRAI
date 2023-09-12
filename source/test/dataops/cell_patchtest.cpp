@@ -1431,24 +1431,6 @@ doubleDataSameAsValue(
 
    TBOX_ASSERT(cvdata);
 
-   const hier::Box& pbox = patch->getBox();
-#if 0 
-   switch (pbox.getDim().getValue()) {
-      case 2: {
-         auto cview = cvdata->getView<2>();
-         hier::parallel_for_all(pbox, [=] SAMRAI_HOST_DEVICE(int i, int j) {
-            if ((cview(i,j) - value) > 1.0e-12 ||
-                (cview(i,j) - value) < -1.0e-12) {
-               test_passed = false;
-            }
-         });
-         break;
-      }
-      case 3:
-      default:
-         break;  
-   } 
-#else
    pdat::CellIterator cend(pdat::CellGeometry::end(cvdata->getBox()));
    for (pdat::CellIterator c(pdat::CellGeometry::begin(cvdata->getBox()));
         c != cend && test_passed; ++c) {
@@ -1458,7 +1440,6 @@ doubleDataSameAsValue(
          test_passed = false;
       }
    }
-#endif
 
    return test_passed;
 }
