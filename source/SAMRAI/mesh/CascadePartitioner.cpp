@@ -201,7 +201,7 @@ CascadePartitioner::loadBalanceBoxLevel(
 
    if (hierarchy) {
       minimum_cells = hierarchy->getMinimumCellRequest(level_number);
-      if (level_number < d_min_load.size()) {
+      if (static_cast<unsigned int>(level_number) < d_min_load.size()) {
          minimum_load = d_min_load[level_number];
       } else {
          minimum_load = d_min_load.back();
