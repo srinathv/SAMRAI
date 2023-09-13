@@ -32,6 +32,9 @@ class BoxContainerSingleOwnerIterator
 
 public:
 
+   /*!
+    * @brief Copy constructor
+    */
    BoxContainerSingleOwnerIterator(
       const BoxContainerSingleOwnerIterator& other):
    d_boxes(other.d_boxes),

@@ -33,6 +33,9 @@ class BoxContainerSingleBlockIterator
 
 public:
 
+   /*!
+    * @brief Copy constructor
+    */
    BoxContainerSingleBlockIterator(
       const BoxContainerSingleBlockIterator& other):
    d_boxes(other.d_boxes),

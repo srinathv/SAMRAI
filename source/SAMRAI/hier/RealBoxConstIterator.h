@@ -48,6 +48,9 @@ class RealBoxConstIterator
 
 public:
 
+   /*!
+    * @brief Copy constructor
+    */
    RealBoxConstIterator(
       const RealBoxConstIterator& other):
    d_boxes(other.d_boxes),

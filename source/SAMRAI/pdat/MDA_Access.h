@@ -1038,6 +1038,9 @@ public:
    {
    }
 
+   /*!
+    * @brief Assignment operator
+    */
    MDA_Access&
    operator = (
       const MDA_Access& r)

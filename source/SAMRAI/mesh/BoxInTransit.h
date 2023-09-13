@@ -81,6 +81,11 @@ struct BoxInTransit {
       }
    }
 
+   /*!
+    * @brief Copy constructor
+    *
+    * @param[in] other   object to be copied
+    */
    BoxInTransit(
       const BoxInTransit& other):
       d_box(other.d_box),
