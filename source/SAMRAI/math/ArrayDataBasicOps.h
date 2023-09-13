@@ -53,7 +53,7 @@ public:
     */
    ArrayDataBasicOps();
 
-   ~ArrayDataBasicOps<TYPE>();
+   ~ArrayDataBasicOps();
 
    /**
     * Set dst = alpha * src, elementwise.

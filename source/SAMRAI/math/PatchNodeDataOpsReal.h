@@ -61,7 +61,7 @@ public:
     */
    PatchNodeDataOpsReal();
 
-   virtual ~PatchNodeDataOpsReal<TYPE>() {
+   virtual ~PatchNodeDataOpsReal() {
    }
 
    /**

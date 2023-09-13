@@ -122,7 +122,7 @@ public:
    /**
     * The virtual destructor for an IndexData object.
     */
-   virtual ~IndexData<TYPE, BOX_GEOMETRY>();
+   virtual ~IndexData();
 
    /**
     * A fast copy between the source and destination.  All data is copied
@@ -554,18 +554,18 @@ public:
    friend class IndexData<TYPE, BOX_GEOMETRY>;
    friend class IndexIterator<TYPE, BOX_GEOMETRY>;
 
-   IndexDataNode<TYPE, BOX_GEOMETRY>(
+   IndexDataNode(
       const hier::Index & index,
       const size_t d_offset,
       TYPE & t,
       IndexDataNode<TYPE, BOX_GEOMETRY>* n,
       IndexDataNode<TYPE, BOX_GEOMETRY>* p);
 
-   virtual ~IndexDataNode<TYPE, BOX_GEOMETRY>();
+   virtual ~IndexDataNode();
 
 private:
    // Unimplemented default constructor.
-   IndexDataNode<TYPE, BOX_GEOMETRY>();
+   IndexDataNode();
 
    hier::Index d_index;
    size_t d_offset;
@@ -616,14 +616,14 @@ public:
    /**
     * Assignment operator for the index list iterator.
     */
-   IndexIterator<TYPE, BOX_GEOMETRY>&
+   IndexIterator&
    operator = (
       const IndexIterator<TYPE, BOX_GEOMETRY>& iterator);
 
    /**
     * Destructor for the index list iterator.
     */
-   ~IndexIterator<TYPE, BOX_GEOMETRY>();
+   ~IndexIterator();
 
    /**
     * Return a reference to the current item in the irregular index set.

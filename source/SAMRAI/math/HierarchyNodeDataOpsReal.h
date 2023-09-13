@@ -80,7 +80,7 @@ public:
    /**
     * Virtual destructor for the HierarchyNodeDataOpsReal class.
     */
-   virtual ~HierarchyNodeDataOpsReal<TYPE>();
+   virtual ~HierarchyNodeDataOpsReal();
 
    /**
     * Reset patch hierarchy over which operations occur.

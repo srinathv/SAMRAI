@@ -68,7 +68,7 @@ public:
    /**
     * Virtual destructor for the outerface data factory class.
     */
-   virtual ~OuterfaceDataFactory<TYPE>();
+   virtual ~OuterfaceDataFactory();
 
    /**
     * @brief Abstract virtual function to clone a patch data factory.

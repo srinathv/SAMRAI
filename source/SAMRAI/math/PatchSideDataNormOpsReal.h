@@ -63,7 +63,7 @@ public:
     */
    PatchSideDataNormOpsReal();
 
-   virtual ~PatchSideDataNormOpsReal<TYPE>();
+   virtual ~PatchSideDataNormOpsReal();
 
    /**
     * Return the number of data values for the side-centered data object

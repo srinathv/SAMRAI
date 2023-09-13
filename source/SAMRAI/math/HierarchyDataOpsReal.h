@@ -56,7 +56,7 @@ public:
    /**
     * Virtual destructor for the HierarchyDataOpsReal class.
     */
-   virtual ~HierarchyDataOpsReal<TYPE>();
+   virtual ~HierarchyDataOpsReal();
 
    /**
     * Reset patch hierarchy over which operations occur.
