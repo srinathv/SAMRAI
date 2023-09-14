@@ -162,7 +162,7 @@ public:
    /*!
     * @brief The virtual destructor for a face data object.
     */
-   virtual ~FaceData<TYPE>();
+   virtual ~FaceData();
 
    /*!
     * @brief Return the depth (e.g., the number of components in each spatial

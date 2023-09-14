@@ -72,7 +72,7 @@ public:
    /*!
     * @brief Virtual destructor for outerside variable objects.
     */
-   virtual ~OutersideVariable<TYPE>();
+   virtual ~OutersideVariable();
 
    /*!
     * @brief Return a boolean true value indicating that fine patch

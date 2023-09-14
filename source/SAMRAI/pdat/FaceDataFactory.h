@@ -70,7 +70,7 @@ public:
    /**
     * Virtual destructor for the face data factory class.
     */
-   virtual ~FaceDataFactory<TYPE>();
+   virtual ~FaceDataFactory();
 
    /**
     * @brief Abstract virtual function to clone a patch data factory.

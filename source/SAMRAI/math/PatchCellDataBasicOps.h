@@ -54,7 +54,7 @@ public:
     */
    PatchCellDataBasicOps();
 
-   virtual ~PatchCellDataBasicOps<TYPE>();
+   virtual ~PatchCellDataBasicOps();
 
    /**
     * Set dst = alpha * src, elementwise.

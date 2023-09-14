@@ -60,7 +60,7 @@ public:
     */
    PatchEdgeDataOpsReal();
 
-   virtual ~PatchEdgeDataOpsReal<TYPE>() {
+   virtual ~PatchEdgeDataOpsReal() {
    }
 
    /**

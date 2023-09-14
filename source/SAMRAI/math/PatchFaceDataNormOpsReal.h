@@ -64,7 +64,7 @@ public:
     */
    PatchFaceDataNormOpsReal();
 
-   virtual ~PatchFaceDataNormOpsReal<TYPE>();
+   virtual ~PatchFaceDataNormOpsReal();
 
    /**
     * Return the number of data values for the face-centered data object

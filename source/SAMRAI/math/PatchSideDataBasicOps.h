@@ -54,7 +54,7 @@ public:
     */
    PatchSideDataBasicOps();
 
-   virtual ~PatchSideDataBasicOps<TYPE>();
+   virtual ~PatchSideDataBasicOps();
 
    /**
     * Set dst = alpha * src, elementwise.

@@ -53,7 +53,7 @@ public:
     */
    ArrayDataNormOpsReal();
 
-   ~ArrayDataNormOpsReal<TYPE>();
+   ~ArrayDataNormOpsReal();
 
    /**
     * Return sum of entries in control volume array.

@@ -135,7 +135,7 @@ protected:
     * member function destroyPETScVector, which is used to destroy the PETSc
     * vector and associated "wrapper".
     */
-   virtual ~PETSc_SAMRAIVectorReal<TYPE>();
+   virtual ~PETSc_SAMRAIVectorReal();
 
 private:
    /*
