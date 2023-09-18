@@ -4,7 +4,7 @@
   All rights reserved.
 *****************************************************************************
 
-                     Release Notes for SAMRAI v4.2.1
+                     Release Notes for SAMRAI v4.2.0
 
      (notes for previous releases may be found in /SAMRAI/docs/release)
 
@@ -21,14 +21,6 @@ Please send email to samrai-bugs@llnl.gov or post an issue on github.
 https://github.com/LLNL/SAMRAI
 
 *****************************************************************************
-
-VERSION 4.2.1
-
-Version 4.2.1 is a minor patch release to make SAMRAI compatible with 
-Umpire v2023.06.0 and RAJA v2023.06.0.  The content of the release notes
-file for SAMRAI version 4.2.0 is preserved here, except for notes marked
-as version 4.2.1
-
 
 VERSION 4.2.0
 
@@ -61,14 +53,12 @@ GPU kernels to be accumulated for a single kernel launch.
 2) A minimum_patch_load parameter has been added to CascadePartitioner and
 TreeLoadBalancer as an option to change how small patches are treated during
 load balancing.
-
+ 
 -----------------------------------------------------------------------------
                 Summary of what's changed
 -----------------------------------------------------------------------------
 
-1) VERSION 4.2.1 Minor changes have been made for compatibility with RAJA
-v2023.06.0 and Umpire v2023.06.0, and those are the recommended releases
-for those libraries for use with this SAMRAI release.
+1)
 
 
 *****************************************************************************
@@ -117,10 +107,6 @@ count may be more desired than uniformity in cell count.
 -----------------------------------------------------------------------------
                 Details about what's changed
 ----------------------------------------------------------------------------
-
-3) VERSION 4.2.1 Minor changes have been made for compatibility with RAJA
-v2023.06.0 and Umpire v2023.06.0, and those are the recommended releases
-for those libraries for use with this SAMRAI release.
 
 
 =============================================================================

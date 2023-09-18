@@ -57,6 +57,10 @@ set_target_properties(linadv PROPERTIES LINKER_LANGUAGE CXX)
 file (GLOB test_inputs ${CMAKE_CURRENT_SOURCE_DIR}/test_inputs/*.input)
 file (GLOB test_baselines ${CMAKE_CURRENT_SOURCE_DIR}/test_inputs/*boxes*)
 
+if (NOT ENABLE_HDF5)
+  list(FILTER test_inputs EXCLUDE REGEX .*restart.*d.input)
+endif ()
+
 execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/test_inputs)
 execute_process(COMMAND ln -s ${test_baselines} ${CMAKE_CURRENT_BINARY_DIR}/test_inputs)
 
