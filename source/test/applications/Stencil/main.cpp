@@ -64,6 +64,8 @@
 #include <cuda_profiler_api.h>
 #endif
 
+#include <caliper/cali.h>
+
 using namespace std;
 using namespace SAMRAI;
 
@@ -358,7 +360,9 @@ int main(
 //      if (iteration_num == 11)
 //        cudaProfilerStart();
 //#endif
+CALI_MARK_BEGIN("advance");
       double dt_new = time_integrator->advanceHierarchy(dt_now);
+CALI_MARK_END("advance");
 //#if defined(HAVE_CUDA)
 //      if (iteration_num == 13)
 //        cudaProfilerStop();
