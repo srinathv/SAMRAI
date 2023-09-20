@@ -34,6 +34,8 @@ public:
    GaussianFcn();
    explicit GaussianFcn(
       const tbox::Dimension& dim);
+   explicit GaussianFcn(
+      const GaussianFcn& other);
 
    /*!
     * @brief Return the function value.

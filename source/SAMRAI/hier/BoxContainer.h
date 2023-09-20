@@ -1816,6 +1816,12 @@ private:
       friend class BoxContainer;
 
       /*!
+       * @brief Copy constructor
+       */
+      Outputter(
+         const Outputter& other);
+
+      /*!
        * @brief Construct the Outputter with a BoxContainer and the
        * parameters needed to output the BoxContainer to a stream.
        */

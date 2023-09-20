@@ -2104,6 +2104,8 @@ RefineSchedule::fillData(
    if (copied) {
       tbox::parallel_synchronize();
    }
+#else
+   NULL_USE(copied);
 #endif
 
    /*

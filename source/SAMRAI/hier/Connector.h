@@ -1454,6 +1454,11 @@ public:
 private:
       friend class Connector;
       /*!
+       * @brief Copy constructor
+       */
+      Outputter(
+         const Outputter& other);
+      /*!
        * @brief Construct the Outputter with a Connector and the
        * parameters needed to output the Connector to a stream.
        */

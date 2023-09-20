@@ -255,6 +255,12 @@ public:
 private:
       friend class BoxTransitSet;
       /*!
+       * @brief Copy constructor
+       */
+      Outputter(
+         const Outputter& other);
+
+      /*!
        * @brief Construct the Outputter with a BoxTransitSet and the
        * parameters needed to output the BoxTransitSet to a stream.
        */

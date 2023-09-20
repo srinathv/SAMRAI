@@ -64,7 +64,7 @@ const int ArrayData<TYPE>::PDAT_ARRAYDATA_VERSION = 1;
 template <class TYPE>
 bool ArrayData<TYPE>::canEstimateStreamSizeFromBox()
 {
-   if ((typeid(TYPE) == typeid(bool)) | (typeid(TYPE) == typeid(char)) | (typeid(TYPE) == typeid(double)) | (typeid(TYPE) == typeid(float)) | (typeid(TYPE) == typeid(int)) | (typeid(TYPE) == typeid(dcomplex))) {
+   if ((typeid(TYPE) == typeid(bool)) || (typeid(TYPE) == typeid(char)) || (typeid(TYPE) == typeid(double)) || (typeid(TYPE) == typeid(float)) || (typeid(TYPE) == typeid(int)) || (typeid(TYPE) == typeid(dcomplex))) {
       return true;
    } else {
       return false;

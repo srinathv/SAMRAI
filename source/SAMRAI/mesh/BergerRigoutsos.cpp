@@ -772,7 +772,6 @@ BergerRigoutsos::shareNewNeighborhoodSetsWithOwners()
       d_object_timers->t_share_new_relationships_recv->stop();
 
       d_object_timers->t_share_new_relationships_unpack->start();
-      int consumed = 0;
       while (ptr < &buf[0] + buf.size()) {
          const hier::LocalId new_local_id(*(ptr++));
          hier::BoxId box_id(new_local_id, d_mpi.getRank());
@@ -788,7 +787,6 @@ BergerRigoutsos::shareNewNeighborhoodSetsWithOwners()
                d_tag_to_new->getTranspose().insertLocalNeighbor(node, base_box_itr);
             }
          }
-         consumed += 2 + n_new_relationships * ints_per_box;
       }
       recved_from.insert(sender);
       d_object_timers->t_share_new_relationships_unpack->stop();
