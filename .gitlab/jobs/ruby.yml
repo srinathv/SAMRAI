@@ -29,5 +29,4 @@ variables:
 gcc_10_3_1 (build_and_test on ruby):
   variables:
     COMPILER: "gcc_10_3_1"
-  extends: .build_and_test_on_ruby
-
+  extends: .job_on_ruby

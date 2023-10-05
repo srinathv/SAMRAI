@@ -29,4 +29,4 @@ variables:
 clang-cuda (build_and_test on lassen):
   variables:
     COMPILER: "clang-cuda"
-  extends: .build_and_test_on_lassen
+  extends: .job_on_lassen
