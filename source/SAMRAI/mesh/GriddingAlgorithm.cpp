@@ -164,10 +164,17 @@ GriddingAlgorithm::GriddingAlgorithm(
    d_boolean_tag = std::dynamic_pointer_cast<pdat::CellVariable<int>, hier::Variable>(
          var_db->getVariable(tag_algorithm_variable_name));
    if (!d_boolean_tag) {
+#if defined(HAVE_UMPIRE)
+      umpire::ResourceManager& rm = umpire::ResourceManager::getInstance();
+      tbox::ResourceAllocator host_alloc = rm.getAllocator(umpire::resource::Host);
+#else
+      tbox::ResourceAllocator host_alloc;
+#endif
+
       d_boolean_tag.reset(
          new pdat::CellVariable<int>(dim,
            tag_algorithm_variable_name,
-           tbox::AllocatorDatabase::getDatabase()->getTagAllocator(),
+           host_alloc,
            1));
    }
 
