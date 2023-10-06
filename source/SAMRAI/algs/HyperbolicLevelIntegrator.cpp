@@ -40,6 +40,8 @@
 #include <fstream>
 #include <string>
 
+#include <caliper/cali.h>
+
 /*
  *************************************************************************
  *
@@ -405,6 +407,7 @@ HyperbolicLevelIntegrator::resetHierarchyConfiguration(
    const int coarsest_level,
    const int finest_level)
 {
+    CALI_CXX_MARK_FUNCTION;
    NULL_USE(finest_level);
 
    TBOX_ASSERT(hierarchy);

@@ -65,6 +65,7 @@
 #endif
 
 #include <caliper/cali.h>
+#include <caliper/cali-manager.h>
 
 using namespace std;
 using namespace SAMRAI;
@@ -80,6 +81,15 @@ int main(
 
   tbox::SAMRAI_MPI::init(&argc, &argv);
   tbox::SAMRAIManager::initialize();
+
+  //cali::ConfigManager mgr;
+    //mgr.add(argv[1]);
+    //if (mgr.error())
+    //    std::cerr << "Caliper error: " << mgr.error_msg() << std::endl;
+
+    // Start configured performance measurements, if any
+    //mgr.start();
+
 
   /*
    * Set tag allocator to use pinned memory.
@@ -119,7 +129,7 @@ int main(
         restart_read_dirname = argv[2];
         restore_num = atoi(argv[3]);
 
-        is_from_restart = true;
+        is_from_restart = false;
       }
     }
 
@@ -302,8 +312,9 @@ int main(
      * Initialize hierarchy configuration and data on all patches.
      * Then, close restart file and write initial state for visualization.
      */
-
+CALI_MARK_BEGIN("initHierarcy");
     double dt_now = time_integrator->initializeHierarchy();
+CALI_MARK_END("initHierarcy");
 
     tbox::RestartManager::getManager()->closeRestartFile();
 
@@ -461,6 +472,9 @@ CALI_MARK_END("advance");
   } else {
     tbox::pout << "\nFAILED:  Stencil" << std::endl;
   }
+
+ // Flush output before finalizing MPI
+    //mgr.flush();
 
   tbox::SAMRAIManager::shutdown();
 

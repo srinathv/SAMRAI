@@ -52,6 +52,7 @@ process_m4(NAME fortran/algs_upfluxsum1d)
 process_m4(NAME fortran/algs_upfluxsum2d)
 process_m4(NAME fortran/algs_upfluxsum3d)
 
+
 blt_add_library( NAME SAMRAI_algs
   SOURCES ${algs_sources}
   HEADERS ${algs_headers}
@@ -62,7 +63,8 @@ set_target_properties(SAMRAI_algs PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories( SAMRAI_algs
   PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/source>
-  $<INSTALL_INTERFACE:include>)
+  $<INSTALL_INTERFACE:include>
+  /g/g17/liu56/ws/caliperlib/blueos/include)
 
 install(TARGETS SAMRAI_algs
   EXPORT SAMRAITargets

@@ -30,6 +30,7 @@ Stencil::Stencil(
    d_rho_update(),
    d_nghosts(hier::IntVector(dim, 2))
 {
+   CALI_CXX_MARK_FUNCTION;
    const int num_variables = input_db->getIntegerWithDefault("num_variables", 1);
 
    d_tag_threshold = input_db->getDoubleWithDefault("tag_threshold", 0.5);
@@ -88,6 +89,7 @@ Stencil::initializeDataOnPatch(
    const double data_time,
    const bool initial_time)
 {
+   CALI_CXX_MARK_FUNCTION;
    RANGE_PUSH("Stencil::init", 1);
    NULL_USE(data_time);
    NULL_USE(initial_time);
@@ -122,6 +124,7 @@ Stencil::computeStableDtOnPatch(
    const bool initial_time,
    const double dt_time)
 {
+   CALI_CXX_MARK_FUNCTION;
    RANGE_PUSH("Stencil::dt", 1);
    NULL_USE(initial_time);
    NULL_USE(dt_time);
@@ -160,6 +163,7 @@ Stencil::conservativeDifferenceOnPatch(
    const double dt,
    bool at_syncronization)
 {
+   CALI_CXX_MARK_FUNCTION;
    RANGE_PUSH("Stencil::conservativeDifference", 1);
    NULL_USE(time);
    NULL_USE(at_syncronization);
@@ -235,6 +239,7 @@ Stencil::tagGradientDetectorCells(
    const int tag_index,
    const bool uses_richardson_extrapolation_too)
 {
+   CALI_CXX_MARK_FUNCTION;
    RANGE_PUSH("Stencil::tag", 1);
    NULL_USE(regrid_time);
    NULL_USE(initial_error);
@@ -299,6 +304,7 @@ Stencil::setPhysicalBoundaryConditions(
    const double fill_time,
    const hier::IntVector& ghost_width_to_fill)
 {
+   CALI_CXX_MARK_FUNCTION;
    RANGE_PUSH("Stencil::boundaries", 1);
    NULL_USE(fill_time);
   
