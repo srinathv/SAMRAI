@@ -50,7 +50,7 @@ variables:
   GITHUB_PROJECT_NAME: "SAMRAI"
   GITHUB_PROJECT_ORG: "LLNL"
 # Set the build-and-test command.
-  JOB_CMD: "source/scripts/gitlab/build_and_test_tpl.sh \$\{BUILD_OPTION\}"
+  JOB_CMD: "source/scripts/gitlab/build_and_test_tpl.sh \${BUILD_OPTION}"
 # Override the pattern describing branches that will skip the "draft PR filter
 # test".  Add protected branches here. See default value in
 # preliminary-ignore-draft-pr.yml.
