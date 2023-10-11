@@ -79,8 +79,7 @@ target_include_directories(
   SAMRAI_mesh
   PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/source>
-  $<INSTALL_INTERFACE:include>
-  /g/g17/liu56/ws/caliperlib/blueos/include)
+  $<INSTALL_INTERFACE:include>)
 
 
 install(TARGETS SAMRAI_mesh
