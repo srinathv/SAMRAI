@@ -1,151 +1,95 @@
-#########################################################################
+###############################################################################
+# Copyright (c) 2022-23, Lawrence Livermore National Security, LLC and RADIUSS
+# project contributors. See the COPYRIGHT file for details.
 #
-# This file is part of the SAMRAI distribution.  For full copyright
-# information, see COPYRIGHT and LICENSE.
-#
-# Copyright:     (c) 1997-2023 Lawrence Livermore National Security, LLC
-#
-#########################################################################
+# SPDX-License-Identifier: (MIT)
+###############################################################################
 
+# DESCRIPTION:
+###############################################################################
 # General GitLab pipelines configurations for supercomputers and Linux clusters
-# at Lawrence Livermore National Laboratory (LLNL). This entire pipeline is
-# LLNL-specific
+# at Lawrence Livermore National Laboratory (LLNL).
+# This entire pipeline is LLNL-specific
+#
+# Important note: This file is a template provided by llnl/radiuss-shared-ci.
+# Remains to set variable values, change the reference to the radiuss-shared-ci
+# repo, opt-in and out optional features. The project can then extend it with
+# additional stages.
+#
+# In addition, each project should copy over and complete:
+# - .gitlab/custom-jobs-and-variables.yml
+# - .gitlab/subscribed-pipelines.yml
+#
+# The jobs should be specified in a file local to the project,
+# - .gitlab/jobs/${CI_MACHINE}.yml
+# or generated (see LLNL/Umpire for an example).
+###############################################################################
 
 # We define the following GitLab pipeline variables:
-#
-# GIT_SUBMODULE_STRATEGY:
-# Tells Gitlab to recursively update the submodules when cloning samrai
-#
-# SAMRAI_ALLOC_NAME:
-# On LLNL's quartz, this pipeline creates only one allocation shared among jobs
-# in order to save time and resources. This allocation has to be uniquely named
-# so that we are sure to retrieve it.
-#
-# BUILD_ROOT:
-# The path to the shared resources between all jobs. The BUILD_ROOT is unique to
-# the pipeline, preventing any form of concurrency with other pipelines. This
-# also means that the BUILD_ROOT directory will never be cleaned.
-# TODO: add a clean-up mechanism
-
 variables:
+##### LC GITLAB CONFIGURATION
+# Use an LLNL service user to run CI. This prevents from running pipelines as
+# an actual user.
+  LLNL_SERVICE_USER: ""
+# Use the service user workspace. Solves permission issues, stores everything
+# at the same location whoever triggers a pipeline.
+#  CUSTOM_CI_BUILDS_DIR: ""
+# Tells Gitlab to recursively update the submodules when cloning the project.
   GIT_SUBMODULE_STRATEGY: recursive
-  SAMRAI_ALLOC_NAME: samrai_ci_${CI_PIPELINE_ID}
-  BUILD_ROOT: ${CI_BUILDS_DIR}/samrai/${CI_COMMIT_REF_SLUG}_${CI_PIPELINE_ID}
 
-# This defines the default behavior, may be overridden it.
-before_script:
-  - date
-  - echo $CI_COMMIT_BRANCH
-  - echo $SAMRAI_ALL_TARGETS
-  - echo $SAMRAI_CI_RUBY
-  - echo $SAMRAI_CI_QUARTZ
-  - echo $SAMRAI_CI_LASSEN
-  - echo $SAMRAI_CI_TIOGA
-  - echo $SAMRAI_ALLOC_NAME
+##### PROJECT VARIABLES
+# We build the projects in the CI clone directory.
+# Used in script/gitlab/build_and_test.sh script.
+# TODO: add a clean-up mechanism.
+# Not porting the custom BUILD_ROOT yet: not sure it's necessary, and would
+# require sending CI_BUILDS_DIR to child pipeline.
+#  BUILD_ROOT: ${CI_BUILDS_DIR}/samrai/${CI_COMMIT_REF_SLUG}_${CI_PIPELINE_ID}
 
-after_script:
-  - date
+##### SHARED_CI CONFIGURATION
+# Required information about GitHub repository
+  GITHUB_PROJECT_NAME: "SAMRAI"
+  GITHUB_PROJECT_ORG: "LLNL"
+# Set the build-and-test command.
+  JOB_CMD:
+    value: "source/scripts/gitlab/build_and_test_tpl.sh ${BUILD_OPTION}"
+    expand: false
+# Override the pattern describing branches that will skip the "draft PR filter
+# test".  Add protected branches here. See default value in
+# preliminary-ignore-draft-pr.yml.
+#  ALWAYS_RUN_PATTERN: ""
 
-# Normally, stages are blocking in Gitlab. However, using the keyword "needs" we
-# can express dependencies between job that break the ordering of stages, in
-# favor of a DAG.
-# In practice q_*, l_* and b_* stages are independently run as soon as start is
-# complete.
+# We organize the build-and-test stage with sub-pipelines. Each sub-pipeline
+# corresponds to a test batch on a given machine.
+
+# High level stages
 stages:
-  - start
-  - build_and_test
+  - prerequisites
+  - build-and-test
 
-# The start job is actually a dumb one, which serves as a reference to start
-# q_allocate_resources, l_build_and_test and b_build_and_test simultaneously.
-# TODO: GitLab 12.8 will allow for empty "needs" to trigger the job asap,
-# this start job will no be necessary anymore.
-# Note: "GIT_STRATEGY: none" tells GitLab not to clone samrai for this job.
-start:
-  variables:
-    GIT_STRATEGY: none
-  stage: start
-  tags:
-    - shell
-    - quartz
-  script:
-    - echo "Creating a reference job for dag execution (needs keyword)"
+# Template for jobs triggering a build-and-test sub-pipeline:
+.build-and-test:
+  stage: build-and-test
+  trigger:
+    include:
+      - local: '.gitlab/custom-jobs-and-variables.yml'
+      - project: 'radiuss/radiuss-shared-ci'
+        ref: 'v2023.09.0'
+        file: 'pipelines/${CI_MACHINE}.yml'
+      # Add your jobs
+      # you can use a local file
+      - local: '.gitlab/jobs/${CI_MACHINE}.yml'
+      # or a file generated in the previous steps
+      # - artifact: '${CI_MACHINE}-jobs.yml'
+      #   job: 'generate-job-file'
+      # (See Umpire CI setup for an example).
+    strategy: depend
+    forward:
+      pipeline_variables: true
 
-# This is the rules that drives the activation of "advanced" jobs. All advanced
-# jobs will share this through a template mechanism.
-.advanced_pipeline:
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "develop" || $SAMRAI_ALL_TARGETS == "ON"' #run only if ...
-
-# These are also templates (.name) that define project specific build commands.
-# If an allocation exist with the name defined in this pipeline, the job will
-# use it (slurm specific).
-.build_toss_3_x86_64_ib_script:
-  script:
-    - echo ${SAMRAI_ALL_TARGETS}
-#    - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
-#    - echo ${JOBID}
-#    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test_tpl.sh
-
-.build_and_test_toss_3_x86_64_ib_script:
-  script:
-    - echo ${SAMRAI_ALLOC_NAME}
-    - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
-    - echo ${JOBID}
-    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test_tpl.sh
-  artifacts:
-    when: always
-    paths:
-      - ctest_report_*.xml
-
-# These are also templates (.name) that define project specific build commands.
-# If an allocation exist with the name defined in this pipeline, the job will
-# use it (slurm specific).
-.build_toss_4_x86_64_ib_script:
-  script:
-    - echo ${SAMRAI_ALL_TARGETS}
-#    - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
-#    - echo ${JOBID}
-#    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test_tpl.sh
-
-.build_and_test_toss_4_x86_64_ib_script:
-  script:
-    - echo ${SAMRAI_ALLOC_NAME}
-    - export JOBID=$(squeue -h --name=${SAMRAI_ALLOC_NAME} --format=%A)
-    - echo ${JOBID}
-    - salloc -ppdebug -t 30 -N 1 source/scripts/gitlab/build_and_test_tpl.sh
-  artifacts:
-    when: always
-    paths:
-      - ctest_report_*.xml
-
-.build_toss_4_x86_64_ib_cray_script:
-  script:
-    - echo ${SAMRAI_ALL_TARGETS}
-
-.build_and_test_toss_4_x86_64_ib_cray_script:
-  script:
-# Tests run very slowly on Tioga. Just build the code on Tioga for now.
-    - flux --help
-    - flux submit --nodes=1 --watch --time=120 --begin-time=10s source/scripts/gitlab/build_and_test_tpl.sh --build-only
-  artifacts:
-    when: always
-    paths:
-      - ctest_report_*.xml
-
-# Lassen uses a different job scheduler (spectrum lsf) that does not
-# allow pre-allocation the same way slurm does.
-.build_and_test_blueos_3_ppc64le_ib_p9_script:
-  script:
-    - lalloc 1 -W 120 source/scripts/gitlab/build_and_test_tpl.sh
-  artifacts:
-    when: always
-    paths:
-      - ctest_report_*.xml
-
-# This is where jobs are included
 include:
-  - local: .gitlab/quartz.yml
-  - local: .gitlab/ruby.yml
-  - local: .gitlab/tioga.yml
-  - local: .gitlab/lassen.yml
-
+  # [Optional] checks preliminary to running the actual CI test
+  #- project: 'radiuss/radiuss-shared-ci'
+  #  ref: 'v2023.09.0'
+  #  file: 'utilities/preliminary-ignore-draft-pr.yml'
+  # pipelines subscribed by the project
+  - local: '.gitlab/subscribed-pipelines.yml'
