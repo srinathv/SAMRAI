@@ -1741,6 +1741,20 @@ BoxContainer::print(
 
 /*
  ***********************************************************************
+ * Outputter copy constructor
+ ***********************************************************************
+ */
+
+BoxContainer::Outputter::Outputter(
+   const BoxContainer::Outputter& other):
+   d_set(other.d_set),
+   d_border(other.d_border),
+   d_detail_depth(other.d_detail_depth)
+{
+}
+
+/*
+ ***********************************************************************
  * Construct a BoxContainer Outputter with formatting parameters.
  ***********************************************************************
  */

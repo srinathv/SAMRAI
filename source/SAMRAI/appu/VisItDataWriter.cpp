@@ -3612,12 +3612,10 @@ VisItDataWriter::exchangeMinMaxPatchInformation(
     */
    int ln, pn, comp, item_ctr;
    int number_local_patches = 0;
-   int tot_number_of_patches = 0;
 
    for (ln = coarsest_plot_level; ln <= finest_plot_level; ++ln) {
       std::shared_ptr<hier::PatchLevel> patch_level(
          hierarchy->getPatchLevel(ln));
-      tot_number_of_patches += patch_level->getGlobalNumberOfPatches();
       for (hier::PatchLevel::iterator ip(patch_level->begin());
            ip != patch_level->end(); ++ip) {
          ++number_local_patches;
