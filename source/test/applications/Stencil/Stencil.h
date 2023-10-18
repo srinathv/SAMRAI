@@ -12,8 +12,6 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/CellVariable.h"
 
-#include <caliper/cali.h>
-
 using namespace SAMRAI;
 
 class Stencil :

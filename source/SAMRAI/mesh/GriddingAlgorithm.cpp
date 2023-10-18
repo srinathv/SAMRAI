@@ -22,16 +22,16 @@
 #include "SAMRAI/pdat/CellConstantRefine.h"
 #include "SAMRAI/xfer/PatchInteriorVariableFillPattern.h"
 #include "SAMRAI/xfer/PatchLevelInteriorFillPattern.h"
+#include "SAMRAI/tbox/AllocatorDatabase.h"
 #include "SAMRAI/tbox/Collectives.h"
 #include "SAMRAI/tbox/NVTXUtilities.h"
-#include "SAMRAI/tbox/AllocatorDatabase.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <iomanip>
 
-#include <caliper/cali.h>
 #if !defined(__BGL_FAMILY__) && defined(__xlC__)
 /*
  * Suppress XLC warnings
@@ -1109,7 +1109,7 @@ GriddingAlgorithm::regridAllFinerLevels(
    const std::vector<double>& regrid_start_time,
    const bool level_is_coarsest_sync_level)
 {
-   CALI_CXX_MARK_FUNCTION;
+   SAMRAI_CALI_CXX_MARK_FUNCTION;
    TBOX_ASSERT((level_number >= 0)
       && (level_number <= d_hierarchy->getFinestLevelNumber()));
    TBOX_ASSERT(d_hierarchy->getPatchLevel(level_number));
@@ -1190,7 +1190,7 @@ GriddingAlgorithm::regridAllFinerLevels(
        * levels which have been modified.
        */
 
-CALI_MARK_BEGIN("regrid");
+      SAMRAI_CALI_MARK_BEGIN("regrid");
       if (d_hierarchy->getFinestLevelNumber() >= (level_number + 1)) {
          if (d_barrier_and_time) {
             t_reset_hier->barrierAndStart();
@@ -1203,7 +1203,7 @@ CALI_MARK_BEGIN("regrid");
             t_reset_hier->stop();
          }
       }
-CALI_MARK_END("regrid");
+      SAMRAI_CALI_MARK_END("regrid");
 
       d_base_ln = -1;
 
@@ -3165,7 +3165,7 @@ GriddingAlgorithm::bufferTagsOnLevel(
     */
    t_buffer_tags->start();
 
-CALI_MARK_BEGIN("setBuffer");
+   SAMRAI_CALI_MARK_BEGIN("setBuffer");
    /*
     * Set temporary buffered tags based on buffer width and
     * distance from actual tags.
@@ -3199,9 +3199,9 @@ CALI_MARK_BEGIN("setBuffer");
         }
      }
    }
-CALI_MARK_END("setBuffer");
+   SAMRAI_CALI_MARK_END("setBuffer");
 
-CALI_MARK_BEGIN("bufferBCdata");
+   SAMRAI_CALI_MARK_BEGIN("bufferBCdata");
    /*
     * Communicate boundary data for buffered tag array so that tags
     * near patch boundaries will become buffered properly.
@@ -3254,10 +3254,9 @@ CALI_MARK_BEGIN("bufferBCdata");
       tbox::parallel_synchronize();
 #endif
    }
+   SAMRAI_CALI_MARK_END("bufferBCdata");
 
-CALI_MARK_END("bufferBCdata");
-
-CALI_MARK_BEGIN("bufferAdjust");
+   SAMRAI_CALI_MARK_BEGIN("bufferAdjust");
    /*
     * If a cell has a true boolean tag and a false user tag, the tag is
     * a result of buffering and is set to the d_buffer_tag value in the
@@ -3287,7 +3286,7 @@ CALI_MARK_BEGIN("bufferAdjust");
         }
      }
    }
-CALI_MARK_END("bufferAdjust");
+   SAMRAI_CALI_MARK_END("bufferAdjust");
    t_buffer_tags->stop();
 }
 

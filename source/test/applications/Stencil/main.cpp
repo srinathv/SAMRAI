@@ -64,9 +64,6 @@
 #include <cuda_profiler_api.h>
 #endif
 
-#include <caliper/cali.h>
-#include <caliper/cali-manager.h>
-
 using namespace std;
 using namespace SAMRAI;
 
@@ -81,15 +78,6 @@ int main(
 
   tbox::SAMRAI_MPI::init(&argc, &argv);
   tbox::SAMRAIManager::initialize();
-
-  //cali::ConfigManager mgr;
-    //mgr.add(argv[1]);
-    //if (mgr.error())
-    //    std::cerr << "Caliper error: " << mgr.error_msg() << std::endl;
-
-    // Start configured performance measurements, if any
-    //mgr.start();
-
 
   /*
    * Set tag allocator to use pinned memory.
@@ -312,9 +300,9 @@ int main(
      * Initialize hierarchy configuration and data on all patches.
      * Then, close restart file and write initial state for visualization.
      */
-CALI_MARK_BEGIN("initHierarcy");
+    SAMRAI_CALI_MARK_BEGIN("initHierarchy");
     double dt_now = time_integrator->initializeHierarchy();
-CALI_MARK_END("initHierarcy");
+    SAMRAI_CALI_MARK_END("initHierarchy");
 
     tbox::RestartManager::getManager()->closeRestartFile();
 
@@ -371,9 +359,9 @@ CALI_MARK_END("initHierarcy");
 //      if (iteration_num == 11)
 //        cudaProfilerStart();
 //#endif
-CALI_MARK_BEGIN("advance");
+      SAMRAI_CALI_MARK_BEGIN("advance");
       double dt_new = time_integrator->advanceHierarchy(dt_now);
-CALI_MARK_END("advance");
+      SAMRAI_CALI_MARK_END("advance");
 //#if defined(HAVE_CUDA)
 //      if (iteration_num == 13)
 //        cudaProfilerStop();

@@ -23,8 +23,6 @@
 
 #include <cmath>
 
-#include <caliper/cali.h>
-
 // #define DEBUG_TIMES
 
 namespace SAMRAI {
@@ -301,29 +299,29 @@ TimeRefinementIntegrator::advanceHierarchy(
 
    d_level_sim_time[0] = d_integrator_time;
 
-CALI_MARK_BEGIN("makeCoarsestLevel");
+   SAMRAI_CALI_MARK_BEGIN("makeCoarsestLevel");
    if (rebalance_coarsest) {
       d_gridding_algorithm->makeCoarsestLevel(
          d_level_sim_time[0]);
    }
-CALI_MARK_END("makeCoarsestLevel");
+   SAMRAI_CALI_MARK_END("makeCoarsestLevel");
 
    double dt_new;
 
    if (!d_use_refined_timestepping) {
 
-CALI_MARK_BEGIN("adavanceForSync");
+      SAMRAI_CALI_MARK_BEGIN("adavanceForSync");
       dt_new = advanceForSynchronizedTimestepping(d_level_sim_time[0] + dt);
-CALI_MARK_END("adavanceForSync");
+      SAMRAI_CALI_MARK_END("adavanceForSync");
 
       if (d_integrator_time + dt_new > d_end_time) {
          dt_new = d_end_time - d_integrator_time;
       }
 
    } else {
-      CALI_MARK_BEGIN("adavanceRecursively");
+      SAMRAI_CALI_MARK_BEGIN("adavanceRecursively");
       advanceRecursivelyForRefinedTimestepping(0, d_level_sim_time[0] + dt);
-      CALI_MARK_END("adavanceRecursively");
+      SAMRAI_CALI_MARK_END("adavanceRecursively");
 
       d_integrator_time += dt;
       dt_new = tbox::MathUtilities<double>::Min(d_dt_actual_level[0],
@@ -1123,7 +1121,7 @@ TimeRefinementIntegrator::advanceForSynchronizedTimestepping(
 
    int coarse_level_number = 0;
 
-CALI_MARK_BEGIN("syncLevels");
+   SAMRAI_CALI_MARK_BEGIN("syncLevels");
    if (finest_level_number > 0) {
 
 #ifdef DEBUG_TIMES
@@ -1140,7 +1138,7 @@ CALI_MARK_BEGIN("syncLevels");
          d_integrator_time,
          old_times);
    }
-CALI_MARK_END("syncLevels");
+   SAMRAI_CALI_MARK_END("syncLevels");
    /*
     * Store the time from the previous step(s) in the "old_time"
     * array.  This information may be used during the re-gridding
@@ -1264,7 +1262,7 @@ CALI_MARK_END("syncLevels");
       /*
        * Synchronize data on new levels.
        */
-       CALI_MARK_BEGIN("syncPostRegrid");
+      SAMRAI_CALI_MARK_BEGIN("syncPostRegrid");
       if (d_patch_hierarchy->getFinestLevelNumber() > 0) {
 
 
@@ -1281,7 +1279,7 @@ CALI_MARK_END("syncLevels");
             d_integrator_time,
             initial_time);
       }
-CALI_MARK_END("syncPostRegrid");
+      SAMRAI_CALI_MARK_END("syncPostRegrid");
    }
    RANGE_POP;
    return dt_new;

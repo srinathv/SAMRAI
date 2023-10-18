@@ -13,8 +13,9 @@ if (ENABLE_CUDA)
   set(stencil_depends ${stencil_depends} cuda)
 endif ()
 
-find_package(caliper)
+if (ENABLE_CALIPER)
 set(stencil_depends ${stencil_depends} caliper)
+endif ()
 
 blt_add_executable(
   NAME stencil
