@@ -22,5 +22,3 @@ blt_register_library(
       SAMRAI_hier
       SAMRAI_pdat
       SAMRAI_tbox)
-
-

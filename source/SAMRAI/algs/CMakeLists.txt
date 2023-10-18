@@ -52,7 +52,6 @@ process_m4(NAME fortran/algs_upfluxsum1d)
 process_m4(NAME fortran/algs_upfluxsum2d)
 process_m4(NAME fortran/algs_upfluxsum3d)
 
-
 blt_add_library( NAME SAMRAI_algs
   SOURCES ${algs_sources}
   HEADERS ${algs_headers}

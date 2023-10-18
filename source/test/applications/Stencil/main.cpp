@@ -117,7 +117,7 @@ int main(
         restart_read_dirname = argv[2];
         restore_num = atoi(argv[3]);
 
-        is_from_restart = false;
+        is_from_restart = true;
       }
     }
 
@@ -460,9 +460,6 @@ int main(
   } else {
     tbox::pout << "\nFAILED:  Stencil" << std::endl;
   }
-
- // Flush output before finalizing MPI
-    //mgr.flush();
 
   tbox::SAMRAIManager::shutdown();
 
