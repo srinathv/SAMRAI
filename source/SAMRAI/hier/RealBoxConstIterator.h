@@ -47,6 +47,17 @@ class RealBoxConstIterator
    friend class BoxContainer;
 
 public:
+
+   /*!
+    * @brief Copy constructor
+    */
+   RealBoxConstIterator(
+      const RealBoxConstIterator& other):
+   d_boxes(other.d_boxes),
+   d_ni(other.d_ni)
+   {
+   }
+
    /*!
     * @brief Destructor.
     */

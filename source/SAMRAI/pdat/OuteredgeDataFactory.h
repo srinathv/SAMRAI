@@ -72,7 +72,7 @@ public:
     * @brief
     * Virtual destructor for the outeredge data factory class.
     */
-   virtual ~OuteredgeDataFactory<TYPE>();
+   virtual ~OuteredgeDataFactory();
 
    /**
     * @brief Abstract virtual function to clone a patch data factory.

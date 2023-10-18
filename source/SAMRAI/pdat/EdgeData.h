@@ -158,7 +158,7 @@ public:
    /*!
     * @brief The virtual destructor for an edge data object.
     */
-   virtual ~EdgeData<TYPE>();
+   virtual ~EdgeData();
 
    /*!
     * @brief Return the depth (e.g., the number of components in each spatial

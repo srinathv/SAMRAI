@@ -55,7 +55,7 @@ public:
    /*!
     * @brief Virtual destructor for outeredge variable objects.
     */
-   virtual ~OuteredgeVariable<TYPE>();
+   virtual ~OuteredgeVariable();
 
    /*!
     * @brief Return a boolean true value indicating that fine patch

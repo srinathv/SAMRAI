@@ -57,7 +57,7 @@ public:
    /*!
     * @brief Virtual destructor for edge variable objects.
     */
-   virtual ~EdgeVariable<TYPE>();
+   virtual ~EdgeVariable();
 
    /*!
     * @brief Return boolean indicating which edge data values (coarse

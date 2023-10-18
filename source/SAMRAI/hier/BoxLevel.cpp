@@ -1596,6 +1596,21 @@ BoxLevel::getFromRestart(
 
 /*
  ***********************************************************************
+ * Outputter copy constructor
+ ***********************************************************************
+ */
+
+BoxLevel::Outputter::Outputter(
+   const BoxLevel::Outputter& other):
+   d_level(other.d_level),
+   d_border(other.d_border),
+   d_detail_depth(other.d_detail_depth),
+   d_output_statistics(other.d_output_statistics)
+{
+}
+
+/*
+ ***********************************************************************
  * Construct a BoxLevel Outputter with formatting parameters.
  ***********************************************************************
  */

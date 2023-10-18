@@ -64,7 +64,7 @@ public:
     */
    PatchSideDataMiscellaneousOpsReal();
 
-   virtual ~PatchSideDataMiscellaneousOpsReal<TYPE>();
+   virtual ~PatchSideDataMiscellaneousOpsReal();
 
    /**
     * Return 1 if \f$\|data2_i\| > 0\f$ and \f$data1_i * data2_i \leq 0\f$, for

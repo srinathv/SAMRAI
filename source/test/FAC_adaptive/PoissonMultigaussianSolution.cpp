@@ -68,7 +68,7 @@ void PoissonMultigaussianSolution::setFromDatabase(
       std::string istr = database.getString(singlegauss);
       std::istringstream ist(istr);
       ist >> gauss;
-      d_gauss_append(gauss);
+      d_gauss.push_back(gauss);
       singlegauss = "GaussianFcnControl_"
          + tbox::Utilities::intToString(static_cast<int>(d_gauss_size));
    } while (database.isString(singlegauss));

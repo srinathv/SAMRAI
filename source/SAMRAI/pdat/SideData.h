@@ -209,7 +209,7 @@ public:
    /*!
     * @brief The virtual destructor for a side data object.
     */
-   virtual ~SideData<TYPE>();
+   virtual ~SideData();
 
    /*!
     * @brief Return constant reference to vector describing which coordinate

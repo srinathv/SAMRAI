@@ -61,7 +61,7 @@ public:
     */
    PatchFaceDataOpsReal();
 
-   virtual ~PatchFaceDataOpsReal<TYPE>() {
+   virtual ~PatchFaceDataOpsReal() {
    }
 
    /**

@@ -74,7 +74,7 @@ public:
    /*!
     * @brief Virtual destructor for face variable objects.
     */
-   virtual ~FaceVariable<TYPE>();
+   virtual ~FaceVariable();
 
    /*!
     * @brief Return boolean indicating which face data values (coarse

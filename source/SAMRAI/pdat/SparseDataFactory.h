@@ -53,7 +53,7 @@ public:
    /*!
     * @brief Default destructor
     */
-   ~SparseDataFactory<BOX_GEOMETRY>();
+   ~SparseDataFactory();
 
    /*!
     * @brief Clone a patch data factory

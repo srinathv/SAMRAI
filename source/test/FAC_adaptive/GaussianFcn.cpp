@@ -42,6 +42,15 @@ GaussianFcn::GaussianFcn(
    fill_n(d_center, d_dim.getValue(), 0.0)
 }
 
+GaussianFcn::GaussianFcn(
+   const GaussianFcn& other):
+   d_dim(other.d_dim),
+   d_amp(other.d_amp),
+   d_lambda(other.d_lambda)
+{
+   copy_n(other.d_center, d_dim.getValue(), d_center)
+}
+
 int GaussianFcn::setAmplitude(
    const double amp) {
    d_amp = amp;

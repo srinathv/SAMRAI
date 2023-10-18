@@ -893,8 +893,8 @@ AsyncCommPeer<TYPE>::logCurrentState(
       << "  communicator=" << d_mpi.getCommunicator()
       << "  extern. buff=" << d_external_buf
       << "  size=" << d_full_count
-      << "  request,status-0=" << (void *)req[0]
-      << "  request,status-1=" << (void *)req[1]
+      << "  request,status-0=" << (void *)&req[0]
+      << "  request,status-1=" << (void *)&req[1]
    ;
    co << '\n';
 }

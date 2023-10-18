@@ -377,7 +377,8 @@ void CartesianSideDoubleConservativeLinearRefine::refine(
 
                      const int ir0 = j - ic0 * r0;
                      const int ir1 = k - ic1 * r1;
-                     double deltax0, deltax1;
+                     double deltax0 = 0.0;
+		     double deltax1 = 0.0;
 
                      if (axis == 0 && directions0) {
                         deltax1 = (static_cast<double>(ir1) + 0.5) * fdx1 - cdx1 * 0.5;
@@ -605,7 +606,9 @@ void CartesianSideDoubleConservativeLinearRefine::refine(
                      const int ir0 = i - ic0 * r0;
                      const int ir1 = j - ic1 * r1;
                      const int ir2 = k - ic2 * r2;
-                     double deltax0, deltax1, deltax2;
+                     double deltax0 = 0.0;
+                     double deltax1 = 0.0;
+                     double deltax2 = 0.0;
 
                      if (axis == 0 && directions0) {
                         deltax0 = static_cast<double>(ir0) * fdx0;

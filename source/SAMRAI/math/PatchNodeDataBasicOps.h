@@ -55,7 +55,7 @@ public:
     */
    PatchNodeDataBasicOps();
 
-   virtual ~PatchNodeDataBasicOps<TYPE>();
+   virtual ~PatchNodeDataBasicOps();
 
    /**
     * Set dst = alpha * src, elementwise.

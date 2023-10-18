@@ -63,7 +63,7 @@ public:
     */
    PatchEdgeDataNormOpsReal();
 
-   virtual ~PatchEdgeDataNormOpsReal<TYPE>();
+   virtual ~PatchEdgeDataNormOpsReal();
 
    /**
     * Return the number of data values for the edge-centered data object

@@ -535,10 +535,15 @@ Schedule::postSends()
 
    }
 
+#if defined(HAVE_RAJA)
    bool need_sync = true;
+#endif
+
    if (d_ops_strategy) {
       d_ops_strategy->postPack();
+#if defined(HAVE_RAJA)
       need_sync = d_ops_strategy->needSynchronize();
+#endif
    }
 
    if (defer_send) {
@@ -596,17 +601,24 @@ Schedule::performLocalCopies()
    }
 
    // need_sync initialized true unless both sets are empty.
+#if defined(HAVE_RAJA) 
    bool need_sync = !(d_local_set_fuseable.empty() && d_local_set.empty());
+#endif
+
    if (d_ops_strategy) {
       d_ops_strategy->postCopy();
       // d_ops_strategy may indicate sync no longer needed.
+#if defined(HAVE_RAJA)
       need_sync = d_ops_strategy->needSynchronize();
+#endif
    }
+
 #if defined(HAVE_RAJA)
    if (need_sync) {
       parallel_synchronize();
    }
 #endif
+
    d_object_timers->t_local_copies->stop();
 
 }
@@ -632,7 +644,6 @@ Schedule::processCompletedCommunications()
       // Unpack in deterministic order.  Wait for receive as needed.
       // Deterministic order is lowest to highest recv rank
 
-      int irecv = 0;
       for (auto& comms : d_recv_coms) {
          if (d_ops_strategy) {
             d_ops_strategy->preUnpack();
@@ -665,13 +676,18 @@ Schedule::processCompletedCommunications()
          }
 
          // need_sync initialized true unless both sets are empty.
+#if defined(HAVE_RAJA)
          bool need_sync = !(d_recv_sets_fuseable[sender].empty() &&
                             d_recv_sets[sender].empty());
+#endif
          if (d_ops_strategy) {
             d_ops_strategy->postUnpack();
             // d_ops_strategy may indicate sync no longer needed.
+#if defined(HAVE_RAJA)
             need_sync = d_ops_strategy->needSynchronize();
+#endif
          }
+
 #if defined(HAVE_RAJA)
          if (need_sync) {
             parallel_synchronize();
@@ -742,12 +758,18 @@ Schedule::processCompletedCommunications()
 
       // need_sync initialized true unless there were no transactions found
       // in the above loop.
+#if defined(HAVE_RAJA)
       bool need_sync = have_fuseable || have_nonfuseable;
+#endif
+
       if (d_ops_strategy) {
          d_ops_strategy->postUnpack();
          // d_ops_strategy may indicate sync no longer needed.
+#if defined(HAVE_RAJA)
          need_sync = d_ops_strategy->needSynchronize();
+#endif
       }
+
 #if defined(HAVE_RAJA)
       if (need_sync) {
          parallel_synchronize();
@@ -788,7 +810,7 @@ Schedule::allocateCommunicationObjects()
       d_recv_coms[rank] = peer;
    }
 
-   for (const auto transaction : d_recv_sets_fuseable) {
+   for (const auto& transaction : d_recv_sets_fuseable) {
       int rank = transaction.first;
       
       if (d_recv_coms.find(rank) == d_recv_coms.end()) {

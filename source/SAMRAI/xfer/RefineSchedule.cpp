@@ -2104,6 +2104,8 @@ RefineSchedule::fillData(
    if (copied) {
       tbox::parallel_synchronize();
    }
+#else
+   NULL_USE(copied);
 #endif
 
    /*
@@ -2152,8 +2154,6 @@ RefineSchedule::recursiveFill(
    double fill_time,
    bool do_physical_boundary_fill) const
 {
-   int rank = d_dst_level->getBoxLevel()->getMPI().getRank();
-
    /*
     * Copy data from the source interiors of the source level into the ghost
     * cells and interiors of the scratch space on the destination level
@@ -2673,7 +2673,6 @@ RefineSchedule::refineScratchData(
    overlaps) const
 {
    t_refine_scratch_data->start();
-   int rank = d_dst_level->getBoxLevel()->getMPI().getRank();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    bool is_encon = (fine_level == d_encon_level);
