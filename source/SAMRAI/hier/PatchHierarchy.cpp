@@ -1315,10 +1315,14 @@ PatchHierarchy::makeNestingSets(
                     na != c_to_f.end(nbh); ++na) {
 
                   const Box& nbr_box = *na;
+                  if (nbr_box.getBlockId() != pbox.getBlockId()) {
+                     continue;
+                  }
+
                   Box crse_nbr(nbr_box);
                   crse_nbr.coarsen(ratio);
-
                   Box overlap(crse_nbr*pbox);
+
                   if (!overlap.empty()) {
 
                      if (domain_db->keyExists("nestsets")) {
@@ -1370,16 +1374,17 @@ PatchHierarchy::makeNestingSets(
 
                      IntVector box_width(overlap.numberCells());
 
-                     ratio_db->putInteger("i", ratio[0]);
+                     IntVector block_ratio(ratio.getBlockVector(pbox.getBlockId()));
+                     ratio_db->putInteger("i", block_ratio[0]);
                      origin_db->putInteger("i", overlap.lower(0)-pbox.lower(0));
                      width_db->putInteger("i", box_width[0]);
                      if (d_dim.getValue() > 1) {
-                        ratio_db->putInteger("j", ratio[1]);
+                        ratio_db->putInteger("j", block_ratio[1]);
                         origin_db->putInteger("j", overlap.lower(1)-pbox.lower(1));
                         width_db->putInteger("j", box_width[1]);
                      }
                      if (d_dim.getValue() > 2) {
-                        ratio_db->putInteger("k", ratio[2]);
+                        ratio_db->putInteger("k", block_ratio[2]);
                         origin_db->putInteger("k", overlap.lower(2)-pbox.lower(2));
                         width_db->putInteger("k", box_width[2]);
                      }
@@ -1445,10 +1450,14 @@ PatchHierarchy::makeNestingSets(
                     na != f_to_c.end(nbh); ++na) {
 
                   const Box& nbr_box = *na;
+                  if (nbr_box.getBlockId() != pbox.getBlockId()) {
+                     continue;
+                  }
+
                   Box fine_nbr(nbr_box);
                   fine_nbr.refine(ratio);
-
                   Box overlap(fine_nbr*pbox);
+
                   if (!overlap.empty()) {
 
                      std::shared_ptr<tbox::Database> nestsets_db;
@@ -1500,16 +1509,18 @@ PatchHierarchy::makeNestingSets(
 
                      IntVector box_width(overlap.numberCells());
 
-                     ratio_db->putInteger("i", ratio[0]);
+                     IntVector block_ratio(ratio.getBlockVector(pbox.getBlockId()));
+
+                     ratio_db->putInteger("i", block_ratio[0]);
                      origin_db->putInteger("i", overlap.lower(0)-pbox.lower(0));
                      width_db->putInteger("i", box_width[0]);
                      if (d_dim.getValue() > 1) {
-                        ratio_db->putInteger("j", ratio[1]);
+                        ratio_db->putInteger("j", block_ratio[1]);
                         origin_db->putInteger("j", overlap.lower(1)-pbox.lower(1));
                         width_db->putInteger("j", box_width[1]);
                      }
                      if (d_dim.getValue() > 2) {
-                        ratio_db->putInteger("k", ratio[2]);
+                        ratio_db->putInteger("k", block_ratio[2]);
                         origin_db->putInteger("k", overlap.lower(2)-pbox.lower(2));
                         width_db->putInteger("k", box_width[2]);
                      }
