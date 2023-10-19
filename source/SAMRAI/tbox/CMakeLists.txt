@@ -155,6 +155,10 @@ if (ENABLE_RAJA)
   set(tbox_depends ${tbox_depends} raja)
 endif ()
 
+if (ENABLE_CALIPER)
+  set(tbox_depends ${tbox_depends} caliper)
+endif ()
+
 if (ENABLE_CUDA)
   set(cuda_sources GPUUtilities.cpp Schedule.cpp TransactionFuseable.cpp)
   set_source_files_properties(${cuda_sources} PROPERTIES LANGUAGE CUDA)

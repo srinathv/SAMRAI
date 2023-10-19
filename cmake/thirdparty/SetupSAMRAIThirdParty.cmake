@@ -60,6 +60,18 @@ if (ENABLE_RAJA OR RAJA_DIR)
   endif ()
 endif ()
 
+if (ENABLE_CALIPER OR caliper_DIR)
+  find_package(caliper REQUIRED)
+
+  set (HAVE_CALIPER True)
+  set (ENABLE_CALIPER On)
+
+  blt_register_library(
+    NAME caliper
+    INCLUDES ${CALIPER_INCLUDE_DIRS}
+    LIBRARIES caliper)
+endif ()
+
 # CUDA is setup by BLT
 if (ENABLE_CUDA)
   if (NOT ENABLE_UMPIRE)

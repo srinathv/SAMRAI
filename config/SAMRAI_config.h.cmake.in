@@ -145,6 +145,9 @@
 /* Use Umpire for memory management */
 #cmakedefine HAVE_UMPIRE
 
+/* Use Caliper */
+#cmakedefine HAVE_CALIPER
+
 /* PETSC library is available so use it */
 #cmakedefine HAVE_PETSC
 
