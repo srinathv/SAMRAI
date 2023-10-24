@@ -405,6 +405,7 @@ HyperbolicLevelIntegrator::resetHierarchyConfiguration(
    const int coarsest_level,
    const int finest_level)
 {
+   SAMRAI_CALI_CXX_MARK_FUNCTION;
    NULL_USE(finest_level);
 
    TBOX_ASSERT(hierarchy);

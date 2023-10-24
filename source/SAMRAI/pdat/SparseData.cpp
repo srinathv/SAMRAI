@@ -490,7 +490,6 @@ SparseData<BOX_GEOMETRY>::packStream(
    const hier::BoxContainer& boxes = tmp_overlap->getDestinationBoxContainer();
 
    int num_items = 0;
-   int num_attributes = 0;
 
    for (hier::BoxContainer::const_iterator overlap_box = boxes.begin();
         overlap_box != boxes.end(); ++overlap_box) {
@@ -503,7 +502,6 @@ SparseData<BOX_GEOMETRY>::packStream(
       for ( ; iter != iend; ++iter) {
          if (box.contains(iter->first)) {
             ++num_items;
-            num_attributes += static_cast<int>(iter->second.size());
          }
       }
    }
