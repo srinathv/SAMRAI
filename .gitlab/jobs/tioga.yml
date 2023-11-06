@@ -25,8 +25,9 @@ variables:
 # "./path/to/my_ci_script ${A_VARIABLE}"
 
 ####
-# Build and test jobs for specific compilers, extends generic tioga build and test job
-cce_16_0_0_rocm_5_6_0 (build_only on tioga):
+# Build and test jobs for specific compilers, extends generic tioga build and
+# test job
+cce_16_0_0_rocm_5_6_0:
   variables:
     COMPILER: "cce-16.0.0-rocm-5.6.0"
   extends: .job_on_tioga

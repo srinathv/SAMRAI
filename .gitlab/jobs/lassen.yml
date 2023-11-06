@@ -25,8 +25,9 @@ variables:
 # "./path/to/my_ci_script ${A_VARIABLE}"
 
 ####
-# Build and test jobs for specific compilers, extends generic lassen build and test job
-clang-cuda (build_and_test on lassen):
+# Build and test jobs for specific compilers, extends generic lassen build and
+# test job
+clang-cuda:
   variables:
     COMPILER: "clang-cuda"
   extends: .job_on_lassen
