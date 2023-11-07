@@ -14,31 +14,31 @@ variables:
 
 # Ruby
 # Arguments for top level allocation
-  RUBY_SHARED_ALLOC: "--partition=pdebug --time=30 --nodes=1"
+  RUBY_SHARED_ALLOC: "--exclusive --reservation=ci --qos=ci_ruby --time=21 --nodes=1"
 # Arguments for job level allocation
-  RUBY_JOB_ALLOC: "--overlap --time=28 --nodes=1"
+  RUBY_JOB_ALLOC: "--overlap --reservation=ci --qos=ci_ruby --time=20 --nodes=1"
 # Add variables that should apply to all the jobs on a machine:
 #  RUBY_MY_VAR: "..."
 
 # Corona
 # Arguments for top level allocation
-  CORONA_SHARED_ALLOC: "--exclusive --time-limit=30m --nodes=1"
+  CORONA_SHARED_ALLOC: "--exclusive --time-limit=10m --nodes=1"
 # Arguments for job level allocation
-  CORONA_JOB_ALLOC: "--overlap --time-limit=28m --nodes=1"
+  CORONA_JOB_ALLOC: "--overlap --time-limit=9m --nodes=1"
 # Add variables that should apply to all the jobs on a machine:
 #  CORONA_MY_VAR: "..."
 
 # Tioga
 # Arguments for top level allocation
-  TIOGA_SHARED_ALLOC: "--exclusive --time-limit=120m --nodes=1"
+  TIOGA_SHARED_ALLOC: "--exclusive --time-limit=10m --nodes=1"
 # Arguments for job level allocation
-  TIOGA_JOB_ALLOC: "--time-limit=118m --nodes=1 --begin-time=+5s"
+  TIOGA_JOB_ALLOC: "--time-limit=9m --nodes=1 --begin-time=+5s"
 # Add variables that should apply to all the jobs on a machine:
 #  TIOGA_MY_VAR: "..."
 
 # Lassen uses a different job scheduler (spectrum lsf) that does not allow
 # pre-allocation the same way slurm does. Arguments for job level allocation
-  LASSEN_JOB_ALLOC: "1 -W 120"
+  LASSEN_JOB_ALLOC: "1 -W 80"
 # Add variables that should apply to all the jobs on a machine:
 #  LASSEN_MY_VAR: "..."
 
