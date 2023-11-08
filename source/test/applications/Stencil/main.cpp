@@ -300,8 +300,9 @@ int main(
      * Initialize hierarchy configuration and data on all patches.
      * Then, close restart file and write initial state for visualization.
      */
-
+    SAMRAI_CALI_MARK_BEGIN("initHierarchy");
     double dt_now = time_integrator->initializeHierarchy();
+    SAMRAI_CALI_MARK_END("initHierarchy");
 
     tbox::RestartManager::getManager()->closeRestartFile();
 
@@ -358,7 +359,9 @@ int main(
 //      if (iteration_num == 11)
 //        cudaProfilerStart();
 //#endif
+      SAMRAI_CALI_MARK_BEGIN("advance");
       double dt_new = time_integrator->advanceHierarchy(dt_now);
+      SAMRAI_CALI_MARK_END("advance");
 //#if defined(HAVE_CUDA)
 //      if (iteration_num == 13)
 //        cudaProfilerStop();

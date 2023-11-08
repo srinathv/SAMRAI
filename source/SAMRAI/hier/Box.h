@@ -1469,12 +1469,21 @@ private:
  * @see Box
  */
 
-class BoxIterator : public std::iterator<std::random_access_iterator_tag, Index>
+class BoxIterator
 {
    friend class Box;
 
 public:
    typedef tbox::Dimension::dir_t dir_t;
+
+   // std::iterator start
+   using iterator_category = std::random_access_iterator_tag;
+   using value_type = Index;
+   using difference_type = std::size_t;
+   using pointer = Index*;
+   using reference = Index&;
+   // std::iterator end
+
    /**
     * Copy constructor for the box iterator.
     */

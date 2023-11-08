@@ -1543,6 +1543,21 @@ Connector::recursivePrint(
 
 /*
  ***********************************************************************
+ * Outputter copy constructor
+ ***********************************************************************
+ */
+
+Connector::Outputter::Outputter(
+   const Connector::Outputter& other): 
+   d_conn(other.d_conn),
+   d_border(other.d_border),
+   d_detail_depth(other.d_detail_depth),
+   d_output_statistics(other.d_output_statistics)
+{
+}
+
+/*
+ ***********************************************************************
  * Construct a Connector Outputter with formatting parameters.
  ***********************************************************************
  */

@@ -1652,6 +1652,12 @@ public:
 private:
       friend class BoxLevel;
       /*!
+       * @brief Copy constructor
+       */
+      Outputter(
+         const Outputter& other);
+
+      /*!
        * @brief Construct the Outputter with a BoxLevel and the
        * parameters needed to output the BoxLevel to a stream.
        *

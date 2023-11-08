@@ -13,6 +13,10 @@ if (ENABLE_CUDA)
   set(stencil_depends ${stencil_depends} cuda)
 endif ()
 
+if (ENABLE_CALIPER)
+set(stencil_depends ${stencil_depends} caliper)
+endif ()
+
 blt_add_executable(
   NAME stencil
   SOURCES ${stencil_sources}
