@@ -9,13 +9,7 @@
 
 variables:
   # Define the build option for all the jobs on this machine
-  BUILD_OPTION: "--build-only"
-
-# Because we are in --build-only mode, there will be no ctest report.We
-# override the artifact behavior to not look for such report. (See
-# .gitlab/custon-jobs-and-variables.yml for the default implementation).
-.custom_job:
-  artifacts: null
+  BUILD_OPTION: ""
 
 ###############
 # Explanations:

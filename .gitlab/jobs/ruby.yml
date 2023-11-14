@@ -8,6 +8,7 @@
 #########################################################################
 
 variables:
+  # Define the build option for all the jobs on this machine
   BUILD_OPTION: ""
 
 ###############

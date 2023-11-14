@@ -24,7 +24,7 @@ variables:
 # Arguments for top level allocation
   CORONA_SHARED_ALLOC: "--exclusive --time-limit=10m --nodes=1"
 # Arguments for job level allocation
-  CORONA_JOB_ALLOC: "--overlap --time-limit=9m --nodes=1"
+  CORONA_JOB_ALLOC: "--overlap --time-limit=9m --nodes=1 --begin-time=+5s"
 # Add variables that should apply to all the jobs on a machine:
 #  CORONA_MY_VAR: "..."
 
@@ -32,7 +32,7 @@ variables:
 # Arguments for top level allocation
   TIOGA_SHARED_ALLOC: "--exclusive --time-limit=10m --nodes=1"
 # Arguments for job level allocation
-  TIOGA_JOB_ALLOC: "--time-limit=9m --nodes=1 --begin-time=+5s"
+  TIOGA_JOB_ALLOC: "--overlap --time-limit=9m --nodes=1 --begin-time=+5s"
 # Add variables that should apply to all the jobs on a machine:
 #  TIOGA_MY_VAR: "..."
 
