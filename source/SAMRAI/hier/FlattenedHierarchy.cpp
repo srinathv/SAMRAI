@@ -37,12 +37,14 @@ FlattenedHierarchy::FlattenedHierarchy(
    TBOX_ASSERT(finest_level < num_levels);
 
    d_visible_boxes.resize(num_levels);
+   std::vector<int> local_num_boxes(num_levels, 0);
 
-   LocalId local_id(0);
-
-   for (int ln = finest_level; ln >= coarsest_level; --ln) {
+   for (int ln = coarsest_level; ln <= finest_level; ++ln) {
       const std::shared_ptr<PatchLevel>& current_level =
          hierarchy.getPatchLevel(ln);
+
+      LocalId local_id(0);
+      int& num_boxes = local_num_boxes[ln];
 
       if (ln != finest_level) {
 
@@ -92,6 +94,7 @@ FlattenedHierarchy::FlattenedHierarchy(
                Box new_box(*itr, local_id, box_id.getOwnerRank());
                ++local_id;
                visible_boxes.insert(visible_boxes.end(), new_box);
+               ++num_boxes;
             }
          }
       } else {
@@ -105,6 +108,44 @@ FlattenedHierarchy::FlattenedHierarchy(
             Box new_box(box, local_id, box.getOwnerRank());
             ++local_id;
             visible_boxes.insert(visible_boxes.end(), new_box);
+            ++num_boxes;
+         }
+      }
+   }
+
+   const tbox::SAMRAI_MPI& hier_mpi = hierarchy.getMPI();
+
+   /*
+    * Give each visible box a globally unique LocalId.
+    */
+   if (hier_mpi.getSize() > 1) {
+      std::vector<int> global_num_boxes = local_num_boxes;
+      hier_mpi.AllReduce(
+         &global_num_boxes[0],
+         num_levels,
+         MPI_SUM);
+
+      std::vector<int> scanned_num_boxes(num_levels);
+      hier_mpi.Scan(
+         &local_num_boxes[0],
+         &scanned_num_boxes[0],
+         num_levels, MPI_INT, MPI_SUM);
+
+
+      for (int ln = coarsest_level; ln <= finest_level; ++ln) {
+         auto& level_box_map = d_visible_boxes[ln];
+
+         LocalId local_id(0);
+         for (int i = 0; i < ln; ++i) {
+            local_id += global_num_boxes[i];
+         }
+         local_id += (scanned_num_boxes[ln] - local_num_boxes[ln]);
+
+         for (auto& boxes : level_box_map) {
+            for (auto& box : boxes.second) {
+               box.setLocalId(local_id);
+               ++local_id;
+            }
          }
       }
    }

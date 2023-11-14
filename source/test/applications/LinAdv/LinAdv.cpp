@@ -359,9 +359,9 @@ void LinAdv::registerModelVariables(
       "CONSERVATIVE_COARSEN",
       "NO_REFINE");
 
+#ifdef HAVE_HDF5
    hier::VariableDatabase* vardb = hier::VariableDatabase::getDatabase();
 
-#ifdef HAVE_HDF5
    if (d_visit_writer) {
       d_visit_writer->
       registerPlotQuantity("U",
@@ -3189,8 +3189,10 @@ LinAdv::checkNewPatchTagData(
 void
 LinAdv::putCoordinatesToDatabase(
    std::shared_ptr<tbox::Database>& coords_db,
-   const hier::Patch& patch)
+   const hier::Patch& patch,
+   const hier::Box& box)
 {
+   NULL_USE(box);
 
    std::shared_ptr<geom::CartesianPatchGeometry> pgeom(
       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
