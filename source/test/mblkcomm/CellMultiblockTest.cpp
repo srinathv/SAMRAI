@@ -51,9 +51,7 @@ CellMultiblockTest::CellMultiblockTest(
 
    //d_skel_grid_geometry.resizeArray(num_blocks);
 
-   char geom_name[32];
-
-   sprintf(geom_name, "BlockGridGeometry");
+   std::string geom_name("BlockGridGeometry");
 
    if (main_input_db->keyExists(geom_name)) {
       getGridGeometry().reset(

@@ -2836,7 +2836,7 @@ void MblkEuler::getFromInput(
          for (int i = 0; i < d_number_of_regions; ++i) {
 
             char tmp[20];
-            sprintf(tmp, "region_%d", i + 1);  //
+            snprintf(tmp, 20, "region_%d", i + 1);  //
             std::string lkey = tmp;
             std::shared_ptr<tbox::Database> region_db(
                db->getDatabase(lkey));

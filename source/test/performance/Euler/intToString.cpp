@@ -24,17 +24,7 @@ string intToString(
    int i,
    int min_length)
 {
-#if 1
    ostringstream co;
    co << setw(min_length) << setfill('0') << i;
    return string(co.str());
-
-#else
-   char f[50];
-   sprintf(f, "%%%dd", min_length);
-   char s[50];
-   sprintf(s, f, i);
-   return string(s);
-
-#endif
 }

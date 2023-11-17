@@ -51,7 +51,7 @@ Utilities::recursiveMkdir(
    if ((!only_node_zero_creates) || (mpi.getRank() == 0)) {
       int length = static_cast<int>(path.length());
       char* path_buf = new char[length + 1];
-      sprintf(path_buf, "%s", path.c_str());
+      snprintf(path_buf, length + 1, "%s", path.c_str());
       struct stat status;
       int pos = length - 1;
 

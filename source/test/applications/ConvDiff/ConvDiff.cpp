@@ -340,7 +340,7 @@ void ConvDiff::registerModelVariables(
    char* buffer = new char[size];
 
    for (int n = 0; n < NEQU; ++n) {
-      sprintf(buffer, "%s%01d", dump_name.c_str(), n);
+      snprintf(buffer, size, "%s%01d", dump_name.c_str(), n);
       std::string variable_name(buffer);
 #ifdef HAVE_HDF5
       if (d_visit_writer) {
