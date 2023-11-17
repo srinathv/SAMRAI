@@ -669,7 +669,7 @@ int main(
           */
 #if 0
          char num_buf[8];
-         sprintf(num_buf, "%02d", iteration_num);
+         snprintf(num_buf, 8, "%02d", iteration_num);
          tbox::plog << "Step " << num_buf
                     << " P" << mpi.getRank()
                     << ": " << tbox::SAMRAI_MPI::getIncomingBytes()
@@ -806,10 +806,10 @@ static void dumpMatlabData1dPencil(
    char* buffer = new char[size];
 
    if (mpi.getSize() > 1) {
-      sprintf(buffer, "%s.%04d.dat.%05d", dump_filename.c_str(),
+      snprintf(buffer, size, "%s.%04d.dat.%05d", dump_filename.c_str(),
          ext, mpi.getRank());
    } else {
-      sprintf(buffer, "%s_%04d.dat", dump_filename.c_str(), ext);
+      snprintf(buffer, size, "%s_%04d.dat", dump_filename.c_str(), ext);
    }
 
    /*

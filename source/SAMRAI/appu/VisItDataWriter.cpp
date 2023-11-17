@@ -324,7 +324,7 @@ VisItDataWriter::registerDerivedPlotQuantity(
        */
       char temp_buf[VISIT_NAME_BUFSIZE];
       for (int i = 0; i < plotitem.d_depth; ++i) {
-         sprintf(temp_buf, ".%02d", i);
+         snprintf(temp_buf, VISIT_NAME_BUFSIZE, ".%02d", i);
          plotitem.d_visit_var_name[i] = variable_name + temp_buf;
       }
 
@@ -622,7 +622,7 @@ VisItDataWriter::registerNodeCoordinates(
     */
    char temp_buf[VISIT_NAME_BUFSIZE];
    for (int i = 0; i < plotitem.d_depth; ++i) {
-      sprintf(temp_buf, ".%02d", i);
+      snprintf(temp_buf, VISIT_NAME_BUFSIZE, ".%02d", i);
       plotitem.d_visit_var_name[i] = var_name + temp_buf;
    }
 
@@ -748,7 +748,7 @@ VisItDataWriter::registerSingleNodeCoordinate(
        */
       char temp_buf[VISIT_NAME_BUFSIZE];
       for (int i = 0; i < plotitem.d_depth; ++i) {
-         sprintf(temp_buf, ".%02d", i);
+         snprintf(temp_buf, VISIT_NAME_BUFSIZE, ".%02d", i);
          plotitem.d_visit_var_name[i] = var_name + temp_buf;
       }
 
@@ -772,7 +772,7 @@ VisItDataWriter::registerSingleNodeCoordinate(
 
             std::string var_name = "Coords";
             char temp_buf[VISIT_NAME_BUFSIZE];
-            sprintf(temp_buf, ".%02d", coordinate_number);
+            snprintf(temp_buf, VISIT_NAME_BUFSIZE, ".%02d", coordinate_number);
             ipi->d_visit_var_name[coordinate_number] = var_name + temp_buf;
 
             ipi->d_coord_scale_factor[coordinate_number] = scale_factor;
@@ -1304,7 +1304,7 @@ VisItDataWriter::initializePlotItem(
       if (plotitem.d_depth == 1) {
          plotitem.d_visit_var_name[i] = variable_name;
       } else {
-         sprintf(temp_buf, ".%02d", i);
+         snprintf(temp_buf, VISIT_NAME_BUFSIZE, ".%02d", i);
          plotitem.d_visit_var_name[i] = variable_name + temp_buf;
       }
    }
@@ -1681,7 +1681,7 @@ VisItDataWriter::writeHDFFiles(
       d_processor_in_file_cluster_number[i] = i / d_file_cluster_size;
    }
 
-   sprintf(temp_buf, "%05d", d_time_step_number);
+   snprintf(temp_buf, VISIT_NAME_BUFSIZE, "%05d", d_time_step_number);
    d_current_dump_directory_name = "visit_dump.";
    d_current_dump_directory_name += temp_buf;
    if (!d_top_level_directory_name.empty() &&
@@ -1703,7 +1703,7 @@ VisItDataWriter::writeHDFFiles(
 #endif
    {
       // cluster_leader guaranteed to enter this section before anyone else
-      sprintf(temp_buf, "/processor_cluster.%05d.samrai",
+      snprintf(temp_buf, VISIT_NAME_BUFSIZE, "/processor_cluster.%05d.samrai",
          d_my_file_cluster_number);
       std::string database_name(temp_buf);
       std::string visit_HDFFilename = dump_dirname + database_name;
@@ -1727,7 +1727,7 @@ VisItDataWriter::writeHDFFiles(
       }
 
       // create group for this proc
-      sprintf(temp_buf, "processor.%05d", my_proc);
+      snprintf(temp_buf, VISIT_NAME_BUFSIZE, "processor.%05d", my_proc);
       std::shared_ptr<tbox::Database> processor_HDFGroup(
          visit_HDFFilePointer->putDatabase(std::string(temp_buf)));
       writeVisItVariablesToHDFFile(processor_HDFGroup,
@@ -1830,7 +1830,7 @@ VisItDataWriter::writeVisItVariablesToHDFFile(
       /*
        * create new HDFGroup for this level
        */
-      sprintf(temp_buf, "level.%05d", ln);
+      snprintf(temp_buf, VISIT_NAME_BUFSIZE, "level.%05d", ln);
       level_HDFGroup = processor_HDFGroup->putDatabase(std::string(temp_buf));
 
       std::shared_ptr<hier::PatchLevel> patch_level(
@@ -1846,7 +1846,7 @@ VisItDataWriter::writeVisItVariablesToHDFFile(
           * create new HDFGroup for this patch
           */
          int pn = patch->getLocalId().getValue();
-         sprintf(temp_buf, "patch.%05d", pn);
+         snprintf(temp_buf, VISIT_NAME_BUFSIZE, "patch.%05d", pn);
          patch_HDFGroup = level_HDFGroup->putDatabase(std::string(temp_buf));
 
          int curr_var_id_ctr = d_var_id_ctr;
@@ -2866,7 +2866,7 @@ VisItDataWriter::writeSummaryToHDFFile(
    int my_proc = d_mpi.getRank();
    if (my_proc == VISIT_MASTER) {
       char temp_buf[VISIT_NAME_BUFSIZE];
-      //sprintf(temp_buf, "/summary.samrai");
+      //snprintf(temp_buf, VISIT_NAME_BUFSIZE, "/summary.samrai");
       //string summary_HDFFilename = dump_dirname + temp_buf;
       std::string summary_HDFFilename = dump_dirname + "/" + d_summary_filename;
       std::shared_ptr<tbox::Database> summary_HDFFilePointer(
@@ -2889,7 +2889,7 @@ VisItDataWriter::writeSummaryToHDFFile(
        *   - ratio to coarser level (array - int[nlevels][ndim])
        */
 
-      sprintf(temp_buf, "BASIC_INFO");
+      snprintf(temp_buf, VISIT_NAME_BUFSIZE, "BASIC_INFO");
       std::shared_ptr<tbox::Database> basic_HDFGroup(
          summary_HDFFilePointer->putDatabase(std::string(temp_buf)));
 
@@ -3116,7 +3116,7 @@ VisItDataWriter::writeSummaryToHDFFile(
  *    std::string temp = dump_dirname + "/temp";
  *    std::ofstream dfile(temp.c_str());
  *    char cmdstr[100];
- *    sprintf(cmdstr,"date > %s",temp.c_str());
+ *    snprintf(cmdstr, 100, "date > %s",temp.c_str());
  *    system(cmdstr);
  *    std::ifstream date_file(temp.c_str());
  *    std::string ds1, ds2, ds3, ds4, ds5, ds6;
@@ -3126,7 +3126,7 @@ VisItDataWriter::writeSummaryToHDFFile(
  *    basic_HDFGroup->putString(key_string, date);
  *    dfile.close();
  *    date_file.close();
- *    sprintf(cmdstr,"rm %s",temp.c_str());
+ *    snprintf(cmdstr, 100, "rm %s",temp.c_str());
  *    system(cmdstr);
  */
       const int MAXLEN = 256;
@@ -3143,7 +3143,7 @@ VisItDataWriter::writeSummaryToHDFFile(
        *  - species names
        */
       if (d_materials_names.size() > 0) {
-         sprintf(temp_buf, "materials");
+         snprintf(temp_buf, VISIT_NAME_BUFSIZE, "materials");
          std::shared_ptr<tbox::Database> materials_HDFGroup(
             summary_HDFFilePointer->putDatabase(std::string(temp_buf)));
 
@@ -3171,7 +3171,7 @@ VisItDataWriter::writeSummaryToHDFFile(
             mat_ghosts,
             VISIT_FIXED_DIM);
 
-         sprintf(temp_buf, "species");
+         snprintf(temp_buf, VISIT_NAME_BUFSIZE, "species");
          std::shared_ptr<tbox::Database> species_HDFGroup(
             materials_HDFGroup->putDatabase(std::string(temp_buf)));
 
@@ -3269,7 +3269,7 @@ VisItDataWriter::writeSummaryToHDFFile(
        * for each patch.
        */
 
-      sprintf(temp_buf, "extents");
+      snprintf(temp_buf, VISIT_NAME_BUFSIZE, "extents");
       std::shared_ptr<tbox::Database> extents_HDFGroup(
          summary_HDFFilePointer->putDatabase(std::string(temp_buf)));
       hdf_database =

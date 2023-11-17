@@ -271,31 +271,31 @@ CVODESolver::printCVODEStatistics(
 
    os << "\nCVODESolver: CVODE statistics... " << std::endl;
 
-   sprintf(buf, "lenrw           = %5d     leniw            = %5d\n",
+   snprintf(buf, STAT_OUTPUT_BUFFER_SIZE, "lenrw           = %5d     leniw            = %5d\n",
       getCVODEMemoryUsageForDoubles(),
       getCVODEMemoryUsageForIntegers());
    os << buf;
-   sprintf(buf, "nst             = %5d     nfe              = %5d\n",
+   snprintf(buf, STAT_OUTPUT_BUFFER_SIZE, "nst             = %5d     nfe              = %5d\n",
       getNumberOfInternalStepsTaken(),
       getNumberOfRHSFunctionCalls());
    os << buf;
-   sprintf(buf, "nni             = %5d     nsetups          = %5d\n",
+   snprintf(buf, STAT_OUTPUT_BUFFER_SIZE, "nni             = %5d     nsetups          = %5d\n",
       getNumberOfNewtonIterations(),
       getNumberOfLinearSolverSetupCalls());
    os << buf;
-   sprintf(buf, "netf            = %5d     ncfn             = %5d\n",
+   snprintf(buf, STAT_OUTPUT_BUFFER_SIZE, "netf            = %5d     ncfn             = %5d\n",
       getNumberOfLocalErrorTestFailures(),
       getNumberOfNonlinearConvergenceFailures());
    os << buf;
-   sprintf(buf, "qu              = %5d     qcur             = %5d\n",
+   snprintf(buf, STAT_OUTPUT_BUFFER_SIZE, "qu              = %5d     qcur             = %5d\n",
       getOrderUsedDuringLastInternalStep(),
       getOrderToBeUsedDuringNextInternalStep());
    os << buf;
-   sprintf(buf, "\nhu              = %e      hcur             = %e\n",
+   snprintf(buf, STAT_OUTPUT_BUFFER_SIZE, "\nhu              = %e      hcur             = %e\n",
       getStepSizeForLastInternalStep(),
       getStepSizeForNextInternalStep());
    os << buf;
-   sprintf(buf, "tcur            = %e      tolsf            = %e\n",
+   snprintf(buf, STAT_OUTPUT_BUFFER_SIZE, "tcur            = %e      tolsf            = %e\n",
       getCurrentInternalValueOfIndependentVariable(),
       getCVODESuggestedToleranceScalingFactor());
    os << buf;

@@ -27,6 +27,8 @@
 #define POLY3(i, j, k, imin, jmin, kmin, nx, nxny) \
    ((i - imin) + (j - jmin) * (nx) + (k - kmin) * (nxny))
 
+#define MBLK_GEOM_NUM_CHARS 128
+
 /*
  *************************************************************************
  *
@@ -137,7 +139,7 @@ void MblkGeometry::getFromInput(
       for (hier::BlockId::block_t nb = 0; nb < d_nblocks; ++nb) {
 
          // xlo
-         sprintf(block_name, "domain_xlo_%d", nb);
+         snprintf(block_name, MBLK_GEOM_NUM_CHARS, "domain_xlo_%d", nb);
          if (!cart_db->keyExists(block_name)) {
             TBOX_ERROR(d_object_name << ":  "
                                      << "Key data `" << block_name
@@ -151,7 +153,7 @@ void MblkGeometry::getFromInput(
          }
 
          // xhi
-         sprintf(block_name, "domain_xhi_%d", nb);
+         snprintf(block_name, MBLK_GEOM_NUM_CHARS, "domain_xhi_%d", nb);
          if (!cart_db->keyExists(block_name)) {
             TBOX_ERROR(d_object_name << ":  "
                                      << "Key data `" << block_name
@@ -182,7 +184,7 @@ void MblkGeometry::getFromInput(
       for (hier::BlockId::block_t nb = 0; nb < d_nblocks; ++nb) {
 
          // rmin
-         sprintf(block_name, "rmin_%d", nb);
+         snprintf(block_name, MBLK_GEOM_NUM_CHARS, "rmin_%d", nb);
          if (!wedge_db->keyExists(block_name)) {
             TBOX_ERROR(d_object_name << ":  "
                                      << "Key data `" << block_name
@@ -193,7 +195,7 @@ void MblkGeometry::getFromInput(
          d_wedge_rmin[nb] = wedge_db->getDouble(block_name);
 
          // rmax
-         sprintf(block_name, "rmax_%d", nb);
+         snprintf(block_name, MBLK_GEOM_NUM_CHARS, "rmax_%d", nb);
          if (!wedge_db->keyExists(block_name)) {
             TBOX_ERROR(d_object_name << ":  "
                                      << "Key data `" << block_name
@@ -371,7 +373,7 @@ void MblkGeometry::getFromInput(
       int max_ln = 0;
       int ln;
       for (ln = 0; ln < 10; ++ln) {
-         sprintf(block_name, "refine_boxes_%d_%d", nb, ln);
+         snprintf(block_name, MBLK_GEOM_NUM_CHARS, "refine_boxes_%d_%d", nb, ln);
          if (db->keyExists(block_name)) {
             ++max_ln;
          }
@@ -379,7 +381,7 @@ void MblkGeometry::getFromInput(
       d_refine_boxes[nb].resize(max_ln);
 
       for (ln = 0; ln < max_ln; ++ln) {
-         sprintf(block_name, "refine_boxes_%d_%d", nb, ln);
+         snprintf(block_name, MBLK_GEOM_NUM_CHARS, "refine_boxes_%d_%d", nb, ln);
          if (db->keyExists(block_name)) {
             std::vector<tbox::DatabaseBox> db_box_vector =
                db->getDatabaseBoxVector(block_name);

@@ -46,9 +46,7 @@ SideMultiblockTest::SideMultiblockTest(
       getDatabase("PatchHierarchy")->
       getInteger("max_levels") - 1;
 
-   char geom_name[32];
-
-   sprintf(geom_name, "BlockGridGeometry");
+   std::string geom_name("BlockGridGeometry");
 
    if (main_input_db->keyExists(geom_name)) {
       getGridGeometry().reset(

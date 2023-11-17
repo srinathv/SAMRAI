@@ -121,7 +121,7 @@ SpatialKey::operator < (
  * output in hex to avoid the binary to decimal conversion of the
  * extended integer key.
  *
- * Uses sprintf() to create std::string because the behavior of C++ stream
+ * Uses snprintf() to create std::string because the behavior of C++ stream
  * manipulators not standardized yet.
  *
  ****************************************************************************
@@ -131,13 +131,14 @@ operator << (
    std::ostream& s,
    const SpatialKey& spatial_key)
 {
-   char* buf = new char[spatial_key.d_bits_per_int / SpatialKey::BITS_PER_HEX_CHAR
-                        * SpatialKey::NUM_COORDS_MIXED_FOR_SPATIAL_KEY + 1];
+   size_t buf_size = spatial_key.d_bits_per_int / SpatialKey::BITS_PER_HEX_CHAR
+                        * SpatialKey::NUM_COORDS_MIXED_FOR_SPATIAL_KEY + 1;
+   char* buf = new char[buf_size];
 
    for (int i = SpatialKey::NUM_COORDS_MIXED_FOR_SPATIAL_KEY - 1; i >= 0; --i) {
-      sprintf(&(buf[spatial_key.d_bits_per_int / SpatialKey::BITS_PER_HEX_CHAR
+      snprintf(&(buf[spatial_key.d_bits_per_int / SpatialKey::BITS_PER_HEX_CHAR
                     * ((SpatialKey::NUM_COORDS_MIXED_FOR_SPATIAL_KEY - 1) - i)]),
-         "%08x", spatial_key.d_key[i]);
+         buf_size, "%08x", spatial_key.d_key[i]);
    }
 
    s << buf;
