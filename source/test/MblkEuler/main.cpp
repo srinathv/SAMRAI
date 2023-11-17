@@ -393,7 +393,7 @@ int main(
          // write out the timestep header
          //
          char my_line[256];
-         sprintf(my_line, "%4d time: %9.5e dt: %10.6e  ",
+         snprintf(my_line, 256, "%4d time: %9.5e dt: %10.6e  ",
             iteration_num,
             loop_time,
             dt_new);
@@ -489,9 +489,8 @@ void setupHierarchy(
     * Read the geometry information and build array of geometries
     */
 
-   char geom_name[32];
 
-   sprintf(geom_name, "BlockGeometry");
+   std::string geom_name("BlockGeometry");
    if (main_input_db->keyExists(geom_name)) {
       geometry.reset(
          new geom::GridGeometry(

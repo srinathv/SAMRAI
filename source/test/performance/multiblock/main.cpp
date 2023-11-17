@@ -574,9 +574,8 @@ void setupHierarchy(
    std::shared_ptr<tbox::Database> mult_db(
       main_input_db->getDatabase("PatchHierarchy"));
 
-   char geom_name[32];
+   std::string geom_name("GridGeometry");
 
-   sprintf(geom_name, "GridGeometry");
    if (main_input_db->keyExists(geom_name)) {
       geometry.reset(
          new geom::GridGeometry(
