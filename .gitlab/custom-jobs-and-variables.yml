@@ -32,13 +32,13 @@ variables:
 # Arguments for top level allocation
   TIOGA_SHARED_ALLOC: ""
 # Arguments for job level allocation
-  TIOGA_JOB_ALLOC: "--exclusive --time-limit=90m --nodes=1 --begin-time=+5s"
+  TIOGA_JOB_ALLOC: "--exclusive --time-limit=72m --nodes=1 --begin-time=+5s"
 # Add variables that should apply to all the jobs on a machine:
 #  TIOGA_MY_VAR: "..."
 
 # Lassen uses a different job scheduler (spectrum lsf) that does not allow
 # pre-allocation the same way slurm does. Arguments for job level allocation
-  LASSEN_JOB_ALLOC: "1 -W 60"
+  LASSEN_JOB_ALLOC: "1 -W 50"
 # Add variables that should apply to all the jobs on a machine:
 #  LASSEN_MY_VAR: "..."
 
