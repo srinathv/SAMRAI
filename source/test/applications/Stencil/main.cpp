@@ -352,8 +352,8 @@ int main(
       tbox::pout << "At begining of timestep # " << iteration_num - 1
         << endl;
       tbox::pout << "Simulation time is " << loop_time << endl;
-      char buf[50];
-      sprintf(buf, "Timestep %d", iteration_num);
+//      char buf[50];
+//      sprintf(buf, "Timestep %d", iteration_num);
 //      RANGE_PUSH(buf, 2);
 //#if defined(HAVE_CUDA)
 //      if (iteration_num == 11)
