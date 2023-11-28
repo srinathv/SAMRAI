@@ -1,4 +1,4 @@
-oet(ENABLE_MPI Off CACHE BOOL "")
+set(ENABLE_MPI Off CACHE BOOL "")
 set(CMAKE_CXX_COMPILER "/usr/tce/packages/cce-tce/cce-16.0.0/bin/crayCC" CACHE PATH "")
 set(CMAKE_C_COMPILER "/usr/tce/packages/cce-tce/cce-16.0.0/bin/craycc" CACHE PATH "")
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
