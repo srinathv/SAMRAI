@@ -512,10 +512,6 @@ GriddingAlgorithm::makeCoarsestLevel(
       zero_to_new->computeTransposeOf(*new_to_zero,
                                       new_box_level->getMPI());
 
-      //new_to_zero = std::make_shared<hier::Connector>(domain_to_zero);
-      //new_to_zero->setBase(*new_box_level, true);
-      //zero_to_new = std::make_shared<hier::Connector>(zero_to_domain);
-      //zero_to_new->setHead(*new_box_level, true);
       new_to_zero->setTranspose(zero_to_new.get(), false);
    }
 
