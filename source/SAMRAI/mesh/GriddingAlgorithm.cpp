@@ -473,9 +473,51 @@ GriddingAlgorithm::makeCoarsestLevel(
 
    TBOX_ASSERT(!new_box_level->getMPI().hasReceivableMessage());    // Check errant messages.
 
+   std::shared_ptr<hier::Connector> new_to_zero;
+   std::shared_ptr<hier::Connector> zero_to_new;
+   if (level_zero_exists) {
+      /*
+       * If level zero exists, that means we are rebalancing level zero.
+       *
+       * Most calls to loadBalanceBoxLevel pass as the second argument
+       * a pointer to a "balance_to_reference" Connector, which is a
+       * Connector between the BoxLevel to be load balanced (here,
+       * new_box_levle) and a reference level -- that is a BoxLevel that
+       * will not be changed during the loadBalanceBoxLevel call.  When load
+       * balancing a finer level in the AMR hierarchy, the reference level
+       * is typically the current next coarser level, level N-1 when balancing
+       * level N.
+       *
+       * As there is no level N-1 when balancing level zero, here we use
+       * the current level zero as the reference level and construct the
+       * needed Connector.
+       *
+       * If level zero doesn't exist, this section is skipped and a null
+       * pointer is passed to loadBalanceBoxLevel.  A null pointer is a
+       * valid argument when creating the first instance of level zero.
+       */
+
+      hier::IntVector connector_width(
+         hier::IntVector::max(
+            d_hierarchy->getRequiredConnectorWidth(0, 0),
+            hier::IntVector::getOne(dim)));
+
+      new_to_zero = std::make_shared<hier::Connector>(
+         *new_box_level,
+         *(d_hierarchy->getPatchLevel(0)->getBoxLevel()),
+         connector_width);
+      d_oca0.findOverlaps_assumedPartition(*new_to_zero);
+
+      zero_to_new = std::make_shared<hier::Connector>(dim);
+      zero_to_new->computeTransposeOf(*new_to_zero,
+                                      new_box_level->getMPI());
+
+      new_to_zero->setTranspose(zero_to_new.get(), false);
+   }
+
    d_load_balancer0->loadBalanceBoxLevel(
       *new_box_level,
-      0,
+      new_to_zero.get(),
       d_hierarchy,
       ln,
       smallest_patch,

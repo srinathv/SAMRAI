@@ -310,6 +310,11 @@ int main(
             }
          }
 
+         bool rebalance_coarsest = false;
+         if (main_db->keyExists("rebalance_coarsest")) {
+            rebalance_coarsest = main_db->getBool("rebalance_coarsest");
+         }
+
 #if (TESTING == 1) && !defined(HAVE_HDF5)
          /*
           * If we are autotesting on a system w/o HDF5, the read from
@@ -496,7 +501,9 @@ int main(
                        << std::endl;
             tbox::pout << "Simulation time is " << loop_time << std::endl;
 
-            double dt_new = time_integrator->advanceHierarchy(dt_now);
+            double dt_new = time_integrator->advanceHierarchy(
+               dt_now,
+               rebalance_coarsest);
 
             loop_time += dt_now;
             dt_now = dt_new;
