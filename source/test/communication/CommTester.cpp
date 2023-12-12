@@ -741,8 +741,10 @@ void CommTester::setupHierarchy(
 void
 CommTester::putCoordinatesToDatabase(
    std::shared_ptr<tbox::Database>& coords_db,
-   const hier::Patch& patch)
+   const hier::Patch& patch,
+   const hier::Box& box)
 {
+   NULL_USE(box);
 
    std::shared_ptr<geom::CartesianPatchGeometry> pgeom(
       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(

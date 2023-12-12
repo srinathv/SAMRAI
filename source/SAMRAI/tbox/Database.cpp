@@ -1142,11 +1142,7 @@ Database::toConduitNode(conduit::Node& node)
          std::memcpy(node[key].data_ptr(), &(char_vec[0]), size*sizeof(char));
       } else if (my_type == SAMRAI_INT) {
          std::vector<int> int_vec(getIntegerVector(key));
-         node[key].set(conduit::DataType::int64(size));
-         conduit::int64_array fill_array = node[key].as_int64_array();
-         for (size_t i = 0; i < size; ++i) {
-            fill_array[i] = int_vec[i];
-         }
+         node[key].set(int_vec);
       } else if (my_type == SAMRAI_COMPLEX) {
          std::vector<dcomplex> cplx_vec(getComplexVector(key));
          node[key].set(conduit::DataType::c_double(2*size));
@@ -1165,13 +1161,13 @@ Database::toConduitNode(conduit::Node& node)
             node[key].set(str_vec[0]);
          } else {
             size_t num_chars = 0;
-            for (int i = 0; i < size; ++i) {
+            for (size_t i = 0; i < size; ++i) {
                num_chars += str_vec[i].size();
                ++num_chars;
             }
             node[key].set(conduit::DataType::c_char(num_chars));
             char* char_ptr = static_cast<char*>(node[key].data_ptr());
-            for (int i = 0; i < size; ++i) {
+            for (size_t i = 0; i < size; ++i) {
                std::memcpy(char_ptr, str_vec[i].c_str(), (str_vec[i].size()+1)*sizeof(char));
                char_ptr += (str_vec[i].size()+1);
             }

@@ -10,6 +10,7 @@
 #include "SAMRAI/hier/BlueprintUtils.h"
 
 #ifdef SAMRAI_HAVE_CONDUIT
+#include "SAMRAI/hier/FlattenedHierarchy.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 
 #include "conduit_blueprint.hpp"
@@ -111,7 +112,7 @@ void BlueprintUtils::putTopologyAndCoordinatesToDatabase(
 
          if (d_strategy) {
             d_strategy->putCoordinatesToDatabase(
-               coords_db, *patch);
+               coords_db, *patch, patch_box);
          }
 
          topo_db->putString("coordset", "coords");
@@ -144,6 +145,120 @@ void BlueprintUtils::putTopologyAndCoordinatesToDatabase(
             topo_db->putString("type", "structured");
          } else {
             topo_db->putString("type", coords_type);
+         }
+      }
+   }
+}
+
+void BlueprintUtils::putTopologyAndCoordinatesToDatabase(
+   const std::shared_ptr<tbox::Database>& blueprint_db,
+   const PatchHierarchy& hierarchy,
+   const FlattenedHierarchy& flat_hierarchy,
+   const std::string& topology_name) const
+{
+   TBOX_ASSERT(blueprint_db);
+
+   std::vector<int> first_patch_id;
+   first_patch_id.push_back(0);
+
+   int patch_count = 0;
+   for (int i = 1; i < hierarchy.getNumberOfLevels(); ++i) {
+      patch_count += hierarchy.getPatchLevel(i-1)->getNumberOfPatches();
+      first_patch_id.push_back(patch_count);
+   }
+
+   for (int i = 0; i < hierarchy.getNumberOfLevels(); ++i) {
+      const std::shared_ptr<PatchLevel>& level(
+         hierarchy.getPatchLevel(i));
+
+      for (PatchLevel::Iterator p(level->begin()); p != level->end();
+           ++p) {
+
+         const std::shared_ptr<Patch>& patch = *p;
+         const Box& patch_box = patch->getBox();
+
+         const auto& flat_boxes = flat_hierarchy.getVisibleBoxes(patch_box, i);
+
+         for (auto& domain_box : flat_boxes) {
+            int domain_id = domain_box.getLocalId().getValue();
+            std::string domain_name =
+               "domain_" + tbox::Utilities::intToString(domain_id, 6);
+
+            std::shared_ptr<tbox::Database> domain_db;
+            if (blueprint_db->isDatabase(domain_name)) {
+               domain_db = blueprint_db->getDatabase(domain_name);
+            } else {
+               domain_db = blueprint_db->putDatabase(domain_name);
+            }
+
+            std::shared_ptr<tbox::Database> coordsets_db;
+            if (domain_db->isDatabase("coordsets")) {
+               coordsets_db = domain_db->getDatabase("coordsets");
+            } else {
+               coordsets_db = domain_db->putDatabase("coordsets");
+            }
+
+            std::shared_ptr<tbox::Database> coords_db;
+            if (coordsets_db->isDatabase("coords")) {
+               coords_db = coordsets_db->getDatabase("coords");
+            } else {
+               coords_db = coordsets_db->putDatabase("coords");
+            }
+
+            std::shared_ptr<tbox::Database> topologies_db(
+               domain_db->putDatabase("topologies"));
+
+            std::shared_ptr<tbox::Database> topo_db(
+               topologies_db->putDatabase(topology_name));
+
+            std::shared_ptr<tbox::Database> elem_db(
+               topo_db->putDatabase("elements"));
+            std::shared_ptr<tbox::Database> origin_db(
+               elem_db->putDatabase("origin"));
+            origin_db->putInteger("i0", domain_box.lower(0));
+            if (domain_box.getDim().getValue() > 1) {
+               origin_db->putInteger("j0", domain_box.lower(1));
+            }
+            if (domain_box.getDim().getValue() > 2) {
+               origin_db->putInteger("k0", domain_box.lower(2));
+            }
+
+            if (d_strategy) {
+               d_strategy->putCoordinatesToDatabase(
+                  coords_db, *patch, domain_box);
+            }
+
+            topo_db->putString("coordset", "coords");
+
+            std::string coords_type = coords_db->getString("type");
+            if (coords_type == "explicit") {
+               std::shared_ptr<tbox::Database> elements_db;
+               if (topo_db->isDatabase("elements")) {
+                  elements_db = topo_db->getDatabase("elements");
+               } else {
+                  elements_db = topo_db->putDatabase("elements");
+               }
+
+               std::shared_ptr<tbox::Database> dims_db;
+               if (elements_db->isDatabase("dims")) {
+                  dims_db = elements_db->getDatabase("dims");
+               } else {
+                  dims_db = elements_db->putDatabase("dims");
+               }
+
+               const tbox::Dimension& dim = patch->getDim();
+               dims_db->putInteger("i", domain_box.numberCells(0));
+               if (dim.getValue() > 1) { 
+                  dims_db->putInteger("j", domain_box.numberCells(1));
+               }
+               if (dim.getValue() > 2) { 
+                  dims_db->putInteger("k", domain_box.numberCells(2));
+               }
+
+               topo_db->putString("type", "structured");
+            } else {
+               topo_db->putString("type", coords_type);
+            }
          }
       }
    }
