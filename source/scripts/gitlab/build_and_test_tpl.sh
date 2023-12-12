@@ -60,13 +60,19 @@ then
     else
         cp -r /usr/WS1/samrai/tpl/raja/v2023.06.0 raja
     fi
-    if [[ ! -d /usr/WS1/samrai/tpl/umpire/v2023.06.0 ]]
+    if [[ ! -d /usr/WS1/samrai/tpl/umpire/v2023.12.0 ]]
     then
-        wget https://github.com/LLNL/umpire/releases/download/v2023.06.0/umpire-2023.06.0.tar.gz
-        tar xvf umpire-2023.06.0.tar.gz
-        mv umpire-2023.06.0 umpire
+        #wget https://github.com/LLNL/umpire/releases/download/v2023.06.0/umpire-2023.06.0.tar.gz
+        #tar xvf umpire-2023.06.0.tar.gz
+        #mv umpire-2023.06.0 umpire
+        git clone git@github.com:LLNL/umpire umpire
+        cd umpire
+        git checkout 1a3a7d030eb0a88dc9e4c3401b07efcd91b9e251
+        git submodule init
+        git submodule update
+        cd ..
     else
-        cp -r /usr/WS1/samrai/tpl/umpire/v2023.06.0 umpire
+        cp -r /usr/WS1/samrai/tpl/umpire/develop umpire
     fi
 
     tpl_script="${project_dir}/source/scripts/gitlab/build_tpl.sh"
