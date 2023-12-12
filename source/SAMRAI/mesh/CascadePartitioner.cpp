@@ -387,14 +387,18 @@ CascadePartitioner::loadBalanceBoxLevel(
       const hier::Connector& current_to_reference = 
          current_level->getBoxLevel()->findConnector(
             workload_to_reference->getHead(),
-            hierarchy->getRequiredConnectorWidth(level_number, level_number-1),
+            hierarchy->getRequiredConnectorWidth(
+               level_number,
+               tbox::MathUtilities<int>::Max(level_number-1, 0)),
             hier::CONNECTOR_CREATE,
             true);
 
       const hier::Connector& reference_to_current =
          workload_to_reference->getHead().findConnector(
             *current_level->getBoxLevel(),
-            hierarchy->getRequiredConnectorWidth(level_number-1, level_number),
+            hierarchy->getRequiredConnectorWidth(
+               tbox::MathUtilities<int>::Max(level_number-1, 0),
+               level_number),
             hier::CONNECTOR_CREATE,
             true);
 
