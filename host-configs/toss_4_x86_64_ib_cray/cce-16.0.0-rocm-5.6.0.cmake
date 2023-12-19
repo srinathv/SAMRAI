@@ -28,6 +28,7 @@ set(BLT_CXX_STD "c++14" CACHE STRING "")
 set(BLT_FORTRAN_FLAGS "" CACHE STRING "")
 set(ENABLE_TESTS On CACHE BOOL "") 
 set(ENABLE_SAMRAI_TESTS On CACHE BOOL "")
+set(MIN_TEST_PROCS "2" CACHE STRING "")
 set(MPI_CXX_COMPILER "/usr/tce/packages/cray-mpich-tce/cray-mpich-8.1.26-rocmcc-5.6.0//bin/mpicxx" CACHE PATH "")
 set(MPI_CXX_LINK_FLAGS "-Wl,-rpath,/opt/cray/pe/mpich/8.1.26/ofi/amd/5.0/lib -Wl,-rpath,/opt/cray/libfabric/2.0/lib64:/opt/cray/pe/pmi/6.1.10/lib:/opt/cray/pe/pals/1.2.11/lib:/opt/cray/pe/cce/16.0.0/cce/x86_64/lib:/opt/rocm-5.6.0/llvm/lib")
 
