@@ -681,6 +681,13 @@ GriddingAlgorithm::makeCoarsestLevel(
 
       old_level.reset();
 
+      if (d_hierarchy->getNumberOfLevels() > 1) {
+         d_hierarchy->getPatchLevel(0)->findConnectorWithTranspose(
+            *(d_hierarchy->getPatchLevel(1)),
+            d_hierarchy->getRequiredConnectorWidth(0,1),
+            d_hierarchy->getRequiredConnectorWidth(1,0),
+            hier::CONNECTOR_CREATE);
+      }
    }
 
    std::shared_ptr<hier::PatchLevel> new_level(
