@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2023 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2024 Lawrence Livermore National Security, LLC
  * Description:   Numerical routines for single patch in linear advection ex.
  *
  ************************************************************************/
@@ -363,7 +363,8 @@ public:
    void
    putCoordinatesToDatabase(
       std::shared_ptr<tbox::Database>& coords_db,
-      const hier::Patch& patch);
+      const hier::Patch& patch,
+      const hier::Box& box);
 
 #ifdef SAMRAI_HAVE_CONDUIT
    void addFields(

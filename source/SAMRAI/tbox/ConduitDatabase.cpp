@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2023 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2024 Lawrence Livermore National Security, LLC
  * Description:   An memory database structure that stores (key,value) pairs in memory
  *
  ************************************************************************/
@@ -308,7 +308,7 @@ ConduitDatabase::putBoolArray(
 {
    deleteKeyIfFound(key);
    std::vector<conduit::uint8> uint8_vec(nelements, 0);
-   for (int i = 0; i < nelements; ++i) {
+   for (unsigned int i = 0; i < nelements; ++i) {
       if (data[i]) {
          uint8_vec[i] = 1;
       }
@@ -426,7 +426,7 @@ ConduitDatabase::putDatabaseBoxArray(
    std::vector<conduit::uint8> dim_vec(nelements);
    std::vector<int> lo_vec(nelements * SAMRAI::MAX_DIM_VAL);
    std::vector<int> hi_vec(nelements * SAMRAI::MAX_DIM_VAL);
-   for (int i = 0; i < nelements; ++i) {
+   for (unsigned int i = 0; i < nelements; ++i) {
       dim_vec[i] = data[i].getDimVal();
 
       for (int d = 0; d < dim_vec[i]; ++d) {

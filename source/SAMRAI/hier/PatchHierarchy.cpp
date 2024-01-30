@@ -3,12 +3,13 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2023 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2024 Lawrence Livermore National Security, LLC
  * Description:   An AMR hierarchy of patch levels
  *
  ************************************************************************/
 #include "SAMRAI/hier/PatchHierarchy.h"
 
+#include "SAMRAI/hier/FlattenedHierarchy.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/OverlapConnectorAlgorithm.h"
 #include "SAMRAI/hier/PeriodicShiftCatalog.h"
@@ -1242,6 +1243,85 @@ PatchHierarchy::makeBlueprintDatabase(
 
    bp_utils.putTopologyAndCoordinatesToDatabase(blueprint_db, *this, "mesh");
 }
+
+void
+PatchHierarchy::makeFlattenedBlueprintDatabase(
+   const std::shared_ptr<tbox::Database>& blueprint_db,
+   const BlueprintUtils& bp_utils) const
+{
+   TBOX_ASSERT(blueprint_db);
+
+   hier::FlattenedHierarchy flat_hier(*this, 0, d_number_levels-1);
+
+   std::vector<int> first_patch_id;
+   first_patch_id.push_back(0);
+
+   int patch_count = 0;
+   for (int i = 1; i < d_number_levels; ++i) {
+      patch_count += d_patch_levels[i-1]->getNumberOfPatches();
+      first_patch_id.push_back(patch_count); 
+   }
+
+   std::vector< std::shared_ptr<BoxLevel> > flat_box_level(d_number_levels);
+   for (int i = 0; i < d_number_levels; ++i) {
+      const std::shared_ptr<hier::PatchLevel>& level = d_patch_levels[i];
+
+      flat_box_level[i] =
+         std::make_shared<BoxLevel>(
+            level->getBoxLevel()->getRefinementRatio(),
+            d_grid_geometry,
+            getMPI());
+
+      for (PatchLevel::Iterator p(level->begin()); p != level->end();
+           ++p) {
+
+         const std::shared_ptr<hier::Patch>& patch = *p;
+         const Box& patch_box = patch->getBox();
+
+         const auto& flat_boxes = flat_hier.getVisibleBoxes(patch_box, i);
+
+         for (auto& domain_box : flat_boxes) {
+            int domain_id = domain_box.getLocalId().getValue();
+            std::string domain_name =
+               "domain_" + tbox::Utilities::intToString(domain_id, 6);
+
+            std::shared_ptr<tbox::Database> domain_db(
+               blueprint_db->putDatabase(domain_name));
+
+            std::shared_ptr<tbox::Database> state_db(
+               domain_db->putDatabase("state"));
+
+            state_db->putInteger("domain_id", domain_id);
+            state_db->putInteger("level_id", i);
+
+            std::shared_ptr<tbox::Database> topologies_db(
+               domain_db->putDatabase("topologies"));
+
+            std::shared_ptr<tbox::Database> topo_db(
+               topologies_db->putDatabase("mesh"));
+
+            std::shared_ptr<tbox::Database> elem_db(
+               topo_db->putDatabase("elements"));
+            std::shared_ptr<tbox::Database> origin_db(
+               elem_db->putDatabase("origin"));
+            origin_db->putInteger("i0", domain_box.lower(0));
+            if (d_dim.getValue() > 1) {
+               origin_db->putInteger("j0", domain_box.lower(1));
+            }
+            if (d_dim.getValue() > 2) {
+               origin_db->putInteger("k0", domain_box.lower(2));
+            }
+
+            flat_box_level[i]->addBoxWithoutUpdate(domain_box);
+         }
+      }
+      flat_box_level[i]->finalize();
+   }
+
+   makeAdjacencySets(blueprint_db, flat_hier, flat_box_level, "mesh");
+
+   bp_utils.putTopologyAndCoordinatesToDatabase(blueprint_db, *this, flat_hier,  "mesh");
+}
 #endif
 
 void
@@ -1315,10 +1395,14 @@ PatchHierarchy::makeNestingSets(
                     na != c_to_f.end(nbh); ++na) {
 
                   const Box& nbr_box = *na;
+                  if (nbr_box.getBlockId() != pbox.getBlockId()) {
+                     continue;
+                  }
+
                   Box crse_nbr(nbr_box);
                   crse_nbr.coarsen(ratio);
-
                   Box overlap(crse_nbr*pbox);
+
                   if (!overlap.empty()) {
 
                      if (domain_db->keyExists("nestsets")) {
@@ -1358,6 +1442,7 @@ PatchHierarchy::makeNestingSets(
 
                      window_db->putString("domain_type", "child");
                      window_db->putInteger("domain_id", child_id);
+                     window_db->putInteger("level_id", i);
    
                      std::shared_ptr<tbox::Database> ratio_db(
                         window_db->putDatabase("ratio"));
@@ -1370,16 +1455,17 @@ PatchHierarchy::makeNestingSets(
 
                      IntVector box_width(overlap.numberCells());
 
-                     ratio_db->putInteger("i", ratio[0]);
+                     IntVector block_ratio(ratio.getBlockVector(pbox.getBlockId()));
+                     ratio_db->putInteger("i", block_ratio[0]);
                      origin_db->putInteger("i", overlap.lower(0)-pbox.lower(0));
                      width_db->putInteger("i", box_width[0]);
                      if (d_dim.getValue() > 1) {
-                        ratio_db->putInteger("j", ratio[1]);
+                        ratio_db->putInteger("j", block_ratio[1]);
                         origin_db->putInteger("j", overlap.lower(1)-pbox.lower(1));
                         width_db->putInteger("j", box_width[1]);
                      }
                      if (d_dim.getValue() > 2) {
-                        ratio_db->putInteger("k", ratio[2]);
+                        ratio_db->putInteger("k", block_ratio[2]);
                         origin_db->putInteger("k", overlap.lower(2)-pbox.lower(2));
                         width_db->putInteger("k", box_width[2]);
                      }
@@ -1445,10 +1531,14 @@ PatchHierarchy::makeNestingSets(
                     na != f_to_c.end(nbh); ++na) {
 
                   const Box& nbr_box = *na;
+                  if (nbr_box.getBlockId() != pbox.getBlockId()) {
+                     continue;
+                  }
+
                   Box fine_nbr(nbr_box);
                   fine_nbr.refine(ratio);
-
                   Box overlap(fine_nbr*pbox);
+
                   if (!overlap.empty()) {
 
                      std::shared_ptr<tbox::Database> nestsets_db;
@@ -1488,6 +1578,7 @@ PatchHierarchy::makeNestingSets(
 
                      window_db->putString("domain_type", "parent");
                      window_db->putInteger("domain_id", parent_id);
+                     window_db->putInteger("level_id", i);
 
                      std::shared_ptr<tbox::Database> ratio_db(
                         window_db->putDatabase("ratio"));
@@ -1500,16 +1591,18 @@ PatchHierarchy::makeNestingSets(
 
                      IntVector box_width(overlap.numberCells());
 
-                     ratio_db->putInteger("i", ratio[0]);
+                     IntVector block_ratio(ratio.getBlockVector(pbox.getBlockId()));
+
+                     ratio_db->putInteger("i", block_ratio[0]);
                      origin_db->putInteger("i", overlap.lower(0)-pbox.lower(0));
                      width_db->putInteger("i", box_width[0]);
                      if (d_dim.getValue() > 1) {
-                        ratio_db->putInteger("j", ratio[1]);
+                        ratio_db->putInteger("j", block_ratio[1]);
                         origin_db->putInteger("j", overlap.lower(1)-pbox.lower(1));
                         width_db->putInteger("j", box_width[1]);
                      }
                      if (d_dim.getValue() > 2) {
-                        ratio_db->putInteger("k", ratio[2]);
+                        ratio_db->putInteger("k", block_ratio[2]);
                         origin_db->putInteger("k", overlap.lower(2)-pbox.lower(2));
                         width_db->putInteger("k", box_width[2]);
                      }
@@ -1526,6 +1619,8 @@ PatchHierarchy::makeNestingSets(
 void
 PatchHierarchy::makeAdjacencySets(
    const std::shared_ptr<tbox::Database>& blueprint_db,
+   const FlattenedHierarchy& flat_hierarchy,
+   const std::vector< std::shared_ptr<BoxLevel> >& flat_box_level,
    const std::string& topology_name) const
 {
 
@@ -1547,10 +1642,10 @@ PatchHierarchy::makeAdjacencySets(
       std::shared_ptr<hier::BoxLevel> this_level(
          level->getBoxLevel());
 
-      const Connector& self_to_self =
-         this_level->findConnector(
-            *this_level,
-            getRequiredConnectorWidth(i,i),
+      const Connector& flat_self_to_self =
+         flat_box_level[i]->findConnector(
+            *flat_box_level[i],
+            IntVector::getOne(d_dim),
             CONNECTOR_CREATE,
             true);
 
@@ -1559,124 +1654,125 @@ PatchHierarchy::makeAdjacencySets(
 
          std::shared_ptr<Patch> patch(*p);
          const Box& pbox = patch->getBox();
-         const BoxId& box_id = pbox.getBoxId();
-         const LocalId& local_id = box_id.getLocalId();
 
-         int domain_id = first_patch_id[i] + local_id.getValue();
-         std::string domain_name =
-            "domain_" + tbox::Utilities::intToString(domain_id, 6);
+         const auto& flat_boxes = flat_hierarchy.getVisibleBoxes(pbox, i);
 
-         std::shared_ptr<tbox::Database> domain_db;
-         if (blueprint_db->keyExists(domain_name)) {
-            domain_db = blueprint_db->getDatabase(domain_name);
-         } else {
-            domain_db = blueprint_db->putDatabase(domain_name);
-         }
+         for (auto& domain_box : flat_boxes) {
+            int domain_id = domain_box.getLocalId().getValue();
+            std::string domain_name =
+               "domain_" + tbox::Utilities::intToString(domain_id, 6);
 
-         std::shared_ptr<tbox::Database> adjsets_db;
-
-         Connector::ConstNeighborhoodIterator nbh =
-            self_to_self.findLocal(box_id);
-         if (nbh == self_to_self.end())  {
-            continue;
-         }
-
-         Box node_pbox(pbox);
-         node_pbox.setUpper(node_pbox.upper()+IntVector::getOne(d_dim));
-
-         for (Connector::ConstNeighborIterator na = self_to_self.begin(nbh);
-              na != self_to_self.end(nbh); ++na) {
-
-            const Box& nbr_box = *na;
-            const BoxId& nbr_box_id = nbr_box.getBoxId();
-            if (box_id == nbr_box_id) {
-               continue;
-            }
-            if (nbr_box_id.getPeriodicId().getPeriodicValue() != 0) {
-               continue;
-            }
-
-            int nbr_id =
-               first_patch_id[i] + nbr_box.getBoxId().getLocalId().getValue();
-
-            Box node_nbox(nbr_box);
-            node_nbox.setUpper(node_nbox.upper()+IntVector::getOne(d_dim));
-
-            Box node_ovlp(d_dim);
-            Box tnode_ovlp(d_dim);
-
-            if (nbr_box.getBlockId() == pbox.getBlockId()) {
-
-               node_ovlp = node_pbox * node_nbox;
-               tnode_ovlp = node_ovlp;
+            std::shared_ptr<tbox::Database> domain_db;
+            if (blueprint_db->keyExists(domain_name)) {
+               domain_db = blueprint_db->getDatabase(domain_name);
             } else {
-               Box transform_box(nbr_box);
-               d_grid_geometry->transformBox(transform_box,
-                                             i,
-                                             pbox.getBlockId(),
-                                             nbr_box.getBlockId());
-               transform_box.setUpper(
-                  transform_box.upper() + IntVector::getOne(d_dim));
-
-               node_ovlp = node_pbox * transform_box;
-
-               transform_box = pbox;
-               d_grid_geometry->transformBox(transform_box,
-                                             i,
-                                             nbr_box.getBlockId(),
-                                             pbox.getBlockId());
-
-               transform_box.setUpper(
-                  transform_box.upper() + IntVector::getOne(d_dim));
-
-               tnode_ovlp = node_nbox * transform_box;
-
-               TBOX_ASSERT(node_ovlp.empty() == tnode_ovlp.empty());
+               domain_db = blueprint_db->putDatabase(domain_name);
             }
 
-            if (!node_ovlp.empty()) {
+            std::shared_ptr<tbox::Database> adjsets_db;
 
-               if (domain_db->keyExists("adjsets")) {
-                  adjsets_db = domain_db->getDatabase("adjsets");
+            Box node_dbox(domain_box);
+            node_dbox.setUpper(node_dbox.upper()+IntVector::getOne(d_dim));
+
+            auto nbh = flat_self_to_self.findLocal(domain_box.getBoxId());
+            if (nbh == flat_self_to_self.end())  {
+               continue;
+            }
+
+            for (auto na = flat_self_to_self.begin(nbh);
+                 na != flat_self_to_self.end(nbh); ++na) {
+
+               const Box& nbr_box = *na;
+               const BoxId& nbr_box_id = nbr_box.getBoxId();
+               if (domain_box.getBoxId() == nbr_box_id) {
+                  continue;
+               }
+               if (nbr_box_id.getPeriodicId().getPeriodicValue() != 0) {
+                  continue;
+               }
+
+               int nbr_id = nbr_box.getLocalId().getValue();
+
+               Box node_nbox(nbr_box);
+               node_nbox.setUpper(node_nbox.upper()+IntVector::getOne(d_dim));
+               Box node_ovlp(d_dim);
+               Box tnode_ovlp(d_dim);
+
+               if (nbr_box.getBlockId() == pbox.getBlockId()) {
+
+                  node_ovlp = node_dbox * node_nbox;
+                  tnode_ovlp = node_ovlp;
                } else {
-                  adjsets_db = domain_db->putDatabase("adjsets");
+                  Box transform_box(nbr_box);
+                  d_grid_geometry->transformBox(transform_box,
+                                                i,
+                                                domain_box.getBlockId(),
+                                                nbr_box.getBlockId());
+                  transform_box.setUpper(
+                     transform_box.upper() + IntVector::getOne(d_dim));
+
+                  node_ovlp = node_dbox * transform_box;
+
+                  transform_box = domain_box;
+                  d_grid_geometry->transformBox(transform_box,
+                                                i,
+                                                nbr_box.getBlockId(),
+                                                domain_box.getBlockId());
+
+                  transform_box.setUpper(
+                     transform_box.upper() + IntVector::getOne(d_dim));
+
+                  tnode_ovlp = node_nbox * transform_box;
+
                }
 
-               std::shared_ptr<tbox::Database> set_db;
-               if (adjsets_db->keyExists("adjset")) {
-                  set_db = adjsets_db->getDatabase("adjset");
-               } else {
-                  set_db = adjsets_db->putDatabase("adjset");
+	       if (node_ovlp.empty() != tnode_ovlp.empty()) {
+                  node_ovlp.setEmpty();
+                  tnode_ovlp.setEmpty();
                }
 
-               if (!set_db->keyExists("association")) {
-                  set_db->putString("association", "vertex");
-               }
-               if (!set_db->keyExists("topology")) {
-                  set_db->putString("topology", topology_name);
-               }
+               if (!node_ovlp.empty()) {
 
-               std::shared_ptr<tbox::Database> groups_db;
-               if (set_db->keyExists("groups")) {
-                  groups_db = set_db->getDatabase("groups");
-               } else {
-                  groups_db = set_db->putDatabase("groups");
-               }
+                  if (domain_db->keyExists("adjsets")) {
+                     adjsets_db = domain_db->getDatabase("adjsets");
+                  } else {
+                     adjsets_db = domain_db->putDatabase("adjsets");
+                  }
 
-               std::shared_ptr<tbox::Database> group_db;
-               std::string group_name =
-                  "group_" + tbox::Utilities::intToString(nbr_id, 6);
-               if (groups_db->keyExists(group_name)) {
-                  group_db = groups_db->getDatabase(group_name);
-               } else {
-                  group_db = groups_db->putDatabase(group_name);
-               }
+                  std::shared_ptr<tbox::Database> set_db;
+                  if (adjsets_db->keyExists("adjset")) {
+                     set_db = adjsets_db->getDatabase("adjset");
+                  } else {
+                     set_db = adjsets_db->putDatabase("adjset");
+                  }
 
-               int neighbors[2] = {domain_id, nbr_id};
-               group_db->putIntegerArray("neighbors", neighbors, 2);
+                  if (!set_db->keyExists("association")) {
+                     set_db->putString("association", "vertex");
+                  }
+                  if (!set_db->keyExists("topology")) {
+                     set_db->putString("topology", topology_name);
+                  }
 
-               if (d_number_blocks > 1) {
+                  std::shared_ptr<tbox::Database> groups_db;
+                  if (set_db->keyExists("groups")) {
+                     groups_db = set_db->getDatabase("groups");
+                  } else {
+                     groups_db = set_db->putDatabase("groups");
+                  }
 
+                  std::shared_ptr<tbox::Database> group_db;
+                  std::string group_name =
+                     "group_" + tbox::Utilities::intToString(nbr_id, 6);
+                  if (groups_db->keyExists(group_name)) {
+                     group_db = groups_db->getDatabase(group_name);
+                  } else {
+                     group_db = groups_db->putDatabase(group_name);
+                  }
+
+                  int neighbors[2] = {domain_id, nbr_id};
+                  group_db->putIntegerArray("neighbors", neighbors, 2);
+
+                  group_db->putInteger("rank", nbr_box.getOwnerRank());
 
                   std::shared_ptr<tbox::Database> windows_db(
                      group_db->putDatabase("windows"));
@@ -1691,6 +1787,9 @@ PatchHierarchy::makeAdjacencySets(
                   std::shared_ptr<tbox::Database> window_b_db(
                      windows_db->putDatabase(window_b_name));
 
+                  window_a_db->putInteger("level_id", i);
+                  window_b_db->putInteger("level_id", i);
+
                   std::shared_ptr<tbox::Database> origin_a_db(
                      window_a_db->putDatabase("origin"));
                   std::shared_ptr<tbox::Database> origin_b_db(
@@ -1701,24 +1800,35 @@ PatchHierarchy::makeAdjacencySets(
                   std::shared_ptr<tbox::Database> width_b_db(
                      window_b_db->putDatabase("dims"));
 
+                  std::shared_ptr<tbox::Database> ratio_a_db(
+                     window_a_db->putDatabase("ratio"));
+                  std::shared_ptr<tbox::Database> ratio_b_db(
+                     window_b_db->putDatabase("ratio"));
+
                   IntVector a_width(node_ovlp.numberCells());
                   IntVector b_width(tnode_ovlp.numberCells());
 
                   origin_a_db->putInteger("i", node_ovlp.lower(0));
                   width_a_db->putInteger("i", a_width[0]);
+                  ratio_a_db->putInteger("i", 1);
                   origin_b_db->putInteger("i", tnode_ovlp.lower(0));
                   width_b_db->putInteger("i", b_width[0]);
+                  ratio_b_db->putInteger("i", 1);
                   if (d_dim.getValue() > 1) {
                      origin_a_db->putInteger("j", node_ovlp.lower(1));
                      width_a_db->putInteger("j", a_width[1]);
+                     ratio_a_db->putInteger("j", 1);
                      origin_b_db->putInteger("j", tnode_ovlp.lower(1));
                      width_b_db->putInteger("j", b_width[1]);
+                     ratio_b_db->putInteger("j", 1);
                   }
                   if (d_dim.getValue() > 2) {
-                     origin_a_db->putInteger("j", node_ovlp.lower(2));
-                     width_a_db->putInteger("j", a_width[2]);
+                     origin_a_db->putInteger("k", node_ovlp.lower(2));
+                     width_a_db->putInteger("k", a_width[2]);
+                     ratio_a_db->putInteger("k", 1);
                      origin_b_db->putInteger("k", tnode_ovlp.lower(2));
                      width_b_db->putInteger("k", b_width[2]);
+                     ratio_b_db->putInteger("k", 1);
                   }
 
                   if (pbox.getBlockId() != nbr_box.getBlockId()) {
@@ -1730,6 +1840,456 @@ PatchHierarchy::makeAdjacencySets(
                         orientation, rotation);
 
                      group_db->putIntegerVector("orientation", orientation);
+                  }
+               }
+            }
+         }
+      }
+
+      if (i + 1 < d_number_levels) {
+
+         std::shared_ptr<hier::BoxLevel> fine_level(
+            d_patch_levels[i+1]->getBoxLevel());
+
+         const Connector& flat_c_to_f =
+            flat_box_level[i]->findConnector(
+               *flat_box_level[i+1],
+                  IntVector::getOne(d_dim),
+                  CONNECTOR_CREATE,
+                  true);
+
+         const IntVector& ratio = flat_c_to_f.getRatio();
+
+         for (PatchLevel::Iterator p(level->begin()); p != level->end();
+              ++p) {
+
+            std::shared_ptr<Patch> patch(*p);
+            const Box& pbox = patch->getBox();
+
+            const auto& flat_boxes = flat_hierarchy.getVisibleBoxes(pbox, i);
+
+            for (auto& domain_box : flat_boxes) {
+               int domain_id = domain_box.getLocalId().getValue();
+               std::string domain_name =
+                  "domain_" + tbox::Utilities::intToString(domain_id, 6);
+
+               std::shared_ptr<tbox::Database> domain_db;
+               if (blueprint_db->keyExists(domain_name)) {
+                  domain_db = blueprint_db->getDatabase(domain_name);
+               } else {
+                  domain_db = blueprint_db->putDatabase(domain_name);
+               }
+
+               std::shared_ptr<tbox::Database> adjsets_db;
+
+               Box node_dbox(domain_box);
+               node_dbox.setUpper(node_dbox.upper()+IntVector::getOne(d_dim));
+
+               auto nbh = flat_c_to_f.findLocal(domain_box.getBoxId());
+               if (nbh == flat_c_to_f.end())  {
+                  continue;
+               }
+
+               for (auto na = flat_c_to_f.begin(nbh);
+                    na != flat_c_to_f.end(nbh); ++na) {
+
+                  const Box& nbr_box = *na;
+                  const BoxId& nbr_box_id = nbr_box.getBoxId();
+                  if (nbr_box_id.getPeriodicId().getPeriodicValue() != 0) {
+                     continue;
+                  }
+
+                  int nbr_id = nbr_box.getLocalId().getValue();
+
+                  Box node_nbox(nbr_box);
+                  node_nbox.setUpper(
+                     node_nbox.upper()+IntVector::getOne(d_dim));
+
+                  Box node_ovlp(d_dim);
+                  Box tnode_ovlp(d_dim);
+
+                  if (nbr_box.getBlockId() == pbox.getBlockId()) {
+                     Box node_crse_nbox(nbr_box);
+                     node_crse_nbox.coarsen(ratio);
+                     node_crse_nbox.setUpper(
+                        node_crse_nbox.upper()+IntVector::getOne(d_dim));
+
+                     node_ovlp = node_dbox * node_crse_nbox;
+
+                     Box node_fine_dbox(domain_box);
+                     node_fine_dbox.refine(ratio);
+                     node_fine_dbox.setUpper(
+                        node_fine_dbox.upper()+IntVector::getOne(d_dim));
+                     tnode_ovlp = node_nbox * node_fine_dbox;
+                  } else {
+                     Box transform_box(nbr_box);
+                     transform_box.coarsen(ratio);
+                     d_grid_geometry->transformBox(transform_box,
+                                                   i,
+                                                   domain_box.getBlockId(),
+                                                   nbr_box.getBlockId());
+                     transform_box.setUpper(
+                        transform_box.upper() + IntVector::getOne(d_dim));
+
+                     node_ovlp = node_dbox * transform_box;
+
+                     transform_box = domain_box;
+                     transform_box.refine(ratio);
+                     d_grid_geometry->transformBox(transform_box,
+                                                   i+1,
+                                                   nbr_box.getBlockId(),
+                                                   domain_box.getBlockId());
+
+                     transform_box.setUpper(
+                        transform_box.upper() + IntVector::getOne(d_dim));
+
+                     tnode_ovlp = node_nbox * transform_box;
+
+                  }
+                  if (node_ovlp.empty() != tnode_ovlp.empty()) {
+                     node_ovlp.setEmpty();
+                     tnode_ovlp.setEmpty();
+                  }
+
+
+                  if (!node_ovlp.empty()) {
+
+                     if (domain_db->keyExists("adjsets")) {
+                        adjsets_db = domain_db->getDatabase("adjsets");
+                     } else {
+                        adjsets_db = domain_db->putDatabase("adjsets");
+                     }
+
+                     std::shared_ptr<tbox::Database> set_db;
+                     if (adjsets_db->keyExists("adjset")) {
+                        set_db = adjsets_db->getDatabase("adjset");
+                     } else {
+                        set_db = adjsets_db->putDatabase("adjset");
+                     }
+
+                     if (!set_db->keyExists("association")) {
+                        set_db->putString("association", "vertex");
+                     }
+                     if (!set_db->keyExists("topology")) {
+                        set_db->putString("topology", topology_name);
+                     }
+
+                     std::shared_ptr<tbox::Database> groups_db;
+                     if (set_db->keyExists("groups")) {
+                        groups_db = set_db->getDatabase("groups");
+                     } else {
+                        groups_db = set_db->putDatabase("groups");
+                     }
+
+                     std::shared_ptr<tbox::Database> group_db;
+                     std::string group_name =
+                        "group_" + tbox::Utilities::intToString(nbr_id, 6);
+                     if (groups_db->keyExists(group_name)) {
+                        group_db = groups_db->getDatabase(group_name);
+                     } else {
+                        group_db = groups_db->putDatabase(group_name);
+                     }
+
+                     int neighbors[2] = {domain_id, nbr_id};
+                     group_db->putIntegerArray("neighbors", neighbors, 2);
+
+                     group_db->putInteger("rank", nbr_box.getOwnerRank());
+
+                     std::shared_ptr<tbox::Database> windows_db(
+                        group_db->putDatabase("windows"));
+
+                     std::string window_a_name =
+                        "window_" + tbox::Utilities::intToString(domain_id, 6);
+                     std::string window_b_name =
+                        "window_" + tbox::Utilities::intToString(nbr_id, 6);
+
+                     std::shared_ptr<tbox::Database> window_a_db(
+                        windows_db->putDatabase(window_a_name));
+                     std::shared_ptr<tbox::Database> window_b_db(
+                        windows_db->putDatabase(window_b_name));
+
+                     window_a_db->putInteger("level_id", i);
+                     window_b_db->putInteger("level_id", i+1);
+
+                     std::shared_ptr<tbox::Database> origin_a_db(
+                        window_a_db->putDatabase("origin"));
+                     std::shared_ptr<tbox::Database> origin_b_db(
+                        window_b_db->putDatabase("origin"));
+
+                     std::shared_ptr<tbox::Database> width_a_db(
+                        window_a_db->putDatabase("dims"));
+                     std::shared_ptr<tbox::Database> width_b_db(
+                        window_b_db->putDatabase("dims"));
+                     std::shared_ptr<tbox::Database> ratio_a_db(
+                        window_a_db->putDatabase("ratio"));
+                     std::shared_ptr<tbox::Database> ratio_b_db(
+                        window_b_db->putDatabase("ratio"));
+
+                     IntVector a_width(node_ovlp.numberCells());
+                     IntVector b_width(tnode_ovlp.numberCells());
+                     IntVector a_ratio(ratio.getBlockVector(domain_box.getBlockId()));
+                     IntVector b_ratio(ratio.getBlockVector(nbr_box.getBlockId()));
+
+                     origin_a_db->putInteger("i", node_ovlp.lower(0));
+                     width_a_db->putInteger("i", a_width[0]);
+                     ratio_a_db->putInteger("i", a_ratio[0]);
+                     origin_b_db->putInteger("i", tnode_ovlp.lower(0));
+                     width_b_db->putInteger("i", b_width[0]);
+                     ratio_b_db->putInteger("i", a_ratio[0]);
+                     if (d_dim.getValue() > 1) {
+                        origin_a_db->putInteger("j", node_ovlp.lower(1));
+                        width_a_db->putInteger("j", a_width[1]);
+                        ratio_a_db->putInteger("j", a_ratio[1]);
+                        origin_b_db->putInteger("j", tnode_ovlp.lower(1));
+                        width_b_db->putInteger("j", b_width[1]);
+                        ratio_b_db->putInteger("j", b_ratio[1]);
+                     }
+                     if (d_dim.getValue() > 2) {
+                        origin_a_db->putInteger("k", node_ovlp.lower(2));
+                        width_a_db->putInteger("k", a_width[2]);
+                        ratio_a_db->putInteger("k", a_ratio[2]);
+                        origin_b_db->putInteger("k", tnode_ovlp.lower(2));
+                        width_b_db->putInteger("k", b_width[2]);
+                        ratio_b_db->putInteger("k", b_ratio[2]);
+                     }
+
+                     if (pbox.getBlockId() != nbr_box.getBlockId()) {
+                        Transformation::RotationIdentifier rotation =
+                           d_grid_geometry->getRotationIdentifier(
+                              nbr_box.getBlockId(), pbox.getBlockId());
+                        std::vector<int> orientation(3);
+                        Transformation::setOrientationVector(
+                           orientation, rotation);
+
+                        group_db->putIntegerVector("orientation", orientation);
+                        window_a_db->putIntegerVector("orientation", orientation);
+                        window_b_db->putIntegerVector("orientation", orientation);
+                     }
+                  }
+               }
+            }
+         }
+      }
+ 
+      if (i > 0) {
+
+         std::shared_ptr<hier::BoxLevel> coarse_level(
+            d_patch_levels[i-1]->getBoxLevel());
+
+         const Connector& flat_f_to_c =
+            flat_box_level[i]->findConnector(
+               *flat_box_level[i-1],
+               IntVector::getOne(d_dim),
+               CONNECTOR_CREATE,
+               true);
+
+         const IntVector& ratio = flat_f_to_c.getRatio();
+
+         for (PatchLevel::Iterator p(level->begin()); p != level->end();
+              ++p) {
+
+            std::shared_ptr<Patch> patch(*p);
+            const Box& pbox = patch->getBox();
+
+            std::shared_ptr<tbox::Database> adjsets_db;
+
+            const auto& flat_boxes = flat_hierarchy.getVisibleBoxes(pbox, i);
+
+            for (auto& domain_box : flat_boxes) {
+               int domain_id = domain_box.getLocalId().getValue();
+               std::string domain_name =
+                  "domain_" + tbox::Utilities::intToString(domain_id, 6);
+
+               std::shared_ptr<tbox::Database> domain_db;
+               if (blueprint_db->keyExists(domain_name)) {
+                  domain_db = blueprint_db->getDatabase(domain_name);
+               } else {
+                  domain_db = blueprint_db->putDatabase(domain_name);
+               }
+
+               std::shared_ptr<tbox::Database> adjsets_db;
+
+               Box node_dbox(domain_box);
+               node_dbox.setUpper(node_dbox.upper()+IntVector::getOne(d_dim));
+
+               auto nbh = flat_f_to_c.findLocal(domain_box.getBoxId());
+               if (nbh == flat_f_to_c.end())  {
+                  continue;
+               }
+
+               for (auto na = flat_f_to_c.begin(nbh);
+                    na != flat_f_to_c.end(nbh); ++na) {
+
+                  const Box& nbr_box = *na;
+                  const BoxId& nbr_box_id = nbr_box.getBoxId();
+                  if (nbr_box_id.getPeriodicId().getPeriodicValue() != 0) {
+                     continue;
+                  }
+
+                  int nbr_id = nbr_box.getLocalId().getValue();
+
+                  Box node_nbox(nbr_box);
+                  node_nbox.setUpper(
+                     node_nbox.upper()+IntVector::getOne(d_dim));
+
+                  Box node_ovlp(d_dim);
+                  Box tnode_ovlp(d_dim);
+
+                  if (nbr_box.getBlockId() == pbox.getBlockId()) {
+                     Box node_fine_nbox(nbr_box);
+                     node_fine_nbox.refine(ratio);
+                     node_fine_nbox.setUpper(
+                        node_fine_nbox.upper() + IntVector::getOne(d_dim));
+
+                     node_ovlp = node_dbox * node_fine_nbox;
+
+                     Box node_crse_dbox(domain_box);
+                     node_crse_dbox.coarsen(ratio);
+                     node_crse_dbox.setUpper(
+                        node_crse_dbox.upper() + IntVector::getOne(d_dim));
+                     tnode_ovlp = node_nbox * node_crse_dbox;
+                  } else {
+                     Box transform_box(nbr_box);
+                     transform_box.refine(ratio);
+                     d_grid_geometry->transformBox(transform_box,
+                                                   i,
+                                                   domain_box.getBlockId(),
+                                                   nbr_box.getBlockId());
+                     transform_box.setUpper(
+                        transform_box.upper() + IntVector::getOne(d_dim));
+
+                     node_ovlp = node_dbox * transform_box;
+
+                     transform_box = domain_box;
+                     transform_box.coarsen(ratio);
+                     d_grid_geometry->transformBox(transform_box,
+                                                   i-1,
+                                                   nbr_box.getBlockId(),
+                                                   domain_box.getBlockId());
+
+                     transform_box.setUpper(
+                        transform_box.upper() + IntVector::getOne(d_dim));
+
+                     tnode_ovlp = node_nbox * transform_box;
+                  }
+
+                  if (node_ovlp.empty() != tnode_ovlp.empty()) {
+                     node_ovlp.setEmpty();
+                     tnode_ovlp.setEmpty();
+                  }
+
+
+                  if (!node_ovlp.empty()) {
+
+                     if (domain_db->keyExists("adjsets")) {
+                        adjsets_db = domain_db->getDatabase("adjsets");
+                     } else {
+                        adjsets_db = domain_db->putDatabase("adjsets");
+                     }
+
+                     std::shared_ptr<tbox::Database> set_db;
+                     if (adjsets_db->keyExists("adjset")) {
+                        set_db = adjsets_db->getDatabase("adjset");
+                     } else {
+                        set_db = adjsets_db->putDatabase("adjset");
+                     }
+
+                     if (!set_db->keyExists("association")) {
+                        set_db->putString("association", "vertex");
+                     }
+                     if (!set_db->keyExists("topology")) {
+                        set_db->putString("topology", topology_name);
+                     }
+
+                     std::shared_ptr<tbox::Database> groups_db;
+                     if (set_db->keyExists("groups")) {
+                        groups_db = set_db->getDatabase("groups");
+                     } else {
+                        groups_db = set_db->putDatabase("groups");
+                     }
+
+                     std::shared_ptr<tbox::Database> group_db;
+                     std::string group_name =
+                        "group_" + tbox::Utilities::intToString(nbr_id, 6);
+                     if (groups_db->keyExists(group_name)) {
+                        group_db = groups_db->getDatabase(group_name);
+                     } else {
+                        group_db = groups_db->putDatabase(group_name);
+                     }
+
+                     int neighbors[2] = {domain_id, nbr_id};
+                     group_db->putIntegerArray("neighbors", neighbors, 2);
+
+                     group_db->putInteger("rank", nbr_box.getOwnerRank());
+
+                     std::shared_ptr<tbox::Database> windows_db(
+                        group_db->putDatabase("windows"));
+
+                     std::string window_a_name =
+                        "window_" + tbox::Utilities::intToString(domain_id, 6);
+                     std::string window_b_name =
+                        "window_" + tbox::Utilities::intToString(nbr_id, 6);
+
+                     std::shared_ptr<tbox::Database> window_a_db(
+                        windows_db->putDatabase(window_a_name));
+                     std::shared_ptr<tbox::Database> window_b_db(
+                        windows_db->putDatabase(window_b_name));
+
+                     window_a_db->putInteger("level_id", i);
+                     window_b_db->putInteger("level_id", i-1);
+
+                     std::shared_ptr<tbox::Database> origin_a_db(
+                        window_a_db->putDatabase("origin"));
+                     std::shared_ptr<tbox::Database> origin_b_db(
+                        window_b_db->putDatabase("origin"));
+
+                     std::shared_ptr<tbox::Database> width_a_db(
+                        window_a_db->putDatabase("dims"));
+                     std::shared_ptr<tbox::Database> width_b_db(
+                        window_b_db->putDatabase("dims"));
+                     std::shared_ptr<tbox::Database> ratio_a_db(
+                        window_a_db->putDatabase("ratio"));
+                     std::shared_ptr<tbox::Database> ratio_b_db(
+                        window_b_db->putDatabase("ratio"));
+
+                     IntVector a_width(node_ovlp.numberCells());
+                     IntVector b_width(tnode_ovlp.numberCells());
+                     IntVector a_ratio(ratio.getBlockVector(domain_box.getBlockId()));
+                     IntVector b_ratio(ratio.getBlockVector(nbr_box.getBlockId()));
+
+                     origin_a_db->putInteger("i", node_ovlp.lower(0));
+                     width_a_db->putInteger("i", a_width[0]);
+                     ratio_a_db->putInteger("i", a_ratio[0]);
+                     origin_b_db->putInteger("i", tnode_ovlp.lower(0));
+                     width_b_db->putInteger("i", b_width[0]);
+                     ratio_b_db->putInteger("i", a_ratio[0]);
+                     if (d_dim.getValue() > 1) {
+                        origin_a_db->putInteger("j", node_ovlp.lower(1));
+                        width_a_db->putInteger("j", a_width[1]);
+                        ratio_a_db->putInteger("j", a_ratio[1]);
+                        origin_b_db->putInteger("j", tnode_ovlp.lower(1));
+                        width_b_db->putInteger("j", b_width[1]);
+                        ratio_b_db->putInteger("j", b_ratio[1]);
+                     }
+                     if (d_dim.getValue() > 2) {
+                        origin_a_db->putInteger("k", node_ovlp.lower(2));
+                        width_a_db->putInteger("k", a_width[2]);
+                        ratio_a_db->putInteger("k", a_ratio[2]);
+                        origin_b_db->putInteger("k", tnode_ovlp.lower(2));
+                        width_b_db->putInteger("k", b_width[2]);
+                        ratio_b_db->putInteger("k", b_ratio[2]);
+                     }
+
+                     if (pbox.getBlockId() != nbr_box.getBlockId()) {
+                        Transformation::RotationIdentifier rotation =
+                           d_grid_geometry->getRotationIdentifier(
+                              nbr_box.getBlockId(), pbox.getBlockId());
+                        std::vector<int> orientation(3);
+                        Transformation::setOrientationVector(
+                           orientation, rotation);
+
+                        group_db->putIntegerVector("orientation", orientation);
+                     }
                   }
                }
             }

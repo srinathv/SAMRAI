@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2023 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2024 Lawrence Livermore National Security, LLC
  * Description:   An AMR hierarchy of patch levels
  *
  ************************************************************************/
@@ -1009,15 +1009,21 @@ public:
 
 #ifdef SAMRAI_HAVE_CONDUIT
    /*!
-    * @brief Make a database holding a description of the hierarchy in the Conduit blueprint
-    * format.
+    * @brief Make a database holding a description of the hierarchy in the
+    * Conduit blueprint format.
     *
-    * The blueprint is a portable format for description of a mesh and its data. See
-    * https://llnl-conduit.readthedocs.io for the Conduit library.
+    * The blueprint is a portable format for description of a mesh and its data.
+    * See https://llnl-conduit.readthedocs.io for the Conduit library.
     *
-    * Some parts of the blueprint can be constructed directly from evaluating the PatchHierarchy,
-    * and others require application-specific information.  This method fills the database with as much
-    * as it can from the PatchHierarchy and then uses the BlueprintUtils class to add the remainder.
+    * Some parts of the blueprint can be constructed directly from evaluating
+    * the PatchHierarchy, and others require application-specific information.
+    * This method fills the database with as much as it can from the
+    * PatchHierarchy and then uses the BlueprintUtils class to add the
+    * remainder.
+    *
+    * The blueprint description will contain a domain, as defined in the
+    * blueprint format, that corresponds directly to each patch in the
+    * PatchHierarchy.
     *
     * @param[out]  Database to hold the blueprint 
     * @param[in]   Utility class that adds data to the blueprint
@@ -1026,6 +1032,34 @@ public:
    makeBlueprintDatabase(
       const std::shared_ptr<tbox::Database>& blueprint_db,
       const BlueprintUtils& bp_utils) const; 
+
+   /*!
+    * @brief Make a database holding a description of the a flattened
+    * version of this hierarchy in the Conduit blueprint format.
+    *
+    * @see FlattenedHierarchy
+    *
+    * This creates a database in the blueprint format that describes a
+    * flattened version of this hierarchy. The flattened version is
+    * a representation of the hierarchy that only uses the parts of the
+    * hierarchy that represent the finest available mesh at any location.
+    *
+    * Some parts of the blueprint can be constructed directly from evaluating
+    * the PatchHierarchy, and others require application-specific information.
+    * This method fills the database with as much as it can from the
+    * PatchHierarchy and then uses the BlueprintUtils class to add the
+    * remainder.
+    *
+    * This method will create a blueprint domain for each logically-rectangular
+    * "visible box" as defined in the FlattenedHierarchy class. A visible box
+    * may represent only a part of the index space of a patch, if part of the
+    * patch represents the finest available mesh, and other part of the patch
+    * are covered by finer levels.
+    */
+   void
+   makeFlattenedBlueprintDatabase(
+      const std::shared_ptr<tbox::Database>& blueprint_db,
+      const BlueprintUtils& bp_utils) const;
 #endif
 
    /*!
@@ -1054,6 +1088,8 @@ public:
    void
    makeAdjacencySets(
       const std::shared_ptr<tbox::Database>& blueprint_db,
+      const FlattenedHierarchy& flat_hierarchy,
+      const std::vector< std::shared_ptr<BoxLevel> >& flat_box_level,
       const std::string& topology_name) const;
 
    /*!

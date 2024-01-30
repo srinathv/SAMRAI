@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2023 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2024 Lawrence Livermore National Security, LLC
  * Description:   BlueprintUtilsStrategy
  *
  ************************************************************************/
@@ -54,10 +54,13 @@ public:
     *
     * @param coords_db   Database to hold coordinate information
     * @param patch       Patch for which coordinates will be described
+    * @param box         Coordinate information should be described for
+    *                    intersection of this box and the patch's box
     */
    virtual void putCoordinatesToDatabase(
       std::shared_ptr<tbox::Database>& coords_db,
-      const Patch& patch) = 0;
+      const Patch& patch,
+      const Box& box) = 0;
 
 private:
 

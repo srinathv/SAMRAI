@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2023 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2024 Lawrence Livermore National Security, LLC
  * Description:   Blueprint utilities.
  *
  ************************************************************************/
@@ -37,6 +37,7 @@ namespace hier {
  */
 
 class PatchHierarchy;
+class FlattenedHierarchy;
 
 class BlueprintUtils
 {
@@ -58,10 +59,11 @@ public:
    /*!
     * @brief Put topology and coordinates to the database
     *
-    * Combined with a BlueprintUtilsStrategy, this loops over a hierarchy,
-    * fills blueprint topology and coordinate entries, calls back to user code
-    * for specific types of coordinates recognized by the blueprint:
-    * uniform, rectilinear, or explicit
+    * Using the BlueprintUtilsStrategy given to the constructor of this
+    * object, this loops over a hierarchy, fills blueprint topology and
+    * and coordinate entries, and calls back to user code to specify the
+    * coordinates using the types of coordinates recognized by the
+    * blueprint:  uniform, rectilinear, or explicit.
     *
     * @param blueprint_db  Top-level blueprint database holding all local
     *                      domain information
@@ -71,6 +73,32 @@ public:
    void putTopologyAndCoordinatesToDatabase(
       const std::shared_ptr<tbox::Database>& blueprint_db,
       const PatchHierarchy& hierarchy,
+      const std::string& topology_name) const;
+
+   /*!
+    * @brief Put topology and coordinates to the database
+    *
+    * Using the BlueprintUtilsStrategy given to the constructor of this
+    * object, this loops over a hierarchy, fills blueprint topology and
+    * and coordinate entries, and calls back to user code to specify the
+    * coordinates using the types of coordinates recognized by the
+    * blueprint:  uniform, rectilinear, or explicit.
+    *
+    * This overloaded version of the method includes a FlattenedHierarchy
+    * argument to restrict the filling of coordinates to the finest available
+    * level of resulation as represented by the flattened version of the
+    * hierarchy.
+    *
+    * @param blueprint_db    Top-level blueprint database holding all local
+    *                        domain information
+    * @param hierarchy       The full AMR hierarchy being described
+    * @param flat_hierarchy  The flattened version of the AMR hierarchy.  
+    * @param topology_name Name of the topology
+    */
+   void putTopologyAndCoordinatesToDatabase(
+      const std::shared_ptr<tbox::Database>& blueprint_db,
+      const PatchHierarchy& hierarchy,
+      const FlattenedHierarchy& flat_hierarchy,
       const std::string& topology_name) const;
 
    /*!
