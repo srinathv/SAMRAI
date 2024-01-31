@@ -679,15 +679,47 @@ GriddingAlgorithm::makeCoarsestLevel(
          false,
          old_level);
 
-      old_level.reset();
-
       if (d_hierarchy->getNumberOfLevels() > 1) {
-         d_hierarchy->getPatchLevel(0)->findConnectorWithTranspose(
-            *(d_hierarchy->getPatchLevel(1)),
-            d_hierarchy->getRequiredConnectorWidth(0,1),
-            d_hierarchy->getRequiredConnectorWidth(1,0),
-            hier::CONNECTOR_CREATE);
+         const hier::Connector& new_to_old =
+            d_hierarchy->getPatchLevel(ln)->findConnector(
+               *old_level,
+               d_hierarchy->getRequiredConnectorWidth(0, 0),
+               hier::CONNECTOR_IMPLICIT_CREATION_RULE,
+               true);
+
+         const hier::Connector& old_to_fine =
+            old_level->findConnector(
+               *(d_hierarchy->getPatchLevel(ln+1)),
+               d_hierarchy->getRequiredConnectorWidth(0, 1),
+               hier::CONNECTOR_IMPLICIT_CREATION_RULE,
+               true);
+
+         std::shared_ptr<hier::Connector> new_to_fine;
+         d_oca.bridgeWithNesting(
+            new_to_fine,
+            new_to_old,
+            old_to_fine,
+            zero_vec,
+            zero_vec,
+            d_hierarchy->getRequiredConnectorWidth(0, 1),
+            true);
+
+         std::shared_ptr<hier::Connector> new_to_new;
+         d_oca.bridgeWithNesting(
+            new_to_new,
+            new_to_old,
+            new_to_old.getTranspose(),
+            zero_vec,
+            zero_vec,
+            d_hierarchy->getRequiredConnectorWidth(0, 0),
+            false);
+
+         d_hierarchy->getPatchLevel(0)->cacheConnector(new_to_fine);
+         d_hierarchy->getPatchLevel(0)->cacheConnector(new_to_new);
+
       }
+
+      old_level.reset();
    }
 
    std::shared_ptr<hier::PatchLevel> new_level(
