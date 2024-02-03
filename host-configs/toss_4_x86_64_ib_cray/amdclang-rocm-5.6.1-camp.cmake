@@ -2,6 +2,7 @@ set(CMAKE_CXX_COMPILER "/usr/tce/packages/rocmcc-tce/rocmcc-5.6.1/bin/amdclang++
 set(CMAKE_C_COMPILER "/usr/tce/packages/rocmcc-tce/rocmcc-5.6.1/bin/amdclang" CACHE PATH "")
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
 set(BLT_CXX_STD "c++14" CACHE STRING "")
+set(CMAKE_CXX_FLAGS "--offload-arch=gfx90a"
 set(ENABLE_TESTS Off CACHE BOOL "")
 set(ENABLE_CLANG_CUDA Off CACHE BOOL "")
 set(ENABLE_CUDA Off CACHE BOOL "")
