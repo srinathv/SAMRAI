@@ -52,19 +52,28 @@ then
     ln -s ${camp_config}
     ln -s ${umpire_config}
 
-    if [[ ! -d /usr/WS1/samrai/tpl/raja/v2023.06.0 ]]
+    if [[ ! -d /usr/WS1/samrai/tpl/raja/v2023.06.00 ]]
     then
-        wget https://github.com/LLNL/RAJA/releases/download/v2023.06.0/RAJA-v2023.06.0.tar.gz
-        tar xvf RAJA-v2023.06.0.tar.gz
-        mv RAJA-v2023.06.0 raja
+         git clone git@github.com:LLNL/RAJA.git raja
+         cd raja
+         git submodule init; git submodule update
+         cd ..
+#        wget https://github.com/LLNL/RAJA/releases/download/v2023.06.0/RAJA-v2023.06.0.tar.gz
+#        tar xvf RAJA-v2023.06.0.tar.gz
+#        mv RAJA-v2023.06.0 raja
     else
         cp -r /usr/WS1/samrai/tpl/raja/v2023.06.0 raja
     fi
-    if [[ ! -d /usr/WS1/samrai/tpl/umpire/v2023.06.0 ]]
+    if [[ ! -d /usr/WS1/samrai/tpl/umpire/v2023.06.00 ]]
     then
-        wget https://github.com/LLNL/umpire/releases/download/v2023.06.0/umpire-2023.06.0.tar.gz
-        tar xvf umpire-2023.06.0.tar.gz
-        mv umpire-2023.06.0 umpire
+         git clone git@github.com:LLNL/umpire.git
+         cd umpire
+         git checkout task/update-blt-tpl-exports
+         git submodule init; git submodule update
+         cd ..
+#        wget https://github.com/LLNL/umpire/releases/download/v2023.06.0/umpire-2023.06.0.tar.gz
+#        tar xvf umpire-2023.06.0.tar.gz
+#        mv umpire-2023.06.0 umpire
     else
         cp -r /usr/WS1/samrai/tpl/umpire/v2023.06.0 umpire
     fi
@@ -73,7 +82,9 @@ then
 
     ${tpl_script} ${build_dir}/tpl_libs ${compiler}
 
-    tpl_flags="-Dcamp_DIR=${build_dir}/tpl_libs/camp/lib/cmake/camp -DRAJA_DIR=${build_dir}/tpl_libs/raja/lib/cmake/raja -Dumpire_DIR=${build_dir}/tpl_libs/umpire/lib/cmake/umpire -DENABLE_RAJA=ON -DENABLE_UMPIRE=ON"
+    #tpl_flags="-DENABLE_RAJA=Off -DENABLE_UMPIRE=Off"
+    tpl_flags="-Dfmt_DIR=${build_dir}/tpl_libs/umpire/lib64/cmake/fmt -Dcamp_DIR=${build_dir}/tpl_libs/camp/lib/cmake/camp -DRAJA_DIR=${build_dir}/tpl_libs/raja/lib/cmake/raja -Dumpire_DIR=${build_dir}/tpl_libs/umpire/lib64/cmake/umpire -DENABLE_RAJA=ON -DENABLE_UMPIRE=ON"
+    #tpl_flags="-DRAJA_DIR=${build_dir}/tpl_libs/raja/lib/cmake/raja -Dumpire_DIR=${build_dir}/tpl_libs/umpire/lib/cmake/umpire -DENABLE_RAJA=ON -DENABLE_UMPIRE=ON"
 
     conf_suffix="host-configs/${sys_type}/${compiler}.cmake"
 
