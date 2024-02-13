@@ -54,7 +54,7 @@ then
 
     if [[ ! -d /usr/WS1/samrai/tpl/raja/v2023.06.00 ]]
     then
-         git clone git@github.com:LLNL/RAJA.git raja
+         git clone https://github.com/LLNL/RAJA.git raja
          cd raja
          git submodule init; git submodule update
          cd ..
@@ -66,7 +66,7 @@ then
     fi
     if [[ ! -d /usr/WS1/samrai/tpl/umpire/v2023.06.00 ]]
     then
-         git clone git@github.com:LLNL/umpire.git
+         git clone https://github.com/LLNL/umpire.git
          cd umpire
          git checkout task/update-blt-tpl-exports
          git submodule init; git submodule update
