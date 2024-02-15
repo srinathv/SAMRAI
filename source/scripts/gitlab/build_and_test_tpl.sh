@@ -68,8 +68,8 @@ then
     then
          git clone https://github.com/LLNL/umpire.git
          cd umpire
-         git checkout task/update-blt-tpl-exports
-         git submodule init; git submodule update
+         git checkout  task/update-blt-tpl-exports
+         git submodule update --init --recursive
          cd ..
 #        wget https://github.com/LLNL/umpire/releases/download/v2023.06.0/umpire-2023.06.0.tar.gz
 #        tar xvf umpire-2023.06.0.tar.gz
@@ -102,7 +102,6 @@ then
 
     cmake_cmd="/usr/tce/packages/cmake/cmake-3.23.1/bin/cmake"
     ${cmake_cmd} \
-      -C ${generic_conf} \
       -C ${samrai_conf} \
       ${tpl_flags} \
       ${project_dir}
