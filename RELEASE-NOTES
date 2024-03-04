@@ -56,7 +56,9 @@ has been added.
                 Summary of what's changed
 -----------------------------------------------------------------------------
 
-1) 
+1) The "minimum_patch_load" optional input parameter in load balancing classes
+CascadePartitioner and TreeLoadBalance has been changed to
+"artificial_minimum_load".
 
 
 *****************************************************************************
@@ -75,7 +77,20 @@ has been added.  Caliper can be used for code annotations to enable performance 
                 Details about what's changed
 ----------------------------------------------------------------------------
 
-3)
+1) The "minimum_patch_load" optional input parameter in load balancing classes
+CascadePartitioner and TreeLoadBalance has been changed to
+"artificial_minimum_load".  This parameter, if used, sets a value that
+gives an artificially larger load value to small boxes that are provided
+to or created by the load balancer classes.  If a box's size is less than
+the value given by this parameter, the load balancer algorithm will treat
+it as if its size is the artificial minimum load value.
+
+The purpose of this parameter is to reduce the likelihood of gathering large
+numbers of small patches on individual ranks.  A user may use this parameter
+in situations when they may prefer a more equal balance of the patch count
+across ranks and are willing to create an unequal balance of the zone count
+to achieve that goal.
+
 
 
 =============================================================================
