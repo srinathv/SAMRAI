@@ -89,6 +89,10 @@ if (ENABLE_HIP)
   endif ()
 
   set (HAVE_HIP True)
+
+  if (ENABLE_SHARED_MEMORY)
+     set (USE_SHARED_GPU_MEMORY True)
+  endif ()
 endif ()
 
 # HDF5

@@ -94,7 +94,11 @@ AllocatorDatabase::initialize()
 
   if (!rm.isAllocator("samrai::stream_allocator")) {
 #if defined(HAVE_CUDA) || defined(HAVE_HIP)
+#if defined(USE_SHARED_GPU_MEMORY)
+    auto allocator = rm.getAllocator(umpire::resource::Device);
+#else
     auto allocator = rm.getAllocator(umpire::resource::Pinned);
+#endif
 #else
     auto allocator = rm.getAllocator(umpire::resource::Host);
 #endif

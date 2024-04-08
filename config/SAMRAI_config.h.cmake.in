@@ -136,6 +136,8 @@
 /* Compiling with HIP */
 #cmakedefine HAVE_HIP
 
+#cmakedefine USE_SHARED_GPU_MEMORY
+
 /* Add NVTX regions */
 #cmakedefine ENABLE_NVTX_REGIONS
 
