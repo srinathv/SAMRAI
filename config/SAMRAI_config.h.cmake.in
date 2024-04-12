@@ -136,7 +136,8 @@
 /* Compiling with HIP */
 #cmakedefine HAVE_HIP
 
-#cmakedefine USE_SHARED_GPU_MEMORY
+/* Use Device allocator for most Umpire operations */
+#cmakedefine USE_DEVICE_ALLOCATOR
 
 /* Add NVTX regions */
 #cmakedefine ENABLE_NVTX_REGIONS

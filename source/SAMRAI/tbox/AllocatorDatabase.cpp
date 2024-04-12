@@ -78,7 +78,12 @@ AllocatorDatabase::initialize()
         "SET_PREFERRED_LOCATION");
 #endif
 
+#if defined(USE_DEVICE_ALLOCATOR)
+    auto allocator = rm.getAllocator(umpire::resource::Device);
+#else
     auto allocator = rm.getAllocator(umpire::resource::Pinned);
+#endif
+
 #else 
     auto allocator = rm.getAllocator(umpire::resource::Host);
 #endif
@@ -94,7 +99,7 @@ AllocatorDatabase::initialize()
 
   if (!rm.isAllocator("samrai::stream_allocator")) {
 #if defined(HAVE_CUDA) || defined(HAVE_HIP)
-#if defined(USE_SHARED_GPU_MEMORY)
+#if defined(USE_DEVICE_ALLOCATOR)
     auto allocator = rm.getAllocator(umpire::resource::Device);
 #else
     auto allocator = rm.getAllocator(umpire::resource::Pinned);
@@ -118,8 +123,11 @@ AllocatorDatabase::initialize()
 
   if (!rm.isAllocator("samrai::temporary_data_allocator")) {
 #if defined(HAVE_CUDA) || defined(HAVE_HIP)
-    //auto allocator = rm.getAllocator(umpire::resource::Device);
+#if defined(USE_DEVICE_ALLOCATOR)
+    auto allocator = rm.getAllocator(umpire::resource::Device);
+#else
     auto allocator = rm.getAllocator(umpire::resource::Pinned);
+#endif
 #else
     auto allocator = rm.getAllocator(umpire::resource::Host);
 #endif

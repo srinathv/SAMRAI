@@ -90,8 +90,8 @@ if (ENABLE_HIP)
 
   set (HAVE_HIP True)
 
-  if (ENABLE_SHARED_MEMORY)
-     set (USE_SHARED_GPU_MEMORY True)
+  if (ENABLE_SAMRAI_DEVICE_ALLOC)
+     set (USE_DEVICE_ALLOCATOR True)
   endif ()
 endif ()
 
